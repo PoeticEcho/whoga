@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+_site/
+.env
+.env.*
+config.local.json
+*.db
+*.log
+test-results/
+node_modules/

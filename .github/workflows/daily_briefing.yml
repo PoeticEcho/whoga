@@ -1,0 +1,167 @@
+name: whoga · W 호가 & Pages
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['_state/**', '**.md']
+  schedule:
+    - cron: '13 23 * * *' # 매일 한국시간 08:13 전후. GitHub 대기열에 따라 지연될 수 있습니다.
+  workflow_dispatch:
+    inputs:
+      collect:
+        description: '네이버에서 새 자료 수집 (첫 배포는 체크 해제)'
+        type: boolean
+        default: false
+      notify:
+        description: '실제 텔레그램 알림 발송 (Secrets 등록 후 선택)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: beomeo-w-daily-pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event_name != 'schedule' || vars.ENABLE_DAILY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      collect_requested: ${{ steps.plan.outputs.collect }}
+      notify_requested: ${{ steps.plan.outputs.notify }}
+      collect_result: ${{ steps.collect.outcome }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Decide requested operations
+        id: plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MANUAL_COLLECT: ${{ inputs.collect }}
+          MANUAL_NOTIFY: ${{ inputs.notify }}
+          ENABLE_DAILY: ${{ vars.ENABLE_DAILY }}
+        run: |
+          collect=false
+          notify=false
+          if [ "$EVENT_NAME" = schedule ] && [ "$ENABLE_DAILY" = true ]; then
+            collect=true
+            notify=true
+          elif [ "$EVENT_NAME" = workflow_dispatch ]; then
+            collect=${MANUAL_COLLECT:-false}
+            notify=${MANUAL_NOTIFY:-false}
+          fi
+          echo "collect=$collect" >> "$GITHUB_OUTPUT"
+          echo "notify=$notify" >> "$GITHUB_OUTPUT"
+      - name: Verify data and comparison behavior
+        run: |
+          python -m unittest discover -s tests -v
+          node --test tests/*.test.mjs
+      - name: Install collector
+        id: collector_setup
+        if: steps.plan.outputs.collect == 'true'
+        continue-on-error: true
+        run: |
+          python -m pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Collect complete snapshot
+        id: collect
+        if: steps.plan.outputs.collect == 'true' && steps.collector_setup.outcome == 'success'
+        continue-on-error: true
+        run: python crawler.py
+      - name: Record collection setup failure
+        if: steps.plan.outputs.collect == 'true' && steps.collector_setup.outcome != 'success'
+        run: python -c "from monitor import record_failure; record_failure('data', '수집 실행 환경 준비에 실패했습니다. Actions 실행 기록을 확인해 주세요.')"
+      - name: Build public directory
+        run: python scripts/build_site.py
+      - name: Persist snapshots and collection status
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/
+          if ! git diff --cached --quiet; then
+            git commit -m 'data: update Beomeo W observations [skip ci]'
+            git push origin HEAD:main
+          fi
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Deploy public artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  notification:
+    needs: [build, deploy]
+    if: always() && (needs.build.outputs.collect_requested == 'true' || needs.build.outputs.notify_requested == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Send requested daily or failure notification
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          NOTIFY: ${{ needs.build.outputs.notify_requested }}
+          COLLECT: ${{ needs.build.outputs.collect_requested }}
+          COLLECT_RESULT: ${{ needs.build.outputs.collect_result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+          SITE_URL: ${{ needs.deploy.outputs.page_url }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          args=()
+          if [ "$NOTIFY" = true ]; then args+=(--enabled); fi
+          if [ "$COLLECT" = true ] && { [ "$COLLECT_RESULT" != success ] || [ "$BUILD_RESULT" != success ]; }; then
+            args+=(--collection-failed)
+          fi
+          if [ "$DEPLOY_RESULT" != success ]; then args+=(--deployment-failed); fi
+          python scripts/notify.py "${args[@]}"
+      - name: Persist notification receipt keys
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ -d _state ]; then
+            git add _state/
+            if ! git diff --cached --quiet; then
+              git commit -m 'chore: record delivered briefing [skip ci]'
+              git push origin HEAD:main
+            fi
+          fi
+      - name: Expose failed collection in workflow result
+        if: needs.build.outputs.collect_requested == 'true' && needs.build.outputs.collect_result != 'success'
+        run: |
+          echo 'Collection failed. Previous snapshot retained; check collection log.'
+          exit 1

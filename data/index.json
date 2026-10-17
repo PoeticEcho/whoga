@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 2,
+  "latest": "2026-10-17",
+  "snapshots": [
+    {
+      "id": "2026-10-17",
+      "date": "2026-10-17",
+      "label": "2026-10-17",
+      "file": "2026-10-17.json",
+      "count": 120,
+      "declaredCount": 120,
+      "complete": true,
+      "sourceKind": "provided",
+      "collectedAt": null
+    },
+    {
+      "id": "2026-10-17_118건",
+      "date": "2026-10-17",
+      "label": "2026-10-17 (118건)",
+      "file": "2026-10-17_118건.json",
+      "count": 118,
+      "declaredCount": 118,
+      "complete": true,
+      "sourceKind": "provided",
+      "collectedAt": null
+    },
+    {
+      "id": "2026-10-16",
+      "date": "2026-10-16",
+      "label": "2026-10-16",
+      "file": "2026-10-16.json",
+      "count": 117,
+      "declaredCount": 117,
+      "complete": true,
+      "sourceKind": "provided",
+      "collectedAt": null
+    },
+    {
+      "id": "2026-08-06",
+      "date": "2026-08-06",
+      "label": "2026-08-06",
+      "file": "2026-08-06.json",
+      "count": 92,
+      "declaredCount": 108,
+      "complete": false,
+      "sourceKind": "provided",
+      "collectedAt": null
+    }
+  ]
+}
