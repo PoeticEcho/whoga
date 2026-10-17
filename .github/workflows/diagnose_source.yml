@@ -1,0 +1,24 @@
+name: whoga · 네이버 연결 진단
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/diagnose_source.yml'
+      - 'scripts/diagnose_connection.py'
+
+permissions:
+  contents: read
+
+jobs:
+  connection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Check one public document request
+        run: python scripts/diagnose_connection.py

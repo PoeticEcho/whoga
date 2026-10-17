@@ -98,6 +98,15 @@ GitHub 대기열에 따라 실행이 늦어지거나 누락될 수 있습니다.
 
 ## 5. 자동 수집이 실패할 때
 
+2026-10-18 실제 실행에서 `page.goto(..., wait_until="commit")`가 45초 안에 완료되지 않았습니다.
+매물 해석을 시작하기 전의 실패이며, 이 결과만으로 DNS·서버·보안 연결 문제나 접근 제한을 확정할 수 없습니다.
+`Actions → whoga · 네이버 연결 진단`은 설정된 공개 원문에 한 번 요청해 DNS·TCP·TLS·첫 응답 시간을 기록합니다.
+이 진단은 수집 자료·알림을 변경하지 않으며, 자동 재시도나 인증서 검증 해제는 하지 않습니다.
+
+일일 운영은 실제 수집 성공을 확인한 뒤 활성화합니다. 현재 화면에는 `자동 갱신 연결 점검 중`을 표시합니다.
+GitHub 실행 환경에서 연결이 계속 실패하면, 정상 접근 가능한 본인 컴퓨터에서 기존 수집기를 먼저 시험할 수 있습니다.
+로컬 시험도 성공을 확인해야 하며 컴퓨터의 정기 실행 설정과 공유 자료 갱신 연결이 필요합니다.
+
 웹페이지 `수동 자료`에서 JSON을 가져오거나, 총수와 각 매물의 내용을 포함한 네이버 원문을 붙여넣을 수 있습니다.
 이 자료는 **그 브라우저에만 저장**됩니다. 다른 기기·매일 알림에는 자동 반영되지 않습니다.
 
@@ -168,9 +177,11 @@ GitHub Actions에서는 브라우저와 Linux 의존성까지 자동 설치합�
 ## 8. 검증 범위와 남은 확인
 
 포함된 기준 자료와 합성 입력으로 데이터·비교·저장·알림 실패 처리를 검사했습니다.
-화면 동작은 DOM 모의 환경에서 검사했으며 실제 브라우저 시각 검수는 이 환경에서 수행하지 않았습니다.
+화면 동작은 DOM 모의 환경과 배포된 공개 페이지의 실제 브라우저에서 검사했습니다.
+날짜 전환·필터·검색·초기화 및 CSV·JSON 다운로드를 확인했습니다.
 텔레그램 시험은 모의 응답으로 검증하며 실제 메시지를 발송하지 않았습니다.
-실제 GitHub 저장소 생성·Actions 실행·Pages URL 배포는 아직 진행하지 않았습니다.
+`PoeticEcho/whoga` 저장소와 `https://poeticecho.github.io/whoga/` 배포를 완료했습니다.
+2026-10-18 06:35 KST 실제 수집 실행은 최초 응답 시간 초과로 실패했고, 저장된 자료 보존과 재배포는 확인했습니다.
 네이버 원문 접근과 전체 매물 수집은 실행 환경·페이지 변경에 영향을 받습니다. 첫 실제 수집 성공을 확인한 뒤 일일 운영을 켜세요.
 
 공식 참고: [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages), [Pages 배포 워크플로](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), [예약 실행](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule), [Actions Secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets), [Telegram Bot API](https://core.telegram.org/bots/api#sendmessage).
