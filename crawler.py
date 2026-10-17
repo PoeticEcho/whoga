@@ -6,6 +6,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from monitor import (ROOT, KST, ValidationError, declared_count, floor_category,
                      now_kst, parse_raw_text, price_eok, read_json, record_failure,
@@ -77,18 +78,20 @@ def adapt_article(row, config):
             "desc": str(row.get("articleFeatureDesc") or ""), "baseTag": ""}
 
 
-def collect_browser(config, max_scrolls=45):
+def collect_browser(config, max_scrolls=45, *, mobile=False):
     try:
         from playwright.sync_api import sync_playwright, TimeoutError as BrowserTimeout
     except ImportError as exc:
         raise ValidationError("수집용 Playwright가 없습니다. 설치 안내를 확인해 주세요.") from exc
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        context = browser.new_context(viewport={"width": 1280, "height": 1000}, locale="ko-KR")
+        options = dict(p.devices["Pixel 7"]) if mobile else {"viewport": {"width": 1280, "height": 1000}}
+        context = browser.new_context(**options, locale="ko-KR")
         page = context.new_page()
 
         try:
-            # 동적 지도 페이지는 광고·하위 리소스의 전체 로딩을 기다리지 않습니다.
+            print(f"브라우저 화면: {'모바일 Pixel 7' if mobile else 'PC 1280x1000'}", flush=True)
+            # 동적 목록 페이지는 광고·하위 리소스의 전체 로딩을 기다리지 않습니다.
             # 표시된 매물 목록이 완성되는지는 아래 수량 검사로 따로 확인합니다.
             try:
                 response = page.goto(config["sourceUrl"], wait_until="commit", timeout=45000)
@@ -96,8 +99,10 @@ def collect_browser(config, max_scrolls=45):
                 raise ValidationError("네이버 최초 응답 대기 시간이 초과되었습니다. 기존 자료를 유지합니다.") from exc
             if response and response.status in (401, 403, 429):
                 raise ValidationError(f"네이버 접근 제한(HTTP {response.status}). 수집을 중단했습니다.")
+            print(f"첫 응답 확인: HTTP {response.status if response else '미확인'} · 경로 {urlsplit(page.url).path}", flush=True)
             stable_rounds, previous_count = 0, -1
             expected, best_items = None, []
+            last_report = None
             for _ in range(max_scrolls):
                 page.wait_for_timeout(1100)
                 try:
@@ -107,6 +112,10 @@ def collect_browser(config, max_scrolls=45):
                 if any(x in raw for x in ("비정상적인 접근", "접근이 제한", "서비스 이용이 제한", "자동입력 방지", "로봇이 아닙니다")):
                     raise ValidationError("네이버 접근 제한 화면이 표시되어 수집을 중단했습니다.")
                 expected, text_items = parse_raw_text(raw, config["allowedDongs"])
+                report = (expected, len(text_items))
+                if report != last_report:
+                    print(f"목록 확인: 원문 {expected if expected is not None else '미확인'} / 화면 {len(text_items)}건", flush=True)
+                    last_report = report
                 # 네이버의 공동중개 묶음 건수와 개별 중개사 매물 건수를 혼합하지 않습니다.
                 if expected is not None and expected > 0 and len(text_items) == expected:
                     snapshot = {"date": now_kst()[:10], "declaredCount": expected, "items": text_items}
@@ -137,6 +146,7 @@ def main(argv=None):
     parser.add_argument("--data-dir", type=Path, default=ROOT / "data")
     parser.add_argument("--replace", action="store_true", help="수동 입력으로 같은 날짜를 교체")
     parser.add_argument("--dry-run", action="store_true", help="검사 결과만 표시. 파일·알림 변경 없음")
+    parser.add_argument("--mobile", action="store_true", help="표준 Pixel 7 모바일 화면으로 수집 (PC 기본값과 별도 시험)")
     args = parser.parse_args(argv)
     config = read_json(ROOT / "config.json")
     try:
@@ -159,7 +169,7 @@ def main(argv=None):
         else:
             if args.date:
                 raise ValidationError("--date는 수동 입력에서만 사용할 수 있습니다.")
-            snapshot = collect_browser(config)
+            snapshot = collect_browser(config, mobile=args.mobile)
             kind = "naver-live"
         validation = validate_snapshot(snapshot, require_complete=True, allowed_dongs=config["allowedDongs"])
         if not args.dry_run:

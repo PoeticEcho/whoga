@@ -1,0 +1,40 @@
+name: whoga · 모바일 목록 수집 시험
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe_mobile.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install standard browser
+        run: |
+          python -m pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Read mobile listing without changing stored data
+        run: |
+          set +e
+          python crawler.py --mobile --dry-run 2>&1 | tee mobile-check.log
+          result=${PIPESTATUS[0]}
+          {
+            echo '## 모바일 목록 수집 시험'
+            echo ''
+            echo '표준 Pixel 7 화면 설정. 첫 응답과 전체 목록 수량을 확인합니다. 자료·알림 변경 없음.'
+            echo ''
+            echo '```text'
+            cat mobile-check.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$result"
