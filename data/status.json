@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
-  "lastAttemptResult": "not_run",
-  "lastAttemptAt": null,
+  "lastAttemptResult": "failed",
+  "lastAttemptAt": "2026-10-17T19:45:39+09:00",
   "lastSuccessAt": null,
   "sourceKind": "provided",
-  "message": "첨부 기준 자료를 표시합니다. GitHub Actions의 실제 네이버 수집은 아직 검증되지 않았습니다."
+  "message": "수집 연결 또는 페이지 형식 확인에 실패했습니다. Actions 로그와 수동 입력 안내를 확인해 주세요."
 }
