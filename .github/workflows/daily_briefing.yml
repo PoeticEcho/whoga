@@ -50,12 +50,13 @@ jobs:
           MANUAL_COLLECT: ${{ inputs.collect }}
           MANUAL_NOTIFY: ${{ inputs.notify }}
           ENABLE_DAILY: ${{ vars.ENABLE_DAILY }}
+          ENABLE_TELEGRAM: ${{ vars.ENABLE_TELEGRAM }}
         run: |
           collect=false
           notify=false
           if [ "$EVENT_NAME" = schedule ] && [ "$ENABLE_DAILY" = true ]; then
             collect=true
-            notify=true
+            if [ "$ENABLE_TELEGRAM" = true ]; then notify=true; fi
           elif [ "$EVENT_NAME" = workflow_dispatch ]; then
             collect=${MANUAL_COLLECT:-false}
             notify=${MANUAL_NOTIFY:-false}

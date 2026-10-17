@@ -79,48 +79,40 @@ def adapt_article(row, config):
 
 def collect_browser(config, max_scrolls=45):
     try:
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import sync_playwright, TimeoutError as BrowserTimeout
     except ImportError as exc:
         raise ValidationError("수집용 Playwright가 없습니다. 설치 안내를 확인해 주세요.") from exc
-    captured = {}
-    errors = []
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(viewport={"width": 1280, "height": 1000}, locale="ko-KR")
         page = context.new_page()
 
-        def observe(response):
-            if "/article" not in response.url.lower() or "json" not in response.headers.get("content-type", ""):
-                return
-            # 페이지가 정상적으로 읽은 JSON 응답만 관측합니다. 인증 헤더·쿠키를 저장하지 않습니다.
-            try:
-                _, rows = structured_items(response.json(), config)
-                for item in rows:
-                    captured[item["articleId"]] = item
-            except Exception:
-                pass
-
-        page.on("response", observe)
         try:
-            response = page.goto(config["sourceUrl"], wait_until="domcontentloaded", timeout=45000)
+            # 동적 지도 페이지는 광고·하위 리소스의 전체 로딩을 기다리지 않습니다.
+            # 표시된 매물 목록이 완성되는지는 아래 수량 검사로 따로 확인합니다.
+            try:
+                response = page.goto(config["sourceUrl"], wait_until="commit", timeout=45000)
+            except BrowserTimeout as exc:
+                raise ValidationError("네이버 최초 응답 대기 시간이 초과되었습니다. 기존 자료를 유지합니다.") from exc
             if response and response.status in (401, 403, 429):
                 raise ValidationError(f"네이버 접근 제한(HTTP {response.status}). 수집을 중단했습니다.")
             stable_rounds, previous_count = 0, -1
             expected, best_items = None, []
             for _ in range(max_scrolls):
                 page.wait_for_timeout(1100)
-                raw = page.locator("body").inner_text(timeout=12000)
+                try:
+                    raw = page.locator("body").inner_text(timeout=12000)
+                except BrowserTimeout as exc:
+                    raise ValidationError("네이버 화면 본문이 제한 시간 안에 표시되지 않았습니다. 기존 자료를 유지합니다.") from exc
                 if any(x in raw for x in ("비정상적인 접근", "접근이 제한", "서비스 이용이 제한", "자동입력 방지", "로봇이 아닙니다")):
                     raise ValidationError("네이버 접근 제한 화면이 표시되어 수집을 중단했습니다.")
                 expected, text_items = parse_raw_text(raw, config["allowedDongs"])
-                if expected is not None:
-                    choices = [list(captured.values()), text_items]
-                    for items in choices:
-                        if expected > 0 and len(items) == expected:
-                            snapshot = {"date": now_kst()[:10], "declaredCount": expected, "items": items}
-                            validate_snapshot(snapshot, require_complete=True, allowed_dongs=config["allowedDongs"])
-                            return snapshot
-                best_items = max([best_items, text_items, list(captured.values())], key=len)
+                # 네이버의 공동중개 묶음 건수와 개별 중개사 매물 건수를 혼합하지 않습니다.
+                if expected is not None and expected > 0 and len(text_items) == expected:
+                    snapshot = {"date": now_kst()[:10], "declaredCount": expected, "items": text_items}
+                    validate_snapshot(snapshot, require_complete=True, allowed_dongs=config["allowedDongs"])
+                    return snapshot
+                best_items = max([best_items, text_items], key=len)
                 stable_rounds = stable_rounds + 1 if len(best_items) == previous_count else 0
                 previous_count = len(best_items)
                 if stable_rounds >= 10:
@@ -176,6 +168,7 @@ def main(argv=None):
         return 0
     except Exception as exc:
         # 네트워크 오류에는 URL·세션 정보가 들어갈 수 있어 공개 상태 파일에 원문 예외를 저장하지 않습니다.
+        print(f"수집 진단 유형: {type(exc).__name__}", file=sys.stderr)
         message = str(exc) if isinstance(exc, ValidationError) else "수집 연결 또는 페이지 형식 확인에 실패했습니다. Actions 로그와 수동 입력 안내를 확인해 주세요."
         if not args.dry_run and not args.input:
             record_failure(args.data_dir, message)

@@ -1,7 +1,7 @@
 {
   "complexId": "140635",
   "complexName": "수성범어W 오피스텔",
-  "sourceUrl": "https://fin.land.naver.com/complexes/140635?tab=article&tradeType=A1",
+  "sourceUrl": "https://fin.land.naver.com/complexes/140635?tab=article&articleTradeTypes=A1",
   "allowedDongs": ["101동", "102동", "103동", "105동"],
   "dailyTimeLabel": "매일 오전 8:13 전후 · 한국시간",
   "siteUrl": "https://poeticecho.github.io/whoga/"
