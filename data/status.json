@@ -1,8 +1,9 @@
 {
   "schemaVersion": 2,
-  "lastAttemptResult": "failed",
-  "lastAttemptAt": "2026-10-18T06:35:59+09:00",
-  "lastSuccessAt": null,
-  "sourceKind": "provided",
-  "message": "네이버 최초 응답 대기 시간이 초과되었습니다. 기존 자료를 유지합니다."
+  "lastAttemptResult": "success",
+  "lastAttemptAt": "2026-10-18T07:52:35+09:00",
+  "lastSuccessAt": "2026-10-18T07:52:35+09:00",
+  "sourceKind": "naver-live",
+  "message": "클라우드 브라우저에서 목록을 스크롤해 118/118건을 검증했습니다.",
+  "latestCollectedDate": "2026-10-18"
 }

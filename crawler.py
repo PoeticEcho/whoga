@@ -12,6 +12,8 @@ from monitor import (ROOT, KST, ValidationError, declared_count, floor_category,
                      now_kst, parse_raw_text, price_eok, read_json, record_failure,
                      save_snapshot, validate_snapshot)
 
+LISTING_DOM = (ROOT / "scripts" / "listing_dom.js").read_text(encoding="utf-8")
+
 
 def structured_items(payload, config):
     """알려진 네이버 매물 JSON 형태만 처리합니다. 알 수 없는 필드는 실패로 남깁니다."""
@@ -100,39 +102,45 @@ def collect_browser(config, max_scrolls=45, *, mobile=False):
             if response and response.status in (401, 403, 429):
                 raise ValidationError(f"네이버 접근 제한(HTTP {response.status}). 수집을 중단했습니다.")
             print(f"첫 응답 확인: HTTP {response.status if response else '미확인'} · 경로 {urlsplit(page.url).path}", flush=True)
-            stable_rounds, previous_count = 0, -1
+            bottom_stalls, previous_count, full_reads = 0, -1, 0
             expected, best_items = None, []
+            first_total = None
             last_report = None
             for _ in range(max_scrolls):
                 page.wait_for_timeout(1100)
                 try:
-                    raw = page.locator("body").inner_text(timeout=12000)
+                    state = page.evaluate(f"({LISTING_DOM})", False)
+                    raw = state["text"]
                 except BrowserTimeout as exc:
                     raise ValidationError("네이버 화면 본문이 제한 시간 안에 표시되지 않았습니다. 기존 자료를 유지합니다.") from exc
                 if any(x in raw for x in ("비정상적인 접근", "접근이 제한", "서비스 이용이 제한", "자동입력 방지", "로봇이 아닙니다")):
                     raise ValidationError("네이버 접근 제한 화면이 표시되어 수집을 중단했습니다.")
                 expected, text_items = parse_raw_text(raw, config["allowedDongs"])
+                if expected is not None and expected > 0:
+                    if first_total is not None and first_total != expected:
+                        raise ValidationError("수집 도중 원문 총수가 변경되었습니다. 다른 시점의 목록을 섞지 않고 기존 자료를 유지합니다.")
+                    first_total = expected
                 report = (expected, len(text_items))
                 if report != last_report:
                     print(f"목록 확인: 원문 {expected if expected is not None else '미확인'} / 화면 {len(text_items)}건", flush=True)
                     last_report = report
                 # 네이버의 공동중개 묶음 건수와 개별 중개사 매물 건수를 혼합하지 않습니다.
-                if expected is not None and expected > 0 and len(text_items) == expected:
+                full = (state["sourceReady"] and expected is not None and expected > 0
+                        and state["cardCount"] == len(text_items) == expected)
+                full_reads = full_reads + 1 if full else 0
+                if full_reads >= 2:
                     snapshot = {"date": now_kst()[:10], "declaredCount": expected, "items": text_items}
                     validate_snapshot(snapshot, require_complete=True, allowed_dongs=config["allowedDongs"])
                     return snapshot
                 best_items = max([best_items, text_items], key=len)
-                stable_rounds = stable_rounds + 1 if len(best_items) == previous_count else 0
+                # A long first batch can take >10 viewport steps to reach its
+                # loading sentinel. Count stalls only after reaching the bottom.
+                bottom_stalls = bottom_stalls + 1 if state["atBottom"] and len(best_items) == previous_count else 0
                 previous_count = len(best_items)
-                if stable_rounds >= 10:
+                if bottom_stalls >= 5:
                     break
-                page.evaluate("""() => {
-                  const scrollables = [...document.querySelectorAll('main,section,div')]
-                    .filter(e => e.scrollHeight > e.clientHeight + 80 && e.clientHeight > 200
-                      && ['auto','scroll'].includes(getComputedStyle(e).overflowY));
-                  for (const e of scrollables) e.scrollTop += Math.max(500, e.clientHeight * .85);
-                  window.scrollBy(0, 850);
-                }""")
+                if not full and state["sourceReady"]:
+                    page.evaluate(f"({LISTING_DOM})", True)
             raise ValidationError(f"수집 형식을 확인하지 못했습니다. 원문 총수 {expected if expected is not None else '미확인'} / 확인 {len(best_items)}건. 기존 자료를 유지합니다.")
         finally:
             context.close()
