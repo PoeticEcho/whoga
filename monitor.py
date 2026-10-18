@@ -9,7 +9,7 @@ import re
 import tempfile
 from collections import Counter, defaultdict
 from datetime import datetime
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
 from statistics import median
 from zoneinfo import ZoneInfo
@@ -280,24 +280,101 @@ def previous_snapshot(data_dir, current):
     return None
 
 
+def _report_eok(value):
+    number = Decimal(str(value)).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+    result = format(number, "f").rstrip("0").rstrip(".")
+    return result if "." in result else result + ".0"
+
+
+def _report_range(row):
+    low, high = _report_eok(row["minPrice"]), _report_eok(row["maxPrice"])
+    return low + "억" if low == high else low + "~" + high + "억"
+
+
+def _compact_floor(row):
+    return str(row["floor"]).split("/")[0].removesuffix("층") + "층"
+
+
+def _one_line(value):
+    return " ".join(str(value or "").split())
+
+
+def _observation_label(snapshot):
+    day = snapshot["date"][:10]
+    base = datetime.strptime(day, "%Y-%m-%d")
+    weekday = "월화수목금토일"[base.weekday()]
+    label = f"📅 {base.month}/{base.day} ({weekday})"
+    stamp = snapshot.get("observation", {}).get("observedAt") or snapshot.get("collectedAt")
+    try:
+        date = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+        if date.tzinfo is None:
+            raise ValueError("Timezone required")
+        date = date.astimezone(KST)
+        if date.date() != base.date():
+            raise ValueError("Date mismatch")
+    except (AttributeError, TypeError, ValueError):
+        return label + " 기준 · 수집 시각 미기록"
+    minute = f" {date.minute}분" if date.minute else ""
+    return f"{label} {'오전' if date.hour < 12 else '오후'} {date.hour % 12 or 12}시{minute} 기준 (KST)"
+
+
 def build_briefing(current, previous=None):
+    """웹의 요약·변동 리포트와 같은 형식. 시각·가격·행수는 관측 자료로 계산."""
     diff = compare_snapshots(current, previous)
-    lines = [f"범어W 오피스텔 호가 · {current['date'][:10]}", f"관측 {len(current['items'])}건 / 원문 {current['declaredCount']}건"]
-    source = current.get("source", {}).get("kind", "provided")
-    lines.append("네이버 자동 수집" if source == "naver-live" else "제공·수동 입력 자료 (실시간 수집 아님)")
-    for area in ("78OB", "84OA"):
-        prices = [i["minPrice"] for i in current["items"] if i["type"] == area]
-        if prices:
-            lines.append(f"{area} {len(prices)}건 · 최저 {min(prices):g}억 · 중앙값 {median(prices):g}억")
-    if diff["available"]:
-        lines += [f"비교일 {previous['date'][:10]}",
-                  f"추가 관측 {len(diff['added'])} · 미관측 {len(diff['unobserved'])}",
-                  f"번호 확인 호가 변동 {len(diff['changed'])} · 조건 기준 변동 후보 {len(diff['candidates'])}"]
-        for pair in diff["changed"][:6]:
-            item, old = pair["current"], pair["previous"]
-            lines.append(f"{item['dong']} {item['type']} {item['floor']} {old['minPrice']:g} → {item['minPrice']:g}억")
-    else:
-        lines.append(diff["reason"])
-    lines += ["호가는 매도 희망가입니다. 미관측은 거래 완료를 뜻하지 않습니다.",
-              "범위 호가의 통계는 최저값 기준입니다."]
+    quality = validate_snapshot(current)
+    dongs, types = ("101동", "102동", "103동", "105동"), ("78OB", "84OA")
+    lines = ["[범어W 오피스텔 모닝 브리핑]", _observation_label(current), "",
+             "🚨 [시장 핵심 요약]",
+             f"{'전체' if quality['complete'] else '일부'} 관측: {len(current['items'])}건 (원문 {current['declaredCount']}건 · {'수량 일치' if quality['complete'] else '부분 자료'})"]
+    if current.get("source", {}).get("kind") != "naver-live":
+        lines.append("제공·수동 입력 자료 (실시간 수집 아님)")
+    for area in types:
+        prices = [row["minPrice"] for row in current["items"] if row["type"] == area]
+        lines.append(f"{area} ({len(prices)}건): {'최저' if quality['complete'] else '관측 최저'} {_report_eok(min(prices))}억 ｜ 중앙값 {_report_eok(median(prices))}억"
+                     if prices else f"{area}: 관측 없음")
+    lines += ["", "📊 [동별 호가 범위]"]
+    most = max((sum(row["dong"] == dong for row in current["items"]) for dong in dongs), default=0)
+    for dong in dongs:
+        rows = [row for row in current["items"] if row["dong"] == dong]
+        if not rows:
+            continue
+        lines += ["", f"{dong} (총 {len(rows)}건{' · 관측 최다' if len(rows) == most else ''})"]
+        for area in types:
+            group = [row for row in rows if row["type"] == area]
+            prices = [row["minPrice"] for row in group]
+            lines.append(f"{area}: {_report_eok(min(prices))}억 ~ {_report_eok(max(row['maxPrice'] for row in group))}억 (중앙값 {_report_eok(median(prices))}억)"
+                         if group else f"{area}: 관측 없음")
+    lines += ["", "※ 호가 범위는 최저~최고, 중앙값은 각 매물의 최저 호가 기준입니다.",
+              "", "🔔 [일일 변동 리포트]"]
+    if not diff["available"]:
+        lines += [diff["reason"], "", "※ 미관측은 거래 완료를 뜻하지 않습니다. 조건 일치 후보는 동일 호실 미확인입니다."]
+        return "\n".join(lines)
+    gap = (datetime.strptime(current["date"][:10], "%Y-%m-%d") - datetime.strptime(previous["date"][:10], "%Y-%m-%d")).days
+    base = "전일 대비" if gap == 1 else "같은 날 비교 자료 대비" if gap == 0 else f"비교일 {previous['date'][:10]} 대비"
+    delta = len(current["items"]) - len(previous["items"])
+    lines.append(f"({base} 총 관측: {len(previous['items'])}건 ➔ {len(current['items'])}건 [{delta:+d}건])" if delta > 0
+                 else f"({base} 총 관측: {len(previous['items'])}건 ➔ {len(current['items'])}건 [{delta}건])")
+    for title, key, paired in [("🟢 [추가 관측]", "added", False),
+                                ("🔴 [미관측]", "unobserved", False),
+                                ("🔄 [호가 변동 · 매물번호 일치]", "changed", True),
+                                ("🟠 [호가 변동 후보 · 조건 일치]", "candidates", True)]:
+        rows = diff[key]
+        lines += ["", f"{title} (총 {len(rows)}건)"]
+        if not rows:
+            lines.append("없음")
+        for entry in rows:
+            row = entry["current"] if paired else entry
+            prefix = f"{row['dong']} {row['type']} ({_compact_floor(row)} / {_one_line(row['direction'])}) : "
+            identity = f" · 매물번호 {_one_line(row['articleId'])}" if row.get("articleId") else ""
+            if paired:
+                old, changes = entry["previous"], []
+                for field, name in (("minPrice", "하한"), ("maxPrice", "상한")):
+                    change = round(row[field] - old[field], 4)
+                    if change:
+                        changes.append(f"{name} {_report_eok(abs(change))}억 {'하락 ↓' if change < 0 else '상승 ↑'}")
+                detail = " (" + " · ".join(changes) + ")" if changes else ""
+                lines.append(prefix + _report_range(old) + " ➔ " + _report_range(row) + detail + identity)
+            else:
+                lines.append(prefix + _report_range(row) + identity)
+    lines += ["", "※ 미관측은 거래 완료를 뜻하지 않습니다. 조건 일치 후보는 동일 호실 미확인입니다."]
     return "\n".join(lines)

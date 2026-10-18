@@ -122,16 +122,109 @@ export function csvCell(value) {
   return `"${str.replaceAll('"', '""')}"`;
 }
 
-export function briefing(current, previous) {
-  const diff = compareSnapshots(current, previous);
-  const lines = [`범어W 오피스텔 호가 · ${current.date.slice(0, 10)}`, `관측 ${current.items.length}건 / 원문 ${current.declaredCount}건`, current.source?.kind === 'naver-live' ? '네이버 자동 수집' : '제공·수동 입력 자료 (실시간 수집 아님)'];
-  for (const area of ['78OB', '84OA']) {
-    const s = stats(current.items.filter(r => r.type === area));
-    if (s.count) lines.push(`${area} ${s.count}건 · 최저 ${formatEok(s.min)}억 · 중앙값 ${formatEok(s.median)}억`);
+const REPORT_DONGS = ['101동', '102동', '103동', '105동'];
+const REPORT_TYPES = ['78OB', '84OA'];
+const oneLine = value => String(value ?? '').replace(/\s+/g, ' ').trim();
+export const reportEok = (value, minimumFractionDigits = 1) => new Intl.NumberFormat('en-US', { useGrouping: false, minimumFractionDigits, maximumFractionDigits: 4 }).format(value);
+const reportRange = (row, digits = 1) => row.minPrice === row.maxPrice ? `${reportEok(row.minPrice, digits)}억` : `${reportEok(row.minPrice, digits)}~${reportEok(row.maxPrice, digits)}억`;
+export const compactFloor = row => oneLine(row.floor).split('/')[0].replace(/층$/, '') + '층';
+
+export function observationLabel(snapshot) {
+  const day = snapshot.date.slice(0, 10);
+  const stamp = snapshot.observation?.observedAt || snapshot.collectedAt;
+  const date = stamp && /(?:Z|[+-]\d{2}:\d{2})$/.test(stamp) ? new Date(stamp) : null;
+  const parts = date && !Number.isNaN(date.getTime()) ? Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(date).map(p => [p.type, p.value])) : null;
+  const weekday = '일월화수목금토'[new Date(day + 'T12:00:00Z').getUTCDay()];
+  const label = `📅 ${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))} (${weekday})`;
+  if (!parts || `${parts.year}-${parts.month}-${parts.day}` !== day) return `${label} 기준 · 수집 시각 미기록`;
+  const hour = Number(parts.hour), minute = Number(parts.minute);
+  return `${label} ${hour < 12 ? '오전' : '오후'} ${hour % 12 || 12}시${minute ? ` ${minute}분` : ''} 기준 (KST)`;
+}
+
+function marketLines(snapshot) {
+  const quality = validateSnapshot(snapshot);
+  const lines = ['🚨 [시장 핵심 요약]', `${quality.complete ? '전체' : '일부'} 관측: ${snapshot.items.length}건 (원문 ${snapshot.declaredCount}건${quality.complete ? ' · 수량 일치' : ' · 부분 자료'})`];
+  if (snapshot.source?.kind !== 'naver-live') lines.push('제공·수동 입력 자료 (실시간 수집 아님)');
+  for (const type of REPORT_TYPES) {
+    const s = stats(snapshot.items.filter(row => row.type === type));
+    lines.push(s.count ? `${type} (${s.count}건): ${quality.complete ? '최저' : '관측 최저'} ${reportEok(s.min)}억 ｜ 중앙값 ${reportEok(s.median)}억` : `${type}: 관측 없음`);
   }
-  if (diff.available) {
-    lines.push(`비교일 ${previous.date.slice(0, 10)}`, `추가 관측 ${diff.added.length} · 미관측 ${diff.unobserved.length}`, `번호 확인 호가 변동 ${diff.changed.length} · 조건 기준 변동 후보 ${diff.candidates.length}`);
-  } else lines.push(diff.reason);
-  lines.push('호가는 매도 희망가입니다. 미관측은 거래 완료를 뜻하지 않습니다.', '범위 호가의 통계는 최저값 기준입니다.');
+  return lines;
+}
+
+export function morningBriefing(snapshot) {
+  const lines = ['[범어W 오피스텔 모닝 브리핑]', observationLabel(snapshot), '', ...marketLines(snapshot), '', '📊 [동별 호가 범위]'];
+  const most = Math.max(0, ...REPORT_DONGS.map(dong => snapshot.items.filter(row => row.dong === dong).length));
+  for (const dong of REPORT_DONGS) {
+    const rows = snapshot.items.filter(row => row.dong === dong);
+    if (!rows.length) continue;
+    lines.push('', `${dong} (총 ${rows.length}건${rows.length === most ? ' · 관측 최다' : ''})`);
+    for (const type of REPORT_TYPES) {
+      const group = rows.filter(row => row.type === type), s = stats(group);
+      lines.push(s.count ? `${type}: ${reportEok(s.min)}억 ~ ${reportEok(Math.max(...group.map(row => row.maxPrice)))}억 (중앙값 ${reportEok(s.median)}억)` : `${type}: 관측 없음`);
+    }
+  }
+  lines.push('', '※ 호가 범위는 최저~최고, 중앙값은 각 매물의 최저 호가 기준입니다.');
   return lines.join('\n');
+}
+
+function changeRow(row) {
+  return `${row.dong} ${row.type} (${compactFloor(row)} / ${oneLine(row.direction)}) : ${reportRange(row)}${row.articleId ? ` · 매물번호 ${oneLine(row.articleId)}` : ''}`;
+}
+
+function changePair(pair) {
+  const row = pair.current, old = pair.previous, deltas = [];
+  for (const [key, label] of [['minPrice', '하한'], ['maxPrice', '상한']]) {
+    const delta = Math.round((row[key] - old[key]) * 10000) / 10000;
+    if (delta) deltas.push(`${label} ${reportEok(Math.abs(delta))}억 ${delta < 0 ? '하락 ↓' : '상승 ↑'}`);
+  }
+  return `${row.dong} ${row.type} (${compactFloor(row)} / ${oneLine(row.direction)}) : ${reportRange(old)} ➔ ${reportRange(row)}${deltas.length ? ` (${deltas.join(' · ')})` : ''}${row.articleId ? ` · 매물번호 ${oneLine(row.articleId)}` : ''}`;
+}
+
+export function changeReport(current, previous) {
+  const diff = compareSnapshots(current, previous), lines = ['🔔 [일일 변동 리포트]'];
+  if (!diff.available) return [...lines, diff.reason, '', '※ 미관측은 거래 완료를 뜻하지 않습니다. 조건 일치 후보는 동일 호실 미확인입니다.'].join('\n');
+  const gap = (Date.parse(current.date.slice(0, 10)) - Date.parse(previous.date.slice(0, 10))) / 86400000;
+  const base = gap === 1 ? '전일 대비' : gap === 0 ? '같은 날 비교 자료 대비' : `비교일 ${previous.date.slice(0, 10)} 대비`;
+  const delta = current.items.length - previous.items.length;
+  lines.push(`(${base} 총 관측: ${previous.items.length}건 ➔ ${current.items.length}건 [${delta > 0 ? '+' : ''}${delta}건])`);
+  for (const [title, rows, pair] of [['🟢 [추가 관측]', diff.added, false], ['🔴 [미관측]', diff.unobserved, false], ['🔄 [호가 변동 · 매물번호 일치]', diff.changed, true], ['🟠 [호가 변동 후보 · 조건 일치]', diff.candidates, true]]) {
+    lines.push('', `${title} (총 ${rows.length}건)`, ...(rows.length ? rows.map(pair ? changePair : changeRow) : ['없음']));
+  }
+  lines.push('', '※ 미관측은 거래 완료를 뜻하지 않습니다. 조건 일치 후보는 동일 호실 미확인입니다.');
+  return lines.join('\n');
+}
+
+export function plainListings(snapshot, rows = snapshot.items, order = 'priceAsc') {
+  const subset = rows.length !== snapshot.items.length;
+  const labels = { priceAsc: '최저 호가순', priceDesc: '최저 호가 역순', confirmDesc: '확인일 최신순', agencyDesc: '공동중개 많은순' };
+  const sorted = [...rows].sort((a, b) => order === 'priceDesc' ? b.minPrice - a.minPrice : order === 'confirmDesc' ? String(b.confirmDate || '').localeCompare(String(a.confirmDate || '')) : order === 'agencyDesc' ? (b.agencyCount || 0) - (a.agencyCount || 0) : a.minPrice - b.minPrice);
+  const lines = ['[범어W 오피스텔 모닝 브리핑]', observationLabel(snapshot), '', ...marketLines(snapshot), '', '📊 [동별·타입별 심플 리스트]', `동·타입별 ${labels[order] || labels.priceAsc} ｜ 동 / 타입 / 층수 / 가격 / 중개사 수·명`];
+  if (subset) lines.push(`필터 결과: ${rows.length}건 / 전체 관측 ${snapshot.items.length}건 (위 요약은 기준 자료 전체)`);
+  if (!rows.length) lines.push('', '조건에 맞는 매물이 없습니다.');
+  for (const dong of REPORT_DONGS) {
+    const group = sorted.filter(row => row.dong === dong);
+    if (!group.length) continue;
+    lines.push('', `📌 ${dong} (${subset ? '필터 ' : '총 '}${group.length}건)`);
+    for (const type of REPORT_TYPES) {
+      const typed = group.filter(row => row.type === type);
+      if (!typed.length) continue;
+      lines.push(`${type}:`);
+      for (const row of typed) {
+        const info = oneLine(row.agencyInfo);
+        const count = Number.isInteger(row.agencyCount) && row.agencyCount > 0 ? row.agencyCount : null;
+        const agency = count > 1 ? `${count}곳` : info || (count ? `${count}곳` : '미확인');
+        lines.push(`${dong}/${type.slice(0, 2)}/${compactFloor(row)}/${reportRange(row, 2)}/${agency}`);
+      }
+    }
+  }
+  lines.push('', '※ 공동중개 수는 세대 수가 아닙니다. 같은 조건도 원본 행별로 표시합니다.');
+  return lines.join('\n');
+}
+
+export function briefing(current, previous, mode = 'all') {
+  if (mode === 'summary') return morningBriefing(current);
+  if (mode === 'changes') return `[범어W 오피스텔 변동 리포트]\n${observationLabel(current)}\n\n${changeReport(current, previous)}`;
+  if (mode === 'listings') return plainListings(current);
+  return `${morningBriefing(current)}\n\n${changeReport(current, previous)}`;
 }

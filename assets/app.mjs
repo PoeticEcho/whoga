@@ -1,4 +1,4 @@
-import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing } from './core.mjs';
+import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing, plainListings } from './core.mjs?v=20261018-briefing';
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -95,7 +95,7 @@ function renderAll() {
   if (!state.current) return;
   $('content').hidden = false;
   renderBanner(); renderOverview(); renderListings(); renderStats();
-  $('briefingText').textContent = briefing(state.current, state.previous);
+  renderBriefing();
   $('listTabCount').textContent = state.current.items.length;
 }
 
@@ -141,12 +141,27 @@ function renderListings() {
   const order = $('sortSelect').value;
   rows.sort((a, b) => order === 'priceDesc' ? b.minPrice - a.minPrice : order === 'confirmDesc' ? String(b.confirmDate).localeCompare(String(a.confirmDate)) : order === 'agencyDesc' ? (b.agencyCount || 0) - (a.agencyCount || 0) : a.minPrice - b.minPrice);
   state.filtered = rows;
-  const grouped = $('groupToggle').checked;
+  const textView = $('listingView').value === 'text';
+  const grouped = !textView && $('groupToggle').checked;
   const visible = grouped ? groupedRows(rows) : rows;
+  $('groupToggle').disabled = textView;
+  $('listingGrid').hidden = textView;
+  $('listingTextPanel').hidden = !textView;
+  $('listingText').textContent = plainListings(state.current, rows, order);
   $('groupNotice').hidden = !grouped;
   $('filterCount').textContent = `${rows.length}건 / 전체 ${state.current.items.length}건${grouped ? ` · ${visible.length}개 조건 묶음` : ''}`;
   const labels = { OBSERVED: '추가 관측', CHANGED: '번호 확인 변동', CANDIDATE: '변동 후보', SAME: '같은 조건 유지' };
   $('listingGrid').innerHTML = visible.length ? visible.map(row => `<article class="listing-card"><div class="listing-head"><strong>${escape(row.dong)} · ${escape(row.type)}</strong>${row.status && !grouped ? `<span class="badge ${row.status}">${labels[row.status]}</span>` : ''}</div><div class="listing-price">${escape(priceRange(row))}</div><p class="listing-meta">${escape(row.floor)} · ${escape(row.direction)}</p>${grouped ? `<span class="listing-count">같은 조건 ${row.quantity}건</span>` : ''}${row.desc ? `<p class="listing-desc">${escape(row.desc)}</p>` : ''}<div class="listing-foot"><span>${escape(row.agencyInfo || (row.agencyCount > 1 ? `공동중개 ${row.agencyCount}곳` : '중개 정보 없음'))}</span><span>확인 ${escape(row.confirmDate || '미표기')}</span></div>${row.articleId && !grouped ? `<p class="listing-desc">매물번호 ${escape(row.articleId)}</p>` : ''}</article>`).join('') : empty('조건에 맞는 매물이 없습니다. 필터를 초기화해 보세요.');
+}
+
+function renderBriefing() {
+  if (state.current) $('briefingText').textContent = briefing(state.current, state.previous, $('briefingFormat').value || 'all');
+}
+
+async function copyText(id, message) {
+  if (!state.current) return;
+  try { await navigator.clipboard.writeText($(id).textContent); toast(message); }
+  catch { const range = document.createRange(); range.selectNodeContents($(id)); const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range); toast('복사할 내용을 선택했습니다. 길게 누르거나 Ctrl+C로 복사하세요.'); }
 }
 
 function renderStats() {
@@ -235,7 +250,8 @@ function bindEvents() {
       if (target) { event.preventDefault(); setTab(target, true); }
     });
   }
-  for (const id of ['dongFilter', 'typeFilter', 'floorFilter', 'stateFilter', 'sortSelect', 'groupToggle']) $(id).addEventListener('change', renderListings);
+  for (const id of ['dongFilter', 'typeFilter', 'floorFilter', 'stateFilter', 'sortSelect', 'groupToggle', 'listingView']) $(id).addEventListener('change', renderListings);
+  $('briefingFormat').addEventListener('change', renderBriefing);
   $('searchInput').addEventListener('input', renderListings);
   $('resetFiltersBtn').addEventListener('click', () => { for (const id of ['dongFilter', 'typeFilter', 'floorFilter', 'stateFilter', 'searchInput']) $(id).value = ''; $('sortSelect').value = 'priceAsc'; $('groupToggle').checked = false; renderListings(); });
   const toggleImport = open => { $('importPanel').hidden = !open; $('openImportBtn').setAttribute('aria-expanded', String(open)); };
@@ -250,11 +266,10 @@ function bindEvents() {
     download(`beomeoW_${state.current.date.slice(0, 10)}.csv`, 'text/csv;charset=utf-8', '\ufeff' + csv);
     toast('현재 필터에 해당하는 원본 행을 CSV로 저장했습니다.');
   });
-  $('copyBriefBtn').addEventListener('click', async () => {
-    if (!state.current) return;
-    try { await navigator.clipboard.writeText($('briefingText').textContent); toast('브리핑을 복사했습니다.'); }
-    catch { const range = document.createRange(); range.selectNodeContents($('briefingText')); const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range); toast('복사할 내용을 선택했습니다. 길게 누르거나 Ctrl+C로 복사하세요.'); }
-  });
+  $('copyBriefBtn').addEventListener('click', () => copyText('briefingText', '선택한 리포트를 복사했습니다.'));
+  $('copyListingsBtn').addEventListener('click', () => copyText('listingText', '현재 필터의 매물 텍스트를 복사했습니다.'));
+  $('saveBriefBtn').addEventListener('click', () => { if (state.current) download(`whoga_${state.current.date.slice(0, 10)}_${$('briefingFormat').value}.txt`, 'text/plain;charset=utf-8', $('briefingText').textContent); });
+  $('saveListingsBtn').addEventListener('click', () => { if (state.current) download(`whoga_${state.current.date.slice(0, 10)}_listings.txt`, 'text/plain;charset=utf-8', $('listingText').textContent); });
   $('jsonInput').addEventListener('change', async event => {
     try { const file = event.target.files?.[0]; if (!file) return; if (file.size > 8 * 1024 * 1024) throw new Error('8MB 이하의 JSON 파일을 선택해 주세요.'); addLocal(JSON.parse((await file.text()).replace(/^\uFEFF/, ''))); }
     catch (error) { $('importResult').textContent = error.message; toast(error.message); }

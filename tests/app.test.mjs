@@ -36,6 +36,11 @@ test('dashboard loads from a project path and filters actual supplied data', asy
   for (const e of tabs) e.attrs['aria-controls'] = 'panel-' + e.id.slice(4);
   const requested = [];
   const storage = new Map();
+  const oldNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  let copied = '';
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { clipboard: { writeText: async text => { copied = text; } } } });
+  const originalTimeout = globalThis.setTimeout, timers = new Set();
+  globalThis.setTimeout = (...args) => { const timer = originalTimeout(...args); timers.add(timer); return timer; };
   const row = dong => ({ dong, type: '84OA', floor: '20/58층', direction: '북서향', minPrice: 6, maxPrice: 6, floorCat: '중층' });
   const files = {
     'data/index.json': { latest: '2026-10-17', snapshots: [
@@ -67,13 +72,41 @@ test('dashboard loads from a project path and filters actual supplied data', asy
     assert.equal(elements.get('listTabCount').textContent, 2);
     assert.ok(elements.get('statusBanner').innerHTML.includes('제공된 기준 자료'));
     assert.equal((elements.get('listingGrid').innerHTML.match(/class="listing-card"/g) || []).length, 2);
+    assert.ok(elements.get('briefingText').textContent.includes('[시장 핵심 요약]'));
+    assert.ok(elements.get('briefingText').textContent.includes('[일일 변동 리포트]'));
+    elements.get('briefingFormat').value = 'summary'; await elements.get('briefingFormat').emit('change');
+    assert.ok(elements.get('briefingText').textContent.includes('[동별 호가 범위]'));
+    assert.ok(!elements.get('briefingText').textContent.includes('[일일 변동 리포트]'));
+    elements.get('briefingFormat').value = 'changes'; await elements.get('briefingFormat').emit('change');
+    assert.ok(elements.get('briefingText').textContent.includes('[일일 변동 리포트]'));
+    assert.ok(!elements.get('briefingText').textContent.includes('[시장 핵심 요약]'));
+    await elements.get('copyBriefBtn').emit('click');
+    assert.equal(copied, elements.get('briefingText').textContent);
+    elements.get('briefingFormat').value = 'listings'; await elements.get('briefingFormat').emit('change');
+    assert.equal((elements.get('briefingText').textContent.match(/^10\d동\//gm) || []).length, 2);
+    elements.get('groupToggle').checked = true;
+    elements.get('listingView').value = 'text'; await elements.get('listingView').emit('change');
+    assert.equal(elements.get('listingGrid').hidden, true);
+    assert.equal(elements.get('listingTextPanel').hidden, false);
+    assert.equal(elements.get('groupToggle').disabled, true);
+    assert.equal((elements.get('listingText').textContent.match(/^10\d동\//gm) || []).length, 2);
     elements.get('dongFilter').value = '102동'; await elements.get('dongFilter').emit('change');
     assert.ok(!elements.get('listingGrid').innerHTML.includes('101동'));
     assert.ok(elements.get('listingGrid').innerHTML.includes('102동'));
+    assert.ok(elements.get('listingText').textContent.includes('필터 결과: 1건 / 전체 관측 2건'));
+    assert.ok(elements.get('listingText').textContent.includes('102동/84/20층/6.00억'));
+    assert.ok(!elements.get('listingText').textContent.includes('101동/84/'));
+    await elements.get('copyListingsBtn').emit('click');
+    assert.equal(copied, elements.get('listingText').textContent);
     elements.get('searchInput').value = '일치할수없는검색어'; await elements.get('searchInput').emit('input');
     assert.ok(elements.get('listingGrid').innerHTML.includes('조건에 맞는 매물이 없습니다'));
+    assert.ok(elements.get('listingText').textContent.includes('조건에 맞는 매물이 없습니다'));
     await elements.get('resetFiltersBtn').emit('click');
     assert.equal((elements.get('listingGrid').innerHTML.match(/class="listing-card"/g) || []).length, 2);
+    elements.get('listingView').value = 'cards'; await elements.get('listingView').emit('change');
+    assert.equal(elements.get('listingGrid').hidden, false);
+    assert.equal(elements.get('listingTextPanel').hidden, true);
+    assert.equal(elements.get('groupToggle').disabled, false);
     elements.get('snapshotSelect').value = '2026-08-06'; await elements.get('snapshotSelect').emit('change'); await flush();
     assert.equal(elements.get('listTabCount').textContent, 1);
     assert.ok(elements.get('statusBanner').innerHTML.includes('1건만 있는 자료'));
@@ -91,6 +124,9 @@ test('dashboard loads from a project path and filters actual supplied data', asy
     assert.equal(elements.get('exportJsonBtn').disabled, true);
     assert.ok(elements.get('statusBanner').innerHTML.includes('선택한 자료를 불러오지 못했습니다'));
   } finally {
+    for (const timer of timers) clearTimeout(timer);
+    globalThis.setTimeout = originalTimeout;
+    if (oldNavigator) Object.defineProperty(globalThis, 'navigator', oldNavigator); else delete globalThis.navigator;
     delete globalThis.document; delete globalThis.localStorage; delete globalThis.fetch;
   }
 });
