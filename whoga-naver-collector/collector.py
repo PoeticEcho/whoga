@@ -151,14 +151,16 @@ def collect_page(page, report, directory=None):
 
 
 @contextmanager
-def browser_page(transport, region, report, channel='chromium'):
+def browser_page(transport, region, report, channel='chromium', engine='chromium'):
     from playwright.sync_api import sync_playwright
     if transport == 'local':
         with sync_playwright() as p:
             options = {'headless': True}
+            if engine != 'chromium' and channel != 'chromium':
+                raise ValidationError('Browser channel requires Chromium engine')
             if channel != 'chromium':
                 options['channel'] = channel
-            browser = p.chromium.launch(**options)
+            browser = getattr(p,engine).launch(**options)
             try:
                 report['browser_version'] = browser.version
                 page = browser.new_page(viewport={'width':1440,'height':900},locale='ko-KR')
@@ -207,6 +209,7 @@ def main(argv=None):
     parser.add_argument('--transport',choices=['local','browserbase'],default='local')
     parser.add_argument('--channel',choices=['chromium','msedge'],default='chromium',
                         help='Official installed browser channel for local transport')
+    parser.add_argument('--engine',choices=['chromium','firefox','webkit'],default='chromium')
     parser.add_argument('--region',choices=['us-west-2','us-east-1','eu-central-1','ap-southeast-1'],default='ap-southeast-1')
     parser.add_argument('--output',type=Path,default=ROOT/'collector-runs')
     args=parser.parse_args(argv)
@@ -214,13 +217,14 @@ def main(argv=None):
     directory=args.output/run_id
     directory.mkdir(parents=True,exist_ok=False)
     report={'run_id':run_id,'started_at':now_kst(),'status':'fail','completeness':'unknown',
-        'stage':'resolve-target','transport':args.transport,'browser_channel':args.channel,'progress':[],
+        'stage':'resolve-target','transport':args.transport,'browser_channel':args.channel,
+        'browser_engine':args.engine,'progress':[],
         'visible_total_count':None,'unique_collected_count':0,'duplicate_count':None,
         'missing_count':None,'publication':'not-attempted','view':{'width':1440,'height':900}}
     try:
         url=target_url(os.environ.get('MANUAL_URL',''))
         report.update(source_url=url,source_url_sha256=digest(url),default_target=url==DEFAULT_URL)
-        with browser_page(args.transport,args.region,report,args.channel) as page:
+        with browser_page(args.transport,args.region,report,args.channel,args.engine) as page:
             rows=collect_page(page,report,directory)
         report['collected_at']=now_kst()
         report['stage']='validate'

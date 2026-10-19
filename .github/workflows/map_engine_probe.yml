@@ -1,0 +1,49 @@
+name: whoga · Firefox WebKit map comparison
+on:
+  push:
+    branches: [map-collector-v2]
+    paths: ['.github/workflows/map_engine_probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: whoga-engine-probe
+  cancel-in-progress: false
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        engine: [firefox, webkit]
+    env:
+      ENGINE: ${{ matrix.engine }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install pinned browser and test collector
+        run: |
+          python -m pip install -r whoga-naver-collector/requirements.txt
+          python -m playwright install --with-deps "$ENGINE"
+          python -m unittest discover -s whoga-naver-collector -p 'test_*.py' -v
+      - name: Collect exact map with standard browser engine
+        id: collect
+        run: python whoga-naver-collector/collector.py --transport local --engine "$ENGINE"
+      - name: Validate this run
+        env:
+          RUN_DIR: ${{ steps.collect.outputs.run_dir }}
+        run: python whoga-naver-collector/build_snapshot.py "$RUN_DIR"
+      - name: Retain evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: map-${{ matrix.engine }}-${{ github.run_id }}
+          path: collector-runs/
+          retention-days: 7
+          if-no-files-found: warn
