@@ -114,3 +114,11 @@ main 및 기존 운영 데이터는 변경하지 않았다. 새 실험 workflow�
 Actions https://github.com/PoeticEcho/whoga/actions/runs/39330724224 에서 게이트 검사 3개, Compose 검사, 실제 Docker 이미지 빌드, 외부 사이트 접속 없는 Chromium 샌드박드 smoke 모두 통과. 최초 smoke의 chroot 차단을 seccomp에서 해당 호출만 허용하여 수정했고 cap_drop=ALL 유지. browser-ready는 네이버 수집 성공을 뜻하지 않는다.
 
 NAS 연결/설치/probe/full은 미수행. 실제 모델과 DSM/메모리 확인 후 NAS에서 smoke→probe→full 순서로 실행해야 한다. GitHub runner 등록, 정기 일정, 운영 데이터 발행은 미활성화. 상세 설치 안내: nas/README.md.
+
+
+## DS420+ 관리 화면 v1.1 · 포트 8899
+감시 단지 주소, 간격 예약(기본 꺼짐), 즉시 smoke/probe/full, 중지, 실행 로그, GitHub 연결 확인·수동/자동 업로드, 비밀번호 로그인 추가. 전체 수집 통과 후 현재 실행 결과만 nas-imports/<complex>/<runId>.json에 올린다. 운영 앱 발행과 구분한다. 토큰 응답 비노출, 설정0600, 요청 출처 검사, 임의 URL 차단, 중복 실행 차단, 재시작 중단 처리 포함.
+
+검증: https://github.com/PoeticEcho/whoga/actions/runs/39336621105 에서 회귀10개, Compose, 실제 Docker 이미지 빌드, 서버 health, 인증된 UI 설정 저장, 실제 브라우저 즉시 검사, 업로드 버튼 조건, PC/모바일 가로 넘침 검사 성공. 화면 캡처 육안 확인. GitHub 쓰기 함수는 모의 응답으로 검사했으며 실제 NAS PAT 업로드·네이버 수집은 미검증.
+
+설치 ZIP은 nas/ 및 experiments/supplied-v2/의 필요한 소스만 포함한다. .env, 토큰, 기존 수집 데이터는 제외하고 SHA256 manifest를 포함한다. 설치 안내는 nas/README.md.
