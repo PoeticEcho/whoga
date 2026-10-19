@@ -17,7 +17,7 @@ from scripts.probe_map import PANEL_SCRIPT, terminal_page
 
 def run_probe(report):
     import requests
-    from playwright.sync_api import sync_playwright, TimeoutError as BrowserTimeout
+    from playwright.sync_api import sync_playwright, TimeoutError as BrowserTimeout, Error as BrowserError
 
     key = os.environ.get('BROWSERBASE_API_KEY')
     if not key:
@@ -55,6 +55,14 @@ def run_probe(report):
                 response = page.goto(config['sourceUrl'], wait_until='commit', timeout=45000)
             except BrowserTimeout:
                 report.update(stage='first-response-timeout', navigationSeconds=round(time.monotonic()-started, 2))
+                return None
+            except BrowserError as exc:
+                # Whitelist the Chromium network error identifier only. The
+                # surrounding message may contain signed connection details.
+                code = re.search(r'net::ERR_[A-Z_]+', str(exc))
+                report.update(stage='navigation-error',
+                              navigationErrorCode=code.group(0) if code else 'unclassified-browser-error',
+                              navigationSeconds=round(time.monotonic()-started, 2))
                 return None
             report.update(documentStatus=response.status if response else None,
                           navigationSeconds=round(time.monotonic()-started, 2))
