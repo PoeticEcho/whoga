@@ -1,0 +1,7 @@
+{
+  "status": "failed",
+  "startedAt": "2026-10-20T00:30:23+09:00",
+  "failedAt": "2026-10-20T00:31:12+09:00",
+  "error": "Page.goto: net::ERR_CONNECTION_RESET at https://fin.land.naver.com/complexes/140635\nCall log:\n  - navigating to \"https://fin.land.naver.com/complexes/140635\", waiting until \"domcontentloaded\"\n",
+  "latestPreserved": true
+}

@@ -89,4 +89,20 @@ main 및 기존 운영 데이터는 변경하지 않았다. 새 실험 workflow�
 
 실제 실행: https://github.com/PoeticEcho/whoga/actions/runs/39278424648
 
-00:34 KST 확인 시 GitHub 실행기 배정 대기(queued), probe/full 미실행. 따라서 깔끔한 주소의 네트워크 접속 성공·실패를 아직 판정하지 않는다. 기존 64개 로컬 회귀 검사는 통과했다.
+당시 조회 API는 queued를 반환했으나, 06:41 KST 이후 재조회한 완료 로그에서는 아래 실행 이력이 확인됐다. 이전 대기 상태를 최종 결과로 사용하지 않는다.
+
+
+## 단지 주소 실제 실행 최종 결과 (2026-10-20 06:41 KST 이후 확인)
+
+| GitHub-hosted 환경 | probe 시작–실패 (KST) | 결과 | full |
+|---|---|---|---|
+| ubuntu-latest | 00:30:23–00:31:12 | Page.goto: net::ERR_CONNECTION_RESET | skipped |
+| ubuntu-22.04 | 00:40:07–00:40:56 | Page.goto: net::ERR_CONNECTION_RESET | skipped |
+
+- latest 실행: https://github.com/PoeticEcho/whoga/actions/runs/39278424648
+- Ubuntu22 실행: https://github.com/PoeticEcho/whoga/actions/runs/39279671410
+- 두 환경 모두 설치와 브라우저 실행 이후 첫 단지 문서 탐색에서 실패했다. 단지번호 대조·매매 필터 선택·카드 수집에는 도달하지 않았다. 따라서 0건 매물로 해석하지 않는다.
+- artifact의 원본 probe/status.json을 evidence/complex-140635-*-20261020.status.json에 보존했다. latestPreserved=true, 전체 수집/배포 없음.
+- 짧은 주소는 코드가 지원하지만 실제 네트워크 성공은 확인되지 않았다. URL 길이나 지도 쿼리가 유일한 원인이라는 가설은 이번 결과로 뒷받침되지 않는다. 서버/중간망의 연결 종료 원인은 확정하지 않는다.
+- 동일 커밋 CI https://github.com/PoeticEcho/whoga/actions/runs/39278424455 에서 Python24+17, JS23=64개 통과를 완료 로그로 확인했다. 이는 무인 실수집 성공과 별개다.
+- 다음 실수집 검증에는 정상 접속 가능한 승인된 별도 실행 환경 또는 공급자의 허용된 데이터 제공 경로가 필요하다. 현재 github-hosted 조건에서는 성공 경로 미확보. 조건 변경 없이 성공했다고 보고하지 않는다.
