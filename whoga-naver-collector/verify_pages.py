@@ -30,7 +30,7 @@ def verify(base, expected, attempts=6):
                 if attempt==attempts-1:raise
                 time.sleep(10)
         print('HTTP 200 / exact content:',relative)
-    for relative in ('index.html','assets/app.js'):
+    for relative in ('index.html','assets/app.mjs'):
         with urlopen(base+relative,timeout=20) as response:
             if response.status!=200:raise ValidationError('Existing app missing')
         print('HTTP 200:',relative)

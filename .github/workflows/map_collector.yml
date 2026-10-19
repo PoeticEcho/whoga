@@ -22,8 +22,26 @@ concurrency:
   group: beomeo-w-daily-pages
   cancel-in-progress: false
 jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: |
+          python -m unittest discover -s tests -v
+          python -m unittest discover -s whoga-naver-collector -p 'test_*.py' -v
+          node --test tests/*.test.mjs
   collect:
-    if: github.event_name != 'schedule' || vars.ENABLE_MAP_DAILY == 'true'
+    needs: checks
+    if: (github.event_name == 'schedule' && vars.ENABLE_MAP_DAILY == 'true') || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[live-map-trial]'))
     runs-on: ubuntu-latest
     timeout-minutes: 12
     outputs:

@@ -90,7 +90,7 @@ class Accumulator:
         return self.full_stable >= 2
 
 
-def collect_page(page, report):
+def collect_page(page, report, directory=None):
     from playwright.sync_api import TimeoutError as BrowserTimeout
     report['stage'] = 'navigation'
     response = page.goto(report['source_url'], wait_until='commit', timeout=45000)
@@ -118,6 +118,11 @@ def collect_page(page, report):
             event = {'pass':pass_no,'step':step,'total':acc.total,'unique':len(acc.rows),
                 'dom':state['cardCount'],'at_bottom':state['atBottom'],'scroll_top':state['scrollTop']}
             report['progress'].append(event)
+            if directory:
+                atomic_json(directory/'validation.json',report)
+                atomic_json(directory/'raw-cards.json',{'run_id':report['run_id'],
+                    'source_url':report['source_url'],'source_url_sha256':report['source_url_sha256'],
+                    'collected_at':now_kst(),'status':'partial','cards':list(acc.rows.values())})
             if step == 0 or len(report['progress']) < 2 or event['unique'] != report['progress'][-2]['unique']:
                 print(json.dumps(event), flush=True)
             if complete:
@@ -202,7 +207,7 @@ def main(argv=None):
         url=target_url(os.environ.get('MANUAL_URL',''))
         report.update(source_url=url,source_url_sha256=digest(url),default_target=url==DEFAULT_URL)
         with browser_page(args.transport,args.region,report) as page:
-            rows=collect_page(page,report)
+            rows=collect_page(page,report,directory)
         report['collected_at']=now_kst()
         report['stage']='validate'
         snapshot={'date':report['collected_at'][:10],'declaredCount':report['visible_total_count'],
