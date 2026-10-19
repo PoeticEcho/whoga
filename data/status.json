@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "lastAttemptResult": "success",
-  "lastAttemptAt": "2026-10-18T08:38:33+09:00",
-  "lastSuccessAt": "2026-10-18T08:38:33+09:00",
+  "lastAttemptAt": "2026-10-19T09:25:15+09:00",
+  "lastSuccessAt": "2026-10-19T09:25:15+09:00",
   "sourceKind": "naver-live",
-  "message": "클라우드 브라우저에서 목록을 스크롤해 118/118건을 검증했습니다.",
-  "latestCollectedDate": "2026-10-18"
+  "message": "클라우드 브라우저에서 목록을 30→60→90→117건까지 스크롤하고 117/117건 및 필수 항목을 두 차례 확인했습니다.",
+  "latestCollectedDate": "2026-10-19"
 }
