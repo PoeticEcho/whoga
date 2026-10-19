@@ -7,6 +7,7 @@ Only structural response metadata and aggregate counts are written to artifacts.
 from __future__ import annotations
 
 from collections import Counter
+import argparse
 import json
 import os
 from pathlib import Path
@@ -63,16 +64,16 @@ def structural_summary(payload):
     return result
 
 
-def run_probe(config):
+def run_probe(config, *, headed=False):
     from playwright.sync_api import sync_playwright, TimeoutError as BrowserTimeout
     parsed = urlsplit(config['url'])
     if parsed.scheme != 'https' or parsed.netloc != 'fin.land.naver.com' or parsed.path != '/map':
         raise ValueError('Expected the supplied public HTTPS map URL')
-    report = {'startedAt': now_kst(), 'scope': config['scope'],
+    report = {'startedAt': now_kst(), 'scope': config['scope'], 'browserMode': 'headed' if headed else 'headless',
               'fullComplexEligible': False, 'productionFilesChanged': False,
               'stage': 'starting', 'progress': [], 'apiResponses': [], 'failedDocuments': []}
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=not headed)
         context = browser.new_context(viewport={'width': 1280, 'height': 1000}, locale='ko-KR')
         page = context.new_page()
         page.set_default_timeout(10000)
@@ -148,9 +149,12 @@ def run_probe(config):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--headed', action='store_true', help='Use standard windowed Chromium under Xvfb on CI')
+    args = parser.parse_args()
     config = json.loads((ROOT/'config/map-probe.json').read_text())
     try:
-        report = run_probe(config)
+        report = run_probe(config, headed=args.headed)
     except Exception as exc:
         report = {'stage': 'probe-error', 'errorType': type(exc).__name__,
                   'fullComplexEligible': False, 'productionFilesChanged': False}
