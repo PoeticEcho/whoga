@@ -1,0 +1,38 @@
+name: whoga · nas Docker build and smoke
+on:
+  push:
+    branches: [map-collector-v2]
+    paths: ['nas/**', '.github/workflows/nas_docker.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Gate regression tests
+        run: python3 -m unittest discover -s nas -v
+      - name: Prepare isolated output
+        run: |
+          mkdir -p collector-runs/nas
+          printf 'NAS_UID=%s\nNAS_GID=%s\n' "$(id -u)" "$(id -g)" > nas/.env
+      - name: Validate Compose
+        working-directory: nas
+        run: docker compose config --quiet
+      - name: Build pinned image
+        working-directory: nas
+        run: docker compose build collector
+      - name: Launch sandboxed Chromium without external collection
+        working-directory: nas
+        run: docker compose run --rm collector smoke
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nas-smoke-${{ github.run_id }}
+          path: collector-runs/nas/
+          retention-days: 7
+          if-no-files-found: warn
