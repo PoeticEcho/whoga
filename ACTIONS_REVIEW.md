@@ -79,3 +79,14 @@ main 및 기존 운영 데이터는 변경하지 않았다. 새 실험 workflow�
 ## 최종 코드 검사
 
 기존 프로젝트 Python 24개 + 수집기 17개 + JavaScript 23개 = 64개. 첨부본 원본 테스트 10개는 별도 수행했다. 공식 문서/코드 태그 확인 및 실수집 실패 증거를 분리 보존했다.
+
+
+## 단지 직접 주소 추가 검증 (2026-10-20 KST)
+
+사용자 지정 URL은 `https://fin.land.naver.com/complexes/140635`이며 쿼리/지도 좌표를 붙이지 않는다. 첨부본의 URL 검증 함수는 단지번호 140635를 정상 인식한다. 실제 UI에서 단지번호를 다시 대조하고 매매 필터를 선택한다. 짧은 주소 자체에 거래유형·지도 조건이 포함되지 않으므로 기존 exact-map과 동일 범위라고 간주하지 않는다.
+
+`.github/workflows/complex_probe.yml`은 `runner=github-hosted`를 Ubuntu로 고정하며, 수동 입력 `mode=probe`는 처음 세 카드만 검사한다. `mode=full`은 같은 실행에서 probe를 먼저 성공해야 전체 수집으로 넘어간다. 이번 workflow 추가 push도 사용자 요청대로 probe→성공 시 full 순서로 실행한다. 산출물은 검증용 artifact에만 저장한다.
+
+실제 실행: https://github.com/PoeticEcho/whoga/actions/runs/39278424648
+
+00:34 KST 확인 시 GitHub 실행기 배정 대기(queued), probe/full 미실행. 따라서 깔끔한 주소의 네트워크 접속 성공·실패를 아직 판정하지 않는다. 기존 64개 로컬 회귀 검사는 통과했다.
