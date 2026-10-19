@@ -50,7 +50,7 @@ full 명령도 probe부터 다시 실행한다. `restart: no`이므로 실행 �
 - sandbox/user namespace 오류: NAS 커널과 Container Manager 호환성 확인 필요. privileged/SYS_ADMIN/샌드박드 해제로 자동 전환하지 않는다.
 - 메모리 부족/OOM: 리소스 모니터와 컨테이너 종료코드를 확인한다.
 
-브라우저 샌드박드를 명시적으로 켠다. Playwright 공식 v1.63.0 seccomp 프로필을 포함했다. 외부 공개 포트, 호스트 네트워크, Docker 소켓 마운트, GitHub 토큰은 사용하지 않는다.
+브라우저 샌드박드를 명시적으로 켠다. Playwright 공식 v1.63.0 seccomp 프로필에 샌드박드 내부의 chroot 호출 허용을 추가했다. 호스트 capability는 모두 제거한 상태를 유지한다. 외부 공개 포트, 호스트 네트워크, Docker 소켓 마운트, GitHub 토큰은 사용하지 않는다.
 
 ## GitHub Actions 연결 단계
 
