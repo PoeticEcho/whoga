@@ -1,0 +1,58 @@
+name: whoga · supplied v2 Chromium comparison
+on:
+  push:
+    branches: [map-collector-v2]
+    paths: ['.github/workflows/map_supplied_probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: whoga-supplied-v2-probe
+  cancel-in-progress: false
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        mode: [headless, headed]
+    env:
+      BROWSER_MODE: ${{ matrix.mode }}
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install supplied pinned browser
+        run: |
+          python -m pip install -r experiments/supplied-v2/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Probe three cards and their brokerage groups
+        run: |
+          mkdir -p collector-runs/supplied-v2
+          python -m pip freeze > collector-runs/supplied-v2/packages.txt
+          if [ "$BROWSER_MODE" = headless ]; then
+            python experiments/supplied-v2/collector.py --url-file whoga-naver-collector/target-url.txt --probe --headless --output collector-runs/supplied-v2/probe
+          else
+            xvfb-run -a python experiments/supplied-v2/collector.py --url-file whoga-naver-collector/target-url.txt --probe --output collector-runs/supplied-v2/probe
+          fi
+      - name: Full collection only after successful probe
+        run: |
+          if [ "$BROWSER_MODE" = headless ]; then
+            python experiments/supplied-v2/collector.py --url-file whoga-naver-collector/target-url.txt --headless --output collector-runs/supplied-v2/full
+          else
+            xvfb-run -a python experiments/supplied-v2/collector.py --url-file whoga-naver-collector/target-url.txt --output collector-runs/supplied-v2/full
+          fi
+      - name: Save success or failure evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: supplied-v2-${{ matrix.mode }}-${{ github.run_id }}
+          path: collector-runs/supplied-v2/
+          retention-days: 7
+          if-no-files-found: warn
