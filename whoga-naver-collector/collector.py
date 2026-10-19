@@ -151,11 +151,14 @@ def collect_page(page, report, directory=None):
 
 
 @contextmanager
-def browser_page(transport, region, report):
+def browser_page(transport, region, report, channel='chromium'):
     from playwright.sync_api import sync_playwright
     if transport == 'local':
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            options = {'headless': True}
+            if channel != 'chromium':
+                options['channel'] = channel
+            browser = p.chromium.launch(**options)
             try:
                 report['browser_version'] = browser.version
                 page = browser.new_page(viewport={'width':1440,'height':900},locale='ko-KR')
@@ -202,6 +205,8 @@ def browser_page(transport, region, report):
 def main(argv=None):
     parser=argparse.ArgumentParser()
     parser.add_argument('--transport',choices=['local','browserbase'],default='local')
+    parser.add_argument('--channel',choices=['chromium','msedge'],default='chromium',
+                        help='Official installed browser channel for local transport')
     parser.add_argument('--region',choices=['us-west-2','us-east-1','eu-central-1','ap-southeast-1'],default='ap-southeast-1')
     parser.add_argument('--output',type=Path,default=ROOT/'collector-runs')
     args=parser.parse_args(argv)
@@ -209,13 +214,13 @@ def main(argv=None):
     directory=args.output/run_id
     directory.mkdir(parents=True,exist_ok=False)
     report={'run_id':run_id,'started_at':now_kst(),'status':'fail','completeness':'unknown',
-        'stage':'resolve-target','transport':args.transport,'progress':[],
+        'stage':'resolve-target','transport':args.transport,'browser_channel':args.channel,'progress':[],
         'visible_total_count':None,'unique_collected_count':0,'duplicate_count':None,
         'missing_count':None,'publication':'not-attempted','view':{'width':1440,'height':900}}
     try:
         url=target_url(os.environ.get('MANUAL_URL',''))
         report.update(source_url=url,source_url_sha256=digest(url),default_target=url==DEFAULT_URL)
-        with browser_page(args.transport,args.region,report) as page:
+        with browser_page(args.transport,args.region,report,args.channel) as page:
             rows=collect_page(page,report,directory)
         report['collected_at']=now_kst()
         report['stage']='validate'
@@ -237,7 +242,8 @@ def main(argv=None):
         report['finished_at']=now_kst()
         atomic_json(directory/'validation.json',report)
         if output:=os.environ.get('GITHUB_OUTPUT'):
-            with open(output,'a') as f:f.write(f'run_dir={directory.relative_to(ROOT) if directory.is_relative_to(ROOT) else directory}\nrun_id={run_id}\n')
+            run_path = directory.relative_to(ROOT) if directory.is_relative_to(ROOT) else directory
+            with open(output,'a') as f:f.write(f'run_dir={run_path.as_posix()}\nrun_id={run_id}\n')
         print(json.dumps({k:v for k,v in report.items() if k not in ('progress','source_url')},ensure_ascii=False,indent=2))
     return 0 if report['status']=='pass' else 1
 

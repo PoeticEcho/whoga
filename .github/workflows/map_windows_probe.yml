@@ -1,0 +1,63 @@
+name: whoga · Windows Edge 실제 지도 수집
+on:
+  push:
+    branches: [map-collector-v2]
+    paths: ['.github/workflows/map_windows_probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: whoga-windows-probe
+  cancel-in-progress: false
+env:
+  PYTHONUTF8: '1'
+jobs:
+  native:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Test safe collector
+        run: python -m unittest discover -s whoga-naver-collector -p 'test_*.py' -v
+      - name: Install pinned client; use runner's ordinary Edge
+        run: python -m pip install -r whoga-naver-collector/requirements.txt
+      - name: Check target DNS and TLS without page requests
+        shell: python
+        run: |
+          import json,socket,ssl,time
+          from pathlib import Path
+          host='fin.land.naver.com'
+          report={'host':host}
+          started=time.monotonic()
+          try:
+              report['dns_addresses']=sorted({x[4][0] for x in socket.getaddrinfo(host,443,type=socket.SOCK_STREAM)})
+              with socket.create_connection((host,443),timeout=15) as tcp:
+                  report['tcp']='connected'
+                  with ssl.create_default_context().wrap_socket(tcp,server_hostname=host) as tls:
+                      report['tls']=tls.version()
+          except Exception as exc:
+              report['error_type']=type(exc).__name__
+          report['elapsed_seconds']=round(time.monotonic()-started,2)
+          folder=Path('collector-runs/diagnostics');folder.mkdir(parents=True,exist_ok=True)
+          (folder/'network-check.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+          print(json.dumps(report))
+      - name: Collect exact map using standard Microsoft Edge
+        id: collect
+        run: python whoga-naver-collector/collector.py --transport local --channel msedge
+      - name: Validate same-run snapshot
+        env:
+          RUN_DIR: ${{ steps.collect.outputs.run_dir }}
+        run: python whoga-naver-collector/build_snapshot.py "$env:RUN_DIR"
+      - name: Save actual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: map-windows-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: collector-runs/
+          if-no-files-found: warn
+          retention-days: 7
