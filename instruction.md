@@ -445,3 +445,7 @@ jobs:
 ### 후속 실측 — 19시대
 
 2026-10-19 19:06–19:07 KST 클라우드 브라우저 관측 120개를 두 차례 비교해 고유120/중복0/누락0을 확인했다. 실제 뷰포트는 1363×936이다. 기존 앱 JSON 변환과 임시 로컬 HTTP 이력 검증을 통과했으며 한글 파일명 URL 인코딩 오류를 수정했다. 최신 테스트는 63개 통과. 보조 관측은 publication_eligible=false로 표시하고 정기 발행에서 차단한다. Actions 실수집·공개 Pages 배포 미완료 상태는 변함없다. 상세 근거는 VERIFICATION_MAP.md의 후속 실측 절을 따른다.
+
+### 2026-10-20 Actions 경로 비교
+
+사용자 추가 첨부 v2의 검사와 실제 GitHub Actions 비교를 수행했다. Windows tzdata 누락을 수정했으나 Edge, 첨부 Chromium headed/headless, Firefox, WebKit 모두 첫 문서 응답 단계에서 실패했다. 세부 결과·로그·자체 실행기 등 남은 조건은 ACTIONS_REVIEW.md에 기록했다. 정기 발행 활성화나 기존 서비스 데이터 교체는 하지 않았다.

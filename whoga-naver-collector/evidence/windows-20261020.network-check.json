@@ -1,0 +1,12 @@
+{
+  "host": "fin.land.naver.com",
+  "dns_addresses": [
+    "110.93.151.131",
+    "110.93.151.161",
+    "202.179.180.81",
+    "202.179.180.91"
+  ],
+  "tcp": "connected",
+  "tls": "TLSv1.3",
+  "elapsed_seconds": 0.99
+}

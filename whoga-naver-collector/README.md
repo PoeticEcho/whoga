@@ -55,7 +55,7 @@ python -m unittest discover -s whoga-naver-collector -p 'test_*.py' -v
 node --test tests/*.test.mjs
 ```
 
-2026-10-19 로컬 결과: 24 + 17 + 22 = 63개 통과. 합성 테스트는 네이버 실수집 성공 증거가 아니다.
+2026-10-19 로컬 결과: 24 + 17 + 23 = 64개 통과. 합성 테스트는 네이버 실수집 성공 증거가 아니다.
 
 ## 다음 검증
 
@@ -76,3 +76,7 @@ python whoga-naver-collector/replay_observations.py collector-runs/cloud-observa
 이 명령은 이미 저장한 관측을 검증하며 브라우저를 자동 조작하지 않는다. 원시 관측 파일은 공개 저장소에 넣지 않았다. 결과에는 보조 수집임을 명시하고 `publication_eligible=false`를 부여한다. 정기 실행 환경에서도 publish.py가 이 결과의 발행을 거부한다.
 
 새 120개 자료로 기존 앱의 목록 120행 생성, 동별 합계, 사이트 빌드, 임시 로컬 HTTP 서버의 최신/과거 JSON 내용 일치와 앱 파일 응답을 확인했다. 이 과정에서 한글 이력 파일명의 URL 인코딩 오류를 찾아 수정했다. 로컬 HTTP 성공은 GitHub Pages 배포 성공이 아니다. [실제 검증 요약](evidence/cloud-20261019.validation.json).
+
+## 2026-10-20 실행 경로 검토
+
+[첨부 v2 및 Actions 상세 검토](../ACTIONS_REVIEW.md)를 참조한다. Windows용 tzdata 의존성을 추가했다. 로컬 transport의 --channel msedge, --engine firefox/webkit 옵션을 진단용으로 제공한다. 설치 시 해당 브라우저가 필요하다. 기본 동작은 기존 Chromium이며 운영 수집 성공으로 승격하지 않았다. out-link-bridge 링크의 실제 매물번호를 보존하도록 추출기를 보완했다.

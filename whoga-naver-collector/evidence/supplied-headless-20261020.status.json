@@ -1,0 +1,7 @@
+{
+  "status": "failed",
+  "startedAt": "2026-10-20T00:19:15+09:00",
+  "failedAt": "2026-10-20T00:20:03+09:00",
+  "error": "Page.goto: net::ERR_CONNECTION_RESET at https://fin.land.naver.com/map?center=3AoUbE-2zCmTy&zoom=18.665980292470568&tradeTypes=A1&realEstateTypes=A02&layer=NobwRAlgJmBcYGMD2BbADgGwKYA8D6UWALgIYQZgA0YaJATiSgM5zjLrY4CSMsAjABYADADYAzAFYAvtSZZ6CABYAFeoxaxwpAEZwwRBgDsmJBEQhJDVMPXMJsAFQaEHATzRYNYAIJ9rBkmNTc0tlVyxLAHM3DwA5AFcUbSw6PQAmfyMTMwtDJxIXdyw9XzAZMDpieLpDEm1sOAN4rCkAXSA\nCall log:\n  - navigating to \"https://fin.land.naver.com/map?center=3AoUbE-2zCmTy&zoom=18.665980292470568&tradeTypes=A1&realEstateTypes=A02&layer=NobwRAlgJmBcYGMD2BbADgGwKYA8D6UWALgIYQZgA0YaJATiSgM5zjLrY4CSMsAjABYADADYAzAFYAvtSZZ6CABYAFeoxaxwpAEZwwRBgDsmJBEQhJDVMPXMJsAFQaEHATzRYNYAIJ9rBkmNTc0tlVyxLAHM3DwA5AFcUbSw6PQAmfyMTMwtDJxIXdyw9XzAZMDpieLpDEm1sOAN4rCkAXSA\", waiting until \"domcontentloaded\"\n",
+  "latestPreserved": true
+}

@@ -115,3 +115,7 @@ Playwright 1.64.0. macOS 실행은 Python 3.12.10 arm64. Singapore 세션 생성
 다음 차단점은 같은 CLI가 일반 네트워크에서 실제 문서를 읽는지 확인하는 것이다. NAS DS420+는 아직 연결하지 않았다. 접근 가능한 NAS/PC에서 우선 수집 전용 실행 → 두 번 완주 및 결과 검증 → Pages 배포/HTTP 재조회 순으로 확인해야 한다. 환경 확보 없이 Actions 접속 성공이나 매일 자동화 성공을 보장할 수 없다. 정상 검증 전 ENABLE_MAP_DAILY를 켜지 않는다.
 
 롤백이 필요한 main 변경은 없으며, PR을 병합하지 않으면 기존 구현과 데이터를 유지한다.
+
+## 2026-10-20 후속 비교
+
+첨부 v2 검사, Windows 환경 수정 후 재시험, headed/headless 및 Firefox/WebKit 실제 결과는 [ACTIONS_REVIEW.md](ACTIONS_REVIEW.md)에 추가했다. 모두 문서 접속 단계에서 실패해 Actions 인수 미통과 상태를 유지한다. 최신 전체 테스트는 64개(24+17+23), 첨부본 별도 테스트는 10개 통과했다.

@@ -14,8 +14,8 @@
     const confirmed = raw.match(/(?:현장|집주인)?확인매물\s*\d{4}\.\d{2}\.\d{2}/);
     const agencies = raw.match(/중개사\s*\d+곳/);
     const links = [...e.querySelectorAll('a[href]')].map(a => a.getAttribute('href'))
-      .filter(h => /^\/articles\/\d+$/.test(h));
-    const ids = [...new Set(links.map(h => h.split('/').pop()))];
+      .filter(h => /^\/articles\/\d+(?:\/|\?|$)/.test(h));
+    const ids = [...new Set(links.map(h => h.match(/^\/articles\/(\d+)/)[1]))];
     return {text:[name?.[0],price?.[0],property?.[0],confirmed?.[0],agencies?.[0]].filter(Boolean).join('\n'),
       representativeArticleId: ids.length === 1 ? ids[0] : null,
       grouped: /매물목록 펼치기|중개사\s*\d+곳/.test(raw)};
