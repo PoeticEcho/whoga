@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 import sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from collector import Accumulator, DEFAULT_URL, ValidationError, digest, target_url
@@ -42,6 +43,20 @@ class CollectorTests(unittest.TestCase):
 
     def test_ambiguous_same_text_cards_fail(self):
         with self.assertRaises(ValidationError):Accumulator().feed(state([row(1),row(1)]))
+
+    def test_same_text_distinct_single_article_ids_are_preserved(self):
+        rows=[{**row(1),'grouped':False,'representativeArticleId':aid}
+              for aid in ('2655162583','2655091482')]
+        a=Accumulator();a.feed(state(rows,total=2,bottom=True))
+        self.assertEqual(len(a.rows),2)
+        self.assertEqual({r['item']['articleId'] for r in a.rows.values()},
+                         {'2655162583','2655091482'})
+
+    def test_group_representative_id_is_not_a_group_identity(self):
+        a=Accumulator();a.feed(state([{**row(1),'representativeArticleId':'12345'}],total=1))
+        item=next(iter(a.rows.values()))['item']
+        self.assertIsNone(item['articleId'])
+        self.assertTrue(item['id'].startswith('group-'))
 
     def test_total_change_scope_and_access_fail(self):
         a=Accumulator();a.feed(state([row(1)]))
@@ -92,5 +107,25 @@ class CollectorTests(unittest.TestCase):
             report=json.loads((p/'validation.json').read_text());report['status']='fail';atomic_json(p/'validation.json',report)
             with self.assertRaises(ValidationError):prepare(p,root=p,event='schedule',ref='refs/heads/main',manual_url='')
             self.assertEqual((folder/'latest.json').read_text(),'old')
+
+    def test_publish_preserves_history_and_rejects_replay(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);run=root/'run';run.mkdir();self.bundle(run)
+            public=root/'whoga-naver-collector';public.mkdir()
+            old=build(run);old.update(collectedAt='2026-10-19T23:59:00+09:00',run_id='previous')
+            atomic_json(root/'data/2026-10-20.json',old)
+            atomic_json(root/'data/status.json',{})
+            atomic_json(public/'latest.json',old)
+            atomic_json(public/'snapshot-2026-10-18.json',{'preserved':True})
+            with patch('publish.now_kst',return_value='2026-10-20T00:05:00+09:00'):
+                prepare(run,root=root,event='schedule',ref='refs/heads/main',manual_url='')
+                self.assertEqual(json.loads((public/'latest.json').read_text())['run_id'],'test-run')
+                self.assertEqual(json.loads((root/'data/2026-10-20.json').read_text())['run_id'],'test-run')
+                self.assertEqual(json.loads((public/'snapshot-2026-10-18.json').read_text()),{'preserved':True})
+                archived=list((public/'history').glob('*.json'))
+                self.assertEqual(len(archived),1)
+                self.assertEqual(json.loads(archived[0].read_text())['run_id'],'previous')
+                with self.assertRaises(ValidationError):
+                    prepare(run,root=root,event='schedule',ref='refs/heads/main',manual_url='')
 
 if __name__=='__main__':unittest.main()

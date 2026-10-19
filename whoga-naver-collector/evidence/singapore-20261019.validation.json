@@ -1,0 +1,29 @@
+{
+  "run_id": "20261019T043921Z-f2f2aef7c9",
+  "started_at": "2026-10-19T13:39:21+09:00",
+  "status": "fail",
+  "completeness": "unknown",
+  "stage": "navigation",
+  "transport": "browserbase",
+  "progress": [],
+  "visible_total_count": null,
+  "unique_collected_count": 0,
+  "duplicate_count": null,
+  "missing_count": null,
+  "publication": "not-attempted",
+  "view": {
+    "width": 1440,
+    "height": 900
+  },
+  "source_url": "https://fin.land.naver.com/map?center=3AoUbE-2zCmTy&zoom=18.665980292470568&tradeTypes=A1&realEstateTypes=A02&layer=NobwRAlgJmBcYGMD2BbADgGwKYA8D6UWALgIYQZgA0YaJATiSgM5zjLrY4CSMsAjABYADADYAzAFYAvtSZZ6CABYAFeoxaxwpAEZwwRBgDsmJBEQhJDVMPXMJsAFQaEHATzRYNYAIJ9rBkmNTc0tlVyxLAHM3DwA5AFcUbSw6PQAmfyMTMwtDJxIXdyw9XzAZMDpieLpDEm1sOAN4rCkAXSA",
+  "source_url_sha256": "8cb404d7ca5b5bbc0173ca69fb8afc6c0e5289029098da246d52e4dc93b544c8",
+  "default_target": true,
+  "session_create_status": 201,
+  "region": "ap-southeast-1",
+  "browser_version": "155.0.8059.85",
+  "session_release_status": 200,
+  "error_type": "Error",
+  "reason": "external-operation-failed",
+  "network_error": "net::ERR_CONNECTION_CLOSED",
+  "finished_at": "2026-10-19T13:39:54+09:00"
+}

@@ -15,6 +15,8 @@ def verify(base, expected, attempts=6):
         f"data/{expected['date']}.json":expected}
     paths['whoga-naver-collector/evidence/validation.json']=read_json(ROOT/'whoga-naver-collector/evidence/validation.json')
     paths['data/index.json']=read_json(ROOT/'data/index.json')
+    for entry in paths['data/index.json']['snapshots']:
+        paths['data/'+entry['file']]=read_json(ROOT/'data'/entry['file'])
     for old in (ROOT/'whoga-naver-collector').glob('snapshot-*.json'):
         paths['whoga-naver-collector/'+old.name]=read_json(old)
     for relative,local in paths.items():

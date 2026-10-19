@@ -39,8 +39,18 @@ def target_url(value=''):
     return value  # Do not rewrite or decode the layer/center strings.
 
 
+def identity(row):
+    aid = row.get('representativeArticleId')
+    if aid and not row.get('grouped'):
+        if not re.fullmatch(r'\d{1,30}', str(aid)):
+            raise ValidationError('invalid-source-article-id')
+        return 'article-' + str(aid), str(aid)
+    # A grouped card's representative brokerage article is not the group's identity.
+    return 'group-' + digest(row['text']), None
+
+
 class Accumulator:
-    """One key per displayed GROUP, never one per brokerage article."""
+    """One key per displayed card: actual single article ID or temporary group key."""
     def __init__(self):
         self.rows = {}
         self.total = None
@@ -67,15 +77,14 @@ class Accumulator:
             if len(items) != 1:
                 raise ValidationError('unparsed-source-card')
             item = items[0]
-            # Text fingerprint is only a within-run group key. It is NOT an article number.
-            key = 'group-' + digest(row['text'])
+            key, article_id = identity(row)
             if key in local:
                 raise ValidationError('ambiguous-identical-group-cards')
             local.add(key)
             self.observations += 1
             if key in self.rows:
                 self.repeats += 1
-            item.update(id=key,articleId=None)
+            item.update(id=key,articleId=article_id)
             self.rows[key] = {'key':key,'text':row['text'],'item':item,
                 'representativeArticleId':row.get('representativeArticleId'),
                 'grouped':bool(row.get('grouped'))}
@@ -136,7 +145,7 @@ def collect_page(page, report, directory=None):
         raise ValidationError('full-pass-content-changed')
     report.update(duplicate_count=0, repeated_observations=sum(a.repeats for a in passes),
         raw_observation_count=sum(a.observations for a in passes), terminal_confirmed=True,
-        identical_complete_passes=2, identity_method='within-run-group-text-sha256',
+        identical_complete_passes=2, identity_method='single-article-id-or-within-run-group-text-sha256',
         identity_limit='Grouped cards are not individual brokerage IDs; identical cards fail closed.')
     return list(passes[-1].rows.values())
 

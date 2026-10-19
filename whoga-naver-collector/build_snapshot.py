@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 import argparse
 from pathlib import Path
-from collector import CONFIG, DEFAULT_URL, ROOT, ValidationError, atomic_json, digest, target_url
+from collector import CONFIG, DEFAULT_URL, ROOT, ValidationError, atomic_json, digest, identity, target_url
 from monitor import KST, read_json, validate_snapshot
 
 
@@ -25,10 +25,11 @@ def build(directory):
     if len(keys)!=len(set(keys)) or not keys:
         raise ValidationError('Duplicate or empty source cards')
     for row in raw['cards']:
-        if row['key']!='group-'+digest(row['text']) or row['item']['id']!=row['key']:
+        key, article_id = identity(row)
+        if row['key']!=key or row['item']['id']!=row['key']:
             raise ValidationError('Card identity mismatch')
-        if row['item'].get('articleId') is not None:
-            raise ValidationError('Group key cannot be promoted to brokerage article ID')
+        if row['item'].get('articleId') != article_id:
+            raise ValidationError('Source article identity mismatch')
     if not (report.get('terminal_confirmed') and report.get('identical_complete_passes')==2
             and report.get('duplicate_count')==0 and report.get('missing_count')==0
             and report['visible_total_count']==report['unique_collected_count']==len(keys)):
@@ -39,7 +40,8 @@ def build(directory):
         'declaredCount':report['visible_total_count'],'count':len(keys),'items':[r['item'] for r in raw['cards']],
         'view':report['view'],'observation':{'observedAt':raw['collected_at'],'transport':report['transport']},
         'validation':{'complete':True,'declaredCount':len(keys),'parsedCount':len(keys),
-            'method':'two-complete-map-passes','identityCount':0,'groupIdentity':'within-run-text-sha256'}}
+            'method':'two-complete-map-passes','identityCount':sum(bool(r['item']['articleId']) for r in raw['cards']),
+            'groupIdentity':'within-run-text-sha256'}}
     validate_snapshot(snapshot,require_complete=True,allowed_dongs=CONFIG['allowedDongs'])
     atomic_json(directory/'snapshot.json',snapshot)
     (directory/'compact-snapshot.txt').write_text('\n'.join(
