@@ -10,7 +10,6 @@ services:
     user: "${NAS_UID:?Set NAS_UID}:${NAS_GID:?Set NAS_GID}"
     command: ["probe"]
     environment:
-      HOME: /tmp
       TZ: Asia/Seoul
     volumes:
       - ../collector-runs/nas:/output
@@ -30,3 +29,4 @@ services:
       options:
         max-size: 10m
         max-file: "2"
+
