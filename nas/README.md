@@ -1,72 +1,140 @@
-# WhoGa · Synology NAS Docker 검증판
+# WhoGa NAS · DS420+ 관리 화면 v1.1
 
-대상: DS420+ / x86_64 / DSM Container Manager(Docker Compose).
-DS420j 등 ARM 모델은 이 amd64 구성의 적용 대상이 아니다. DSM 제어판 → 정보 센터의 정확한 모델명, 메모리, DSM 버전을 먼저 확인한다. Container Manager의 모델 지원 여부와 이 이미지의 CPU 호환성은 별개다.
+접속 주소: **http://NAS주소:8899**
 
-## 이번 버전이 하는 일
+감시할 단지 주소, 실행 간격, 즉시 검사·전체 수집, 로그, GitHub 연결 확인·업로드 상태를 한 화면에서 관리한다. DS420+ / linux/amd64 / Container Manager용이다.
 
-NAS 인터넷 회선에서 https://fin.land.naver.com/complexes/140635 에 접속하여 매매 필터와 단지번호를 확인한다.
-- smoke: 외부 접속 없이 Chromium 샌드박드 기동 확인
-- probe: 처음 3개 카드 및 묶음 매물 확인
-- full: 같은 실행에서 probe 성공 후 전체 목록 수집·수량/매물번호 검증
+## 설치 파일 구조
 
-기존 첨부본 collector.py를 그대로 호출한다. 가상화 목록의 두 차례 전수 관측은 아직 포함하지 않으며, WhoGa 운영 스키마 변환·Pages 발행은 별도다. 결과에는 publicationEligible=false를 기록한다. NAS 실접속 성공을 아직 확인하지 않았으므로 정기 운영 활성화 전 단계다.
+압축을 `/volume1/docker/whoga`에 풀면 아래 폴더가 있어야 한다.
 
-## 설치
+- `nas/`: 관리 화면, Dockerfile, compose.yaml, setup.sh
+- `experiments/supplied-v2/`: 기존 수집기 및 버전 고정 requirements
+- `collector-runs/nas/`: 실행 후 생성되는 로그·결과
+- `nas-config/`: 실행 후 생성되는 설정·GitHub 토큰 (공개 금지)
 
-1. 패키지 센터에서 Container Manager 설치. DS420+ 기본 메모리 2GB에서 DSM/다른 앱의 여유 메모리를 확인한다. 컨테이너 최대 1.5GB, CPU 1개로 제한했지만 이것이 DSM의 여유 메모리를 보장하지는 않는다.
-2. GitHub `map-collector-v2` 브랜치를 ZIP으로 내려받아 NAS의 `/volume1/docker/whoga`에 압축 해제한다. 해당 폴더 바로 아래 `nas`와 `experiments`가 있어야 한다.
-3. NAS 터미널에서 아래 실행. NAS 접근 권한이 있는 로컬 계정으로 수행하며, `id`는 수집 폴더를 소유할 계정 기준이다. 관리자 Docker 권한이 필요한 환경에서는 Docker 명령에만 `sudo`를 붙인다.
+기존 1.0 설치자는 실행 중인 단발 컨테이너를 종료한 뒤 파일을 교체한다. 기존 .env에 DASHBOARD_PASSWORD가 없다면 12자 이상 비밀번호를 추가해야 한다. 기존 결과는 삭제하지 않는다.
 
-```sh
-cd /volume1/docker/whoga
-mkdir -p collector-runs/nas
-printf 'NAS_UID=%s\nNAS_GID=%s\n' "$(id -u)" "$(id -g)" > nas/.env
-chmod 700 collector-runs/nas
-cd nas
-docker compose build collector
-docker compose run --rm collector smoke
-docker compose run --rm collector probe
-```
+## 가장 빠른 설치
 
-Compose 구버전이면 `docker-compose` 명령을 사용한다. 프로젝트 UI를 이용하는 경우 프로젝트 경로는 `nas`, Compose 파일은 `nas/compose.yaml`이다. 폴더 권한 오류 시 실제 NAS_UID/NAS_GID와 대상 폴더 소유권/DSM ACL을 확인한다. 전체 공유폴더 권한을 개방하지 않는다.
-
-`probe-passed`를 확인한 후:
+1. DSM 패키지 센터에서 Container Manager 설치.
+2. 설치 ZIP을 File Station으로 올려 `/volume1/docker/whoga`에 압축 해제. 중첩 폴더 없이 그 아래 nas 폴더가 있어야 한다.
+3. 일반 NAS 계정의 SSH 터미널에서 실행:
 
 ```sh
-docker compose run --rm collector full
+cd /volume1/docker/whoga/nas
+sh setup.sh
 ```
 
-full 명령도 probe부터 다시 실행한다. `restart: no`이므로 실행 후 컨테이너가 종료되는 것이 정상이다.
+최초 실행 시 계정 `admin`과 무작위 관리 비밀번호가 표시된다. 비밀번호는 `nas/.env`에도 보관된다. Docker 접근 권한 오류가 나면 설정 파일을 다시 만들지 말고 아래 Docker 명령에만 관리자 권한을 적용한다.
 
-## 결과와 실패 판단
+```sh
+cd /volume1/docker/whoga/nas
+sudo docker compose up -d --build
+```
 
-`collector-runs/nas/status.json`에 최근 실행 상태, `runs/<runId>/`에 이번 실행의 probe.json/full.json/status.json을 저장한다. 이전 실행 파일은 유지한다. 실패 시 종료코드 1, 동시 실행은 2. 프로세스가 강제 종료되면 종료 상태 기록이 없을 수 있으므로 오래된 status.json을 새 실행의 성공으로 해석하지 않는다.
+`setup.sh` 전체를 root로 실행하지 않는다. 컨테이너는 NAS 폴더 소유자의 일반 UID/GID로 실행해야 Chromium 샌드박드가 동작한다. 파일 권한 문제는 해당 전용 폴더의 소유권과 DSM ACL을 확인한다. `chmod 777`로 공유폴더 전체를 개방하지 않는다.
 
-- browser-ready: Docker 브라우저 기동만 확인됨; 네이버 수집 성공 아님.
-- probe-passed: 표본 검사만 성공.
-- full-passed: 이번 전체 목록의 수량·식별자 검사 성공. 운영 발행 완료 아님.
-- ERR_CONNECTION_RESET/Timeout: NAS 회선에서도 접속 실패. 원인을 추가 확인해야 하며 자동 반복하지 않는다.
-- sandbox/user namespace 오류: NAS 커널과 Container Manager 호환성 확인 필요. privileged/SYS_ADMIN/샌드박드 해제로 자동 전환하지 않는다.
-- 메모리 부족/OOM: 리소스 모니터와 컨테이너 종료코드를 확인한다.
+4. 브라우저에서 `http://NAS주소:8899` 접속 → 계정 `admin`, 위 비밀번호 입력.
 
-브라우저 샌드박드를 명시적으로 켠다. Playwright 공식 v1.63.0 seccomp 프로필에 샌드박드 내부의 chroot 호출 허용을 추가했다. 호스트 capability는 모두 제거한 상태를 유지한다. 외부 공개 포트, 호스트 네트워크, Docker 소켓 마운트, GitHub 토큰은 사용하지 않는다.
+Container Manager 프로젝트 UI를 쓰는 경우 `nas`를 프로젝트 경로로 선택하고 `compose.yaml`을 사용한다. 최초 .env와 쓰기 가능한 두 결과 폴더는 먼저 준비해야 한다.
 
-## GitHub Actions 연결 단계
+### 수동 설정 대안
 
-이 컨테이너는 수집기다. GitHub runner 등록은 포함하지 않는다. 먼저 NAS에서 smoke/probe/full 결과를 확인한다. 이후 승인된 전용 실행 환경에 self-hosted runner를 등록하여 위 동일 명령을 실행하고 결과를 artifact로 전달할 수 있다. 이는 `github-hosted`에서 `self-hosted`로 바뀌는 구성이다.
+SSH에서 `id -u`와 `id -g` 값을 확인한 뒤 `nas/.env`를 만든다. 아래 자리표시자는 실제 값으로 바꾼다.
 
-공개 저장소의 임의 PR 코드를 개인 NAS에서 실행하는 runner를 만들지 않는다. 전용 비공개 제어 저장소, 고정된 검토 코드, 격리된 실행 계정을 기준으로 별도 연결한다. Docker만으로 임의 runner 코드와 NAS 전체가 격리된다고 간주하지 않는다.
+```dotenv
+NAS_UID=일반계정_UID
+NAS_GID=일반계정_GID
+DASHBOARD_PASSWORD=12자_이상의_새_비밀번호
+NAS_BIND_IP=0.0.0.0
+```
 
-9시 정기 실행 및 GitHub 자동 발행은 아직 추가하지 않았다. NAS 수집의 완전성·기존 앱 스키마 변환·발행 검증을 마친 뒤 연결한다.
+NAS_BIND_IP를 NAS의 내부 IP로 지정하면 해당 인터페이스에만 연결한다. DSM 방화벽 사용 시 내부망에서 TCP 8899 접속을 허용한다. 인터넷 포트포워딩으로 공개하지 않는다. 외부 접속이 필요하면 VPN 또는 인증을 유지한 HTTPS 리버스 프록시를 사용한다. HTTP에서는 비밀번호·설정 전송이 암호화되지 않는다.
 
-## 검증과 출처
+## 첫 시험 순서
 
-로컬: probe→full 게이트 검사 3개 통과. 현재 개발 환경에는 Docker 데몬이 없어 NAS와 동일한 실행 검증은 할 수 없다. 별도 Actions `nas Docker build and smoke`는 이미지 빌드/일반 Linux 브라우저 기동만 검사하며 NAS 접속 증명이 아니다.
+1. **브라우저 확인** → `브라우저 정상`: 외부 페이지 접속 없이 컨테이너와 샌드박드 확인.
+2. **감시 설정** → `https://fin.land.naver.com/complexes/140635` → 설정 저장.
+3. **표본 검사** → 처음 3개 카드와 중개사 묶음 확인.
+4. **전체 수집** → 같은 실행에서 표본 검사를 다시 통과하면 전체 수집.
+5. 카드 수·개별 매물 수·로그를 확인하고 GitHub를 연결.
 
+단지 주소 한 개를 감시한다. 주소에는 쿼리나 지도 좌표를 붙이지 않는다. 화면에서 단지번호와 매매 필터를 확인한다. 지정 주소는 네이버 단지 경로만 허용하며 임의 내부망 URL은 받지 않는다.
+
+전체 수집을 누른 뒤에도 표본 검사에서 실패하면 전체 단계로 넘어가지 않는다. 중복 실행 방지, 실행 중지, 30분 제한, 재시작 시 중단 표시가 포함된다. 실패를 정상 0건으로 표시하지 않는다.
+
+## GitHub 설정
+
+화면의 **GitHub 업로드 설정**을 펼친다.
+
+- 저장소: 기본 `PoeticEcho/whoga`
+- 기존 브랜치: 기본 `map-collector-v2`
+- 토큰: 해당 저장소만 선택한 fine-grained PAT, `Contents: Read and write`
+- `설정 저장` → `저장된 설정으로 연결 확인`
+
+연결 확인은 브랜치 읽기만 검사한다. 쓰기 권한과 브랜치 보호 규칙은 실제 업로드 때 검증한다. 토큰은 `nas-config/settings.json`에 0600 권한으로 저장하며, API·화면·수집 프로세스에 전달하지 않는다. 빈 토큰 입력은 기존 값을 유지하고, 삭제 체크를 하면 제거한다. 이 폴더와 .env를 GitHub에 올리지 않는다.
+
+전체 수집 통과 후 **GitHub 업로드** 버튼으로 현재 실행의 결과를 저장한다. 선택한 저장소가 공개라면 업로드 자료도 공개된다. 자동 업로드는 기본 꺼짐이며 직접 켤 수 있다.
+
+업로드 경로: `nas-imports/<단지번호>/<runId>.json`
+
+업로드 상태는 실행 중/완료/실패로 표시하고 완료 시 파일 링크를 제공한다. 기존 파일을 덮어쓰지 않는다. 업로드 버튼은 현재 주소의 전체 수집 결과가 있을 때만 활성화된다.
+
+**이 업로드는 검증 자료 전달이다. WhoGa 운영 데이터와 Pages를 자동 갱신하지 않는다.** 현재 첨부본 수집기의 카드/매물 스키마는 운영 앱과 다르며, 가상화 목록의 2회 전수 관측·운영 스키마 변환·발행 검증이 추가로 필요하다. 산출물에는 `publicationEligible=false`를 유지한다.
+
+## 주기 실행과 파일
+
+- 기본 꺼짐. 켜면 설정 저장 시점부터 지정 간격마다 전체 수집한다.
+- 범위 15~10080분, 기본 1440분(24시간). 매일 고정 시각 09시 기능은 아니다.
+- 컨테이너 재시작 시 다음 실행은 다시 한 간격 뒤로 잡는다. 놓친 실행을 몰아서 수행하지 않는다.
+- Docker는 재부팅 후 자동 시작(`unless-stopped`), 수집 일정은 저장 설정을 따른다.
+- NAS 작업 스케줄러나 GitHub Actions에 같은 수집을 중복 등록하지 않는다.
+
+`collector-runs/nas/dashboard.json`: 최근 화면 상태
+`collector-runs/nas/current.log`: 현재/최근 로그
+`collector-runs/nas/jobs/<jobId>/run.log`: 각 실행 로그
+`collector-runs/nas/jobs/<jobId>/runs/<runId>/`: probe/full/status JSON
+
+화면에는 로그 마지막 40KB를 표시한다. 실행 결과는 자동 삭제하지 않으므로 디스크 사용량을 관리한다. Docker 로그는 10MB×2개로 제한한다.
+
+## 운영 명령
+
+```sh
+cd /volume1/docker/whoga/nas
+docker compose logs --tail 100 collector
+docker compose restart collector
+docker compose down
+```
+
+GUI를 거치지 않고 검증하려면 관리 화면의 실행이 없는 상태에서:
+
+```sh
+docker compose run --rm --no-deps collector /app/nas/run.py probe --url https://fin.land.naver.com/complexes/140635
+```
+
+수동 CLI는 별도 출력 경로를 지정할 수 있다. CLI와 관리 화면 동시 실행은 피한다.
+
+## 요구사항과 실패 처리
+
+DS420+의 기본 메모리는 2GB다. 이 설정은 최대 메모리 1.5GB·CPU 1개로 제한하지만 DSM/다른 앱에 충분한 메모리가 남는지는 리소스 모니터로 확인해야 한다. 기본 2GB 환경의 실성능은 아직 검증하지 않았다.
+
+- `ERR_CONNECTION_RESET`/Timeout: NAS에서도 네이버 접속 실패. 로그를 확보하고 원인 확인.
+- sandbox/user namespace: NAS 커널과 Container Manager 호환성 확인. privileged나 샌드박드 해제로 자동 전환하지 않음.
+- HTTP 401/403/404: GitHub 토큰·권한·브랜치 확인.
+- HTTP 409/422: 같은 파일 존재 여부·브랜치 보호·쓰기 권한 확인.
+- Docker exit 137: 메모리 부족 가능성 확인.
+
+일반 사용자, 읽기전용 루트 파일시스템, cap_drop=ALL, no-new-privileges, Chromium 샌드박드를 사용한다. Playwright v1.63.0 seccomp 프로필에 사용자 네임스페이스 내부 chroot 허용을 추가했다. Docker 소켓·NAS 전체 공유폴더·호스트 네트워크는 연결하지 않는다.
+
+## 검증 범위
+
+로컬 검사: 표본→전체 단계, 로그인/요청 출처, 토큰 비노출, 중복 실행, 재시작 중단, 검증 파일 업로드 경로 확인.
+CI: 실제 Docker 빌드와 샌드박드 브라우저, 로그인된 관리 화면, 설정 저장·즉시 브라우저 검사, 모바일 가로 넘침 검사.
+**NAS 실제 접속·네이버 전체 수집·실제 PAT 업로드는 사용자의 NAS 설치 후 확인해야 한다.** CI의 GitHub 업로드 검사는 모의 응답으로 수행하며 실제 저장소에 수집 데이터를 쓰지 않는다.
+
+출처:
 - https://playwright.dev/python/docs/docker
-- https://github.com/microsoft/playwright/blob/v1.63.0/utils/docker/seccomp_profile.json
+- https://docs.github.com/en/rest/repos/contents#create-or-update-file-contents
 - https://www.synology.com/dsm/packages/ContainerManager
-- DS420+ 공식 데이터시트: Intel Celeron J4025, 기본 2GB DDR4, 최대 6GB
-
-seccomp_profile.json 출처: Microsoft Playwright v1.63.0 (Apache-2.0); LICENSE.playwright 참조.
+- seccomp 원본: Microsoft Playwright v1.63.0, Apache-2.0 (LICENSE.playwright)

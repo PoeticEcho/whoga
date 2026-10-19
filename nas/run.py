@@ -24,7 +24,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=['smoke', 'probe', 'full'], nargs='?', default='probe')
     parser.add_argument('--output', default='/output')
+    parser.add_argument('--url', default=URL)
     args = parser.parse_args()
+    import re
+    if not re.fullmatch(r'https://fin\.land\.naver\.com/complexes/[0-9]+', args.url):
+        parser.error('단지 주소 https://fin.land.naver.com/complexes/숫자 를 입력하세요.')
     from playwright.sync_api import sync_playwright
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
@@ -37,7 +41,7 @@ def main():
             return 2
         run_id = uuid.uuid4().hex
         run_dir = output / 'runs' / run_id
-        status = dict(runId=run_id, startedAt=collector.now(), url=URL,
+        status = dict(runId=run_id, startedAt=collector.now(), url=args.url,
                       mode=args.mode, runner='nas-docker', publicationEligible=False)
         phase = 'browser-launch'
         try:
@@ -56,7 +60,7 @@ def main():
                             phase = mode
                             page = browser.new_page(viewport={'width': 1440, 'height': 1000}, locale='ko-KR')
                             try:
-                                raw, expected, counts, final_url, target = collector.collect(page, URL, probe=(mode == 'probe'))
+                                raw, expected, counts, final_url, target = collector.collect(page, args.url, probe=(mode == 'probe'))
                                 groups, articles = collector.normalize(raw, len(raw) if mode == 'probe' else expected,
                                                                       target['complexName'], target['estateTypeText'])
                                 result = dict(schemaVersion='nas-experiment-1', runId=run_id, target=target,
