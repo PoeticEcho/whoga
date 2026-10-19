@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections import Counter
+import argparse
 import json
 import os
 from pathlib import Path
@@ -15,7 +16,7 @@ from monitor import now_kst, parse_raw_text, validate_snapshot, save_snapshot
 from scripts.probe_map import PANEL_SCRIPT, terminal_page
 
 
-def run_probe(report):
+def run_probe(report, *, map_entry=False, proxy_country=None):
     import requests
     from playwright.sync_api import sync_playwright, TimeoutError as BrowserTimeout, Error as BrowserError
 
@@ -24,13 +25,16 @@ def run_probe(report):
         report['stage'] = 'missing-secret'
         return None
     config = json.loads((ROOT / 'config.json').read_text())
+    source_url = (json.loads((ROOT / 'config/map-probe.json').read_text())['url']
+                  if map_entry else config['sourceUrl'])
     headers = {'X-BB-API-Key': key, 'Content-Type': 'application/json'}
     session_id = None
     browser = None
     try:
         report['stage'] = 'creating-session'
         response = requests.post('https://api.browserbase.com/v1/sessions', headers=headers,
-            json={'timeout': 180, 'keepAlive': False, 'proxies': False,
+            json={'timeout': 180, 'keepAlive': False,
+                  'proxies': [{'type': 'browserbase', 'geolocation': {'country': proxy_country}}] if proxy_country else False,
                   'browserSettings': {'viewport': {'width': 1280, 'height': 1000},
                       'solveCaptchas': False, 'advancedStealth': False,
                       'ignoreCertificateErrors': False, 'recordSession': False, 'logSession': False}},
@@ -38,6 +42,10 @@ def run_probe(report):
         report['sessionCreateStatus'] = response.status_code
         if response.status_code != 201:
             report['stage'] = 'session-create-failed'
+            if response.status_code == 402:
+                report['stage'] = 'billing-or-plan-required'
+                if 'proxies are not included' in response.text.lower():
+                    report['reason'] = 'proxy-not-in-current-plan'
             return None
         session = response.json()
         session_id = session['id']
@@ -52,7 +60,7 @@ def run_probe(report):
             report['stage'] = 'opening-naver'
             started = time.monotonic()
             try:
-                response = page.goto(config['sourceUrl'], wait_until='commit', timeout=45000)
+                response = page.goto(source_url, wait_until='commit', timeout=45000)
             except BrowserTimeout:
                 report.update(stage='first-response-timeout', navigationSeconds=round(time.monotonic()-started, 2))
                 return None
@@ -69,6 +77,14 @@ def run_probe(report):
             if response and response.status in (401, 403, 429):
                 report['stage'] = 'http-access-response'
                 return None
+            if map_entry:
+                report['stage'] = 'opening-article-tab'
+                try:
+                    page.get_by_role('tab', name='매물', exact=True).click(timeout=20000)
+                except BrowserTimeout:
+                    report['stage'] = 'article-tab-unavailable'
+                    return None
+                report['articleTabOpened'] = True
             expected, previous, stalls, stable = None, None, 0, 0
             for _ in range(45):
                 page.wait_for_timeout(1200)
@@ -130,10 +146,17 @@ def run_probe(report):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--map', action='store_true', help='Open the exact supplied map, then its listing tab')
+    parser.add_argument('--proxy-country', choices=['KR'])
+    args = parser.parse_args()
     report = {'startedAt': now_kst(), 'transport': 'browserbase-cdp', 'progress': [],
-              'productionFilesChanged': False, 'stage': 'starting'}
+              'productionFilesChanged': False, 'stage': 'starting',
+              'entry': 'supplied-map' if args.map else 'complex',
+              'proxyCountryRequested': args.proxy_country,
+              'sessionTimeoutSeconds': 180}
     try:
-        snapshot = run_probe(report)
+        snapshot = run_probe(report, map_entry=args.map, proxy_country=args.proxy_country)
         if snapshot:
             # Trial branch only. Production promotion is a separate verified step.
             save_snapshot(ROOT / 'data', snapshot, source_kind='naver-live')
@@ -144,7 +167,8 @@ def main():
     report['finishedAt'] = now_kst()
     output = ROOT / 'probe-results'
     output.mkdir(exist_ok=True)
-    (output / 'browserbase-probe.json').write_text(json.dumps(report, ensure_ascii=False, indent=2)+'\n')
+    suffix = '-kr' if args.proxy_country else ''
+    (output / f'browserbase-probe{suffix}.json').write_text(json.dumps(report, ensure_ascii=False, indent=2)+'\n')
     print(json.dumps(report, ensure_ascii=False, indent=2), flush=True)
     if summary := os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(summary, 'a') as handle:

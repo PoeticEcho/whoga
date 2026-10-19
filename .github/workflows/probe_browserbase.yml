@@ -28,10 +28,25 @@ jobs:
         run: python -m unittest discover -s tests
       - name: Install remote browser client
         run: python -m pip install -r requirements.txt 'requests>=2.32,<3'
-      - name: Collect and validate the entire complex list
+      - name: Test the exact supplied map and collect its entire list
+        id: direct_map
+        continue-on-error: true
         env:
           BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
-        run: python scripts/probe_browserbase.py
+        run: python scripts/probe_browserbase.py --map
+      - name: Check Korean proxy availability and test one bounded session
+        if: steps.direct_map.outcome == 'failure'
+        env:
+          BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json, pathlib, subprocess, sys
+          report = json.loads(pathlib.Path('probe-results/browserbase-probe.json').read_text())
+          if report['stage'] not in ('navigation-error', 'first-response-timeout'):
+              print('No alternate connection trial for this failure stage.')
+              sys.exit(1)
+          sys.exit(subprocess.call([sys.executable, 'scripts/probe_browserbase.py', '--map', '--proxy-country', 'KR']))
+          PY
       - name: Preserve validated candidate on trial branch
         if: success() && github.ref == 'refs/heads/actions-map-trial'
         run: |
@@ -47,6 +62,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: browserbase-probe
-          path: probe-results/browserbase-probe.json
+          path: probe-results/browserbase-probe*.json
           if-no-files-found: ignore
           retention-days: 7
