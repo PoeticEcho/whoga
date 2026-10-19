@@ -106,3 +106,11 @@ main 및 기존 운영 데이터는 변경하지 않았다. 새 실험 workflow�
 - 짧은 주소는 코드가 지원하지만 실제 네트워크 성공은 확인되지 않았다. URL 길이나 지도 쿼리가 유일한 원인이라는 가설은 이번 결과로 뒷받침되지 않는다. 서버/중간망의 연결 종료 원인은 확정하지 않는다.
 - 동일 커밋 CI https://github.com/PoeticEcho/whoga/actions/runs/39278424455 에서 Python24+17, JS23=64개 통과를 완료 로그로 확인했다. 이는 무인 실수집 성공과 별개다.
 - 다음 실수집 검증에는 정상 접속 가능한 승인된 별도 실행 환경 또는 공급자의 허용된 데이터 제공 경로가 필요하다. 현재 github-hosted 조건에서는 성공 경로 미확보. 조건 변경 없이 성공했다고 보고하지 않는다.
+
+
+## DS420+ NAS Docker 검증판
+`nas/`에 Dockerfile, Compose, probe→full 게이트, 일반 사용자/읽기전용 컨테이너 및 Chromium 샌드박드 설정, 설치 문서를 추가했다. CPU linux/amd64용이며 DS420j에 동일 적용하지 않는다. Playwright 1.63.0 이미지와 Python 패키지 버전을 일치시켰다.
+
+Actions https://github.com/PoeticEcho/whoga/actions/runs/39330724224 에서 게이트 검사 3개, Compose 검사, 실제 Docker 이미지 빌드, 외부 사이트 접속 없는 Chromium 샌드박드 smoke 모두 통과. 최초 smoke의 chroot 차단을 seccomp에서 해당 호출만 허용하여 수정했고 cap_drop=ALL 유지. browser-ready는 네이버 수집 성공을 뜻하지 않는다.
+
+NAS 연결/설치/probe/full은 미수행. 실제 모델과 DSM/메모리 확인 후 NAS에서 smoke→probe→full 순서로 실행해야 한다. GitHub runner 등록, 정기 일정, 운영 데이터 발행은 미활성화. 상세 설치 안내: nas/README.md.
