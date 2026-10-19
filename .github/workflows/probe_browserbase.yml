@@ -1,0 +1,52 @@
+name: whoga · Browserbase 전체 수집 시험
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [actions-map-trial]
+    paths:
+      - '.github/workflows/probe_browserbase.yml'
+      - 'scripts/probe_browserbase.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: browserbase-trial
+  cancel-in-progress: false
+
+jobs:
+  browserbase:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Check parser and existing data
+        run: python -m unittest discover -s tests
+      - name: Install remote browser client
+        run: python -m pip install -r requirements.txt 'requests>=2.32,<3'
+      - name: Collect and validate the entire complex list
+        env:
+          BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
+        run: python scripts/probe_browserbase.py
+      - name: Preserve validated candidate on trial branch
+        if: success() && github.ref == 'refs/heads/actions-map-trial'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data
+          if ! git diff --cached --quiet; then
+            git commit -m 'data: validated Browserbase trial snapshot [skip ci]'
+            git push origin HEAD:actions-map-trial
+          fi
+      - name: Preserve credential-free diagnostic output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browserbase-probe
+          path: probe-results/browserbase-probe.json
+          if-no-files-found: ignore
+          retention-days: 7
