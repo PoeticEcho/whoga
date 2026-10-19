@@ -18,6 +18,9 @@ def prepare(run_dir, root=ROOT, *, event=None, ref=None, manual_url=None):
     manual_url=os.environ.get('MANUAL_URL','') if manual_url is None else manual_url
     if event!='schedule' or ref!='refs/heads/main' or manual_url:
         raise ValidationError('Only main scheduled default-target runs can publish')
+    evidence=read_json(Path(run_dir)/'validation.json',{})
+    if evidence.get('publication_eligible') is False or evidence.get('transport')=='chatgpt-cloud-browser-observations':
+        raise ValidationError('Assisted observation evidence cannot be published as a scheduled collection')
     snapshot=build(run_dir)
     if snapshot['source']['url']!=DEFAULT_URL:
         raise ValidationError('Manual source is not eligible for latest')

@@ -55,10 +55,24 @@ python -m unittest discover -s whoga-naver-collector -p 'test_*.py' -v
 node --test tests/*.test.mjs
 ```
 
-2026-10-19 로컬 결과: 24 + 13 + 22 = 59개 통과. 합성 테스트는 네이버 실수집 성공 증거가 아니다.
+2026-10-19 로컬 결과: 24 + 17 + 22 = 63개 통과. 합성 테스트는 네이버 실수집 성공 증거가 아니다.
 
 ## 다음 검증
 
 현재 남은 첫 단계는 일반 브라우저로 네이버에 접속 가능한 실행 환경에서 동일 CLI가 전체 목록 두 번을 읽는지 확인하는 것이다. NAS DS420+는 접속·설치·실행하지 않았다. NAS를 사용할 경우 우선 수집 전용으로 위 명령을 검증하며 자동 발행은 활성화하지 않는다. 이후에만 runner 구성과 정기 운영을 결정한다.
 
 네이버 화면에 체계적 복제·재배포 제한 안내가 관찰되었다. 정기 수집과 공개 데이터 운영 범위는 해당 서비스의 허용 범위를 확인한 뒤 결정해야 한다. 이 문서는 이용 허가나 법률 판단을 대신하지 않는다.
+
+## 19시대 실제 브라우저 검증 추가
+
+2026-10-19 19:06:00–19:07:31 KST에 클라우드 브라우저로 120개를 관측했다. 실제 화면은 1363×936이었다. 30→60→90→120 누적, 종단에서 안정 관측 2회, 상단으로 돌아간 두 번째 확인의 종단 안정 관측 2회를 수행했다. 기존 Accumulator와 build_snapshot으로 두 목록 일치/고유120/중복0/누락0 및 기존 앱 형식 변환을 확인했다. 단일 ID 47개, 나머지 묶음/임시 키 73개다.
+
+관측 재검증 도구 `replay_observations.py`를 추가했다. 입력 계약은 실제 UI에서 얻은 `started_at`, `finished_at`, `source_url`, `transport=chatgpt-cloud-browser`, `observations[{pass,observed_at,state}]`이다. `state`는 panel.js의 읽기 전용 결과이며 viewport와 scrollTop을 포함해야 한다. 두 번째 확인은 scrollTop=0부터 시작하고, 두 확인 모두 종단 안정 조건을 통과해야 한다. 시간 역행·10분 초과·뷰포트 변경·미완료·내용 변화는 실패한다.
+
+```sh
+python whoga-naver-collector/replay_observations.py collector-runs/cloud-observations-20261019.json
+```
+
+이 명령은 이미 저장한 관측을 검증하며 브라우저를 자동 조작하지 않는다. 원시 관측 파일은 공개 저장소에 넣지 않았다. 결과에는 보조 수집임을 명시하고 `publication_eligible=false`를 부여한다. 정기 실행 환경에서도 publish.py가 이 결과의 발행을 거부한다.
+
+새 120개 자료로 기존 앱의 목록 120행 생성, 동별 합계, 사이트 빌드, 임시 로컬 HTTP 서버의 최신/과거 JSON 내용 일치와 앱 파일 응답을 확인했다. 이 과정에서 한글 이력 파일명의 URL 인코딩 오류를 찾아 수정했다. 로컬 HTTP 성공은 GitHub Pages 배포 성공이 아니다. [실제 검증 요약](evidence/cloud-20261019.validation.json).

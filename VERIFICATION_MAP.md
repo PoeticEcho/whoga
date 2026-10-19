@@ -13,6 +13,31 @@
 - 기본 URL: [target-url.txt](whoga-naver-collector/target-url.txt), SHA256 `8cb404d7ca5b5bbc0173ca69fb8afc6c0e5289029098da246d52e4dc93b544c8`
 - main의 기존 10월 19일 09:25:15 관측 자료 117건을 이번 작업으로 변경하지 않았다.
 
+## 후속 실제 클라우드 관측 — 19:06–19:07 KST
+
+[validation.json](whoga-naver-collector/evidence/cloud-20261019.validation.json)에 기록했다.
+
+| 항목 | 실제 결과 |
+|---|---|
+| 관측 시각 | 2026-10-19 19:06:00.450–19:07:31.969 KST |
+| run_id | 20261019T100600Z-cloud-5f9c9c5be6 |
+| 실제 뷰포트 | 1363×936 (Actions의 1440×900과 다름) |
+| 로딩 | 30 → 60 → 90 → 120 |
+| 완료 근거 | 두 차례 목록 내용 일치, 각 종단 안정 관측 2회 |
+| 화면 / 고유 / 중복 / 누락 | 120 / 120 / 0 / 0 |
+| 식별 | 단일 실제 ID 47, 묶음/임시 키 73 |
+| 동별 카드 | 101동 19 / 102동 52 / 103동 26 / 105동 23 |
+| status / completeness | pass / verified (보조 UI 관측 검증 범위) |
+| publication | not-attempted, publication_eligible=false |
+
+이는 실제 브라우저 DOM 관측을 수정된 Accumulator·build_snapshot으로 재검증한 결과다. GitHub-hosted Playwright의 자동 navigation/scroll 성공으로 표시하지 않는다. 13시대 식별 집계와 다른 값은 관측 시점별 결과로 보존한다.
+
+기존 앱 JS 검증·120행 목록 생성·동별 합계가 통과했다. 임시 복제본으로 기존 사이트 전체를 빌드하고 로컬 HTTP 서버에서 최신/일일/과거 JSON 및 앱 파일을 확인했다. 기존 한글 경로 `2026-10-17_118건.json`에서 UnicodeEncodeError를 발견해 URL 인코딩을 수정했으며, 재시험에서 전체 경로 HTTP 200/JSON 일치를 확인했다. history/*.json도 검사 대상에 추가했다. 운영 data 파일의 시험 전후 SHA256은 동일했다.
+
+새 파일 `replay_observations.py`, `test_replay.py`, `test_verify_pages.py`와 발행 차단을 추가했다. 보조 관측 자료는 정기 환경을 주더라도 운영 latest로 승격할 수 없다. 원시 카드/관측 전체는 공개 저장소에 추가하지 않았다. GitHub에는 집계·진도·해시·검증 결과만 보존한다.
+
+인수 기준 업데이트: T03의 보조 UI 두 차례 확인과 T12의 실제 자료 JS 처리, T10의 로컬 이력 HTTP 검증은 통과. **Actions T01/T03, 공개 Pages T11은 여전히 미검증/실패 상태**이므로 정식 운영 인수 판단은 유지한다.
+
 ## 실제 Actions 실행
 
 아래 값은 다운로드한 실제 validation.json에 근거한다. 모든 시각은 KST.
@@ -65,7 +90,7 @@ Playwright 1.64.0. macOS 실행은 Python 3.12.10 arm64. Singapore 세션 생성
 | T13 재실행/경합 | 최신 시각 역행/동일 실행 재발행 거부 테스트 통과. 공통 concurrency 설정, 실제 동시 실행 시험 미실행. |
 | T14 안전성 | 소스 필드 allowlist, 에러 상세 제한, 세션 기록 비활성화. 복구한 두 validation에 키·쿠키·연락처 없음. 모든 미래 실패의 무누출을 보장하는 평가는 아님. |
 
-로컬 검사 총 **59개 통과**(기존 46 + 수집기 13). 합성 테스트 로그의 숫자는 실제 수집량이 아니다. 후속 Actions 검사는 PR Checks에서 커밋별로 확인한다.
+최신 로컬 검사 총 **63개 통과**(기존 46 + 수집기/관측/HTTP 검증 17). 합성 테스트 로그의 숫자는 실제 수집량이 아니다. 후속 Actions 검사는 PR Checks에서 커밋별로 확인한다.
 
 ## 실제 변경 파일
 

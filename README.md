@@ -1,6 +1,6 @@
 # whoga · W 호가 · GitHub Pages 배포본 v1.0.0
 
-> **2026-10-19 지도 수집기 v2 작업:** [수집기 사용법](whoga-naver-collector/README.md) · [실제 검증 결과](VERIFICATION_MAP.md) · [draft PR #2](https://github.com/PoeticEcho/whoga/pull/2). 로컬 테스트 59개 통과. Actions 실수집은 접속 실패 상태이며 신규 Pages 배포와 정기 운영은 아직 완료하지 않았습니다. 아래 내용은 기존 v1 운영 안내입니다.
+> **2026-10-19 지도 수집기 v2 작업:** [수집기 사용법](whoga-naver-collector/README.md) · [실제 검증 결과](VERIFICATION_MAP.md) · [draft PR #2](https://github.com/PoeticEcho/whoga/pull/2). 클라우드 브라우저 실측 120개를 두 차례 검증했고 기존 앱 형식 변환·로컬 HTTP 연동을 통과했습니다. 테스트는 63개 통과. Actions 실수집은 접속 실패 상태이며 신규 Pages 배포와 정기 운영은 아직 완료하지 않았습니다. 아래 내용은 기존 v1 운영 안내입니다.
 
 날짜별 호가를 확인하는 웹페이지와 수집·검증 도구를 제공합니다. 현재 알림은 ChatGPT 예약 작업을 사용합니다.
 별도 PHP 서버나 데이터베이스는 필요하지 않습니다.

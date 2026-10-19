@@ -3,6 +3,7 @@ import argparse
 import json
 import time
 from urllib.request import urlopen, Request
+from urllib.parse import quote
 from pathlib import Path
 from collector import ROOT, ValidationError, digest
 from monitor import read_json, validate_snapshot
@@ -19,10 +20,13 @@ def verify(base, expected, attempts=6):
         paths['data/'+entry['file']]=read_json(ROOT/'data'/entry['file'])
     for old in (ROOT/'whoga-naver-collector').glob('snapshot-*.json'):
         paths['whoga-naver-collector/'+old.name]=read_json(old)
+    for old in (ROOT/'whoga-naver-collector/history').glob('*.json'):
+        paths['whoga-naver-collector/history/'+old.name]=read_json(old)
     for relative,local in paths.items():
         for attempt in range(attempts):
             try:
-                req=Request(base+relative+'?verify='+expected['run_id'],headers={'Cache-Control':'no-cache'})
+                req=Request(base+quote(relative,safe='/')+'?verify='+quote(expected['run_id'],safe=''),
+                            headers={'Cache-Control':'no-cache'})
                 with urlopen(req,timeout=20) as response:
                     if response.status!=200:raise ValidationError('Non-200 public file')
                     remote=json.load(response)

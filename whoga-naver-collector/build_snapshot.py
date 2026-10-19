@@ -40,7 +40,8 @@ def build(directory):
         'declaredCount':report['visible_total_count'],'count':len(keys),'items':[r['item'] for r in raw['cards']],
         'view':report['view'],'observation':{'observedAt':raw['collected_at'],'transport':report['transport']},
         'validation':{'complete':True,'declaredCount':len(keys),'parsedCount':len(keys),
-            'method':'two-complete-map-passes','identityCount':sum(bool(r['item']['articleId']) for r in raw['cards']),
+            'method':report.get('validation_method','two-complete-map-passes'),
+            'identityCount':sum(bool(r['item']['articleId']) for r in raw['cards']),
             'groupIdentity':'within-run-text-sha256'}}
     validate_snapshot(snapshot,require_complete=True,allowed_dongs=CONFIG['allowedDongs'])
     atomic_json(directory/'snapshot.json',snapshot)
