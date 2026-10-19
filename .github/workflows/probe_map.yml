@@ -1,0 +1,41 @@
+name: whoga · 지도 경로 수집 시험
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [actions-map-trial]
+    paths:
+      - '.github/workflows/probe_map.yml'
+      - 'scripts/probe_map.py'
+      - 'config/map-probe.json'
+
+permissions:
+  contents: read
+
+jobs:
+  map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Verify scope and diagnostic output
+        run: python -m unittest discover -s tests -p test_map_probe.py -v
+      - name: Install standard browser
+        run: |
+          python -m pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Test the supplied public map without changing data
+        run: python scripts/probe_map.py
+      - name: Preserve diagnostic counts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: map-probe
+          path: probe-results/map-probe.json
+          if-no-files-found: ignore
+          retention-days: 7
