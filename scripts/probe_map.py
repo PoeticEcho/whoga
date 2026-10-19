@@ -109,6 +109,13 @@ def run_probe(config, *, headed=False):
             if response and response.status in (401, 403, 429):
                 report['stage'] = 'http-access-response'
                 return report
+            if config.get('openArticleTab'):
+                try:
+                    page.get_by_role('tab', name='매물', exact=True).click(timeout=20000)
+                    report['articleTabOpened'] = True
+                except BrowserTimeout:
+                    report['stage'] = 'article-tab-unavailable'
+                    return report
             expected, previous_count, stalls, stable = None, -1, 0, 0
             for _ in range(45):
                 page.wait_for_timeout(1200)
