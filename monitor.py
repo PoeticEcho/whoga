@@ -233,6 +233,13 @@ def fingerprint(snapshot):
 
 
 def rebuild_index(data_dir):
+    def stored_time(entry):
+        try:
+            stamp = datetime.fromisoformat((entry.get("savedAt") or entry.get("collectedAt") or "").replace("Z", "+00:00"))
+            return (stamp if stamp.tzinfo else stamp.replace(tzinfo=KST)).timestamp()
+        except (ValueError, TypeError, AttributeError):
+            return 0
+
     entries = []
     for path in sorted(Path(data_dir).glob("*.json")):
         if path.name in ("index.json", "status.json"):
@@ -243,8 +250,9 @@ def rebuild_index(data_dir):
                         "label": snap.get("label", snap["date"]), "file": path.name,
                         "count": len(snap["items"]), "declaredCount": snap["declaredCount"],
                         "complete": quality["complete"], "sourceKind": snap.get("source", {}).get("kind", "provided"),
-                        "collectedAt": snap.get("collectedAt")})
-    entries.sort(key=lambda e: (e["date"], e["id"] == e["date"], e["id"]), reverse=True)
+                        "collectedAt": snap.get("collectedAt"),
+                        **({"savedAt": snap["savedAt"]} if snap.get("savedAt") else {})})
+    entries.sort(key=lambda e: (e["date"], stored_time(e), e["id"] == e["date"], e["id"]), reverse=True)
     latest = next((e["id"] for e in entries if e["complete"]), entries[0]["id"] if entries else None)
     result = {"schemaVersion": 2, "latest": latest, "snapshots": entries}
     atomic_json(Path(data_dir) / "index.json", result)
@@ -378,3 +386,4 @@ def build_briefing(current, previous=None):
                 lines.append(prefix + _report_range(row) + identity)
     lines += ["", "※ 미관측은 거래 완료를 뜻하지 않습니다. 조건 일치 후보는 동일 호실 미확인입니다."]
     return "\n".join(lines)
+

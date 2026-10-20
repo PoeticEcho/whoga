@@ -1,11 +1,13 @@
-import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing, plainListings } from './core.mjs?v=20261018-briefing';
+import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing, plainListings } from './core.mjs?v=20261021-save';
+import { saveSnapshot, loadSharedIndex, loadSharedSnapshot, sortEntries } from './repository.mjs?v=20261021-save';
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const DONGS = ['101동', '102동', '103동', '105동'];
 const TYPES = ['78OB', '84OA'];
 const LOCAL_KEY = 'beomeoW_pages_v1_manual';
-const state = { entries: [], data: new Map(), local: {}, status: {}, current: null, previous: null, diff: null, pending: 0, filtered: [], config: {} };
+const state = { entries: [], data: new Map(), local: {}, status: {}, current: null, previous: null, diff: null, pending: 0, filtered: [], config: {}, serverRef: null, saving: false };
+let githubToken = '';
 const todayKst = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const dateText = value => value ? String(value).replace('T', ' ').replace(/\+09:00$/, ' KST') : '기록 없음';
 const empty = text => `<div class="empty">${escape(text)}</div>`;
@@ -30,7 +32,9 @@ async function snapshotFor(id) {
   if (state.data.has(id)) return state.data.get(id);
   const entry = state.entries.find(e => e.id === id);
   if (!entry || !/^[\w가-힣.-]+\.json$/.test(entry.file)) throw new Error('스냅샷 경로를 확인해 주세요.');
-  const snap = await getJson('data/' + entry.file);
+  let snap;
+  if (state.serverRef) snap = await loadSharedSnapshot(entry.file, state.serverRef);
+  else snap = await getJson('data/' + entry.file);
   validateSnapshot(snap);
   state.data.set(id, snap);
   return snap;
@@ -38,7 +42,7 @@ async function snapshotFor(id) {
 
 function selectOptions() {
   const selected = $('snapshotSelect').value;
-  $('snapshotSelect').innerHTML = state.entries.map(e => `<option value="${escape(e.id)}">${escape(e.label)}${e.local ? ' · 이 기기' : ''}${e.complete ? '' : ' · 일부 자료'}</option>`).join('');
+  $('snapshotSelect').innerHTML = state.entries.map(e => `<option value="${escape(e.id)}">${escape(e.label)}${e.local ? ' · 서버 미저장' : ''}${e.complete ? '' : ' · 일부 자료'}</option>`).join('');
   if (state.entries.some(e => e.id === selected)) $('snapshotSelect').value = selected;
   $('snapshotSelect').disabled = !state.entries.length;
   compareOptions();
@@ -59,7 +63,8 @@ function renderBanner() {
   const source = snap.source?.kind || 'provided', complete = validateSnapshot(snap).complete;
   const pieces = [], banner = $('statusBanner');
   let title, tone = '';
-  if (entry?.local) { title = '이 기기의 수동 자료를 보고 있습니다.'; tone = 'warn'; }
+  if (entry?.local) { title = '분석 완료 · 서버에 아직 저장하지 않은 자료입니다.'; tone = 'warn'; pieces.push('수동 자료의 ‘서버에 저장’을 눌러 누적자료로 등록하세요.'); }
+  else if (source === 'manual') { title = '서버에 저장된 수동 자료입니다.'; pieces.push('날짜별 누적자료로 보존되며 다른 기기에서도 조회할 수 있습니다.'); }
   else if (state.status.lastAttemptResult === 'failed') { title = '최근 수집에 실패했습니다. 저장된 자료를 표시합니다.'; tone = 'error'; pieces.push(state.status.message || '수집 실행 기록을 확인해 주세요.'); }
   else if (source !== 'naver-live') { title = '제공된 기준 자료를 보고 있습니다.'; tone = 'warn'; pieces.push('네이버 자동 수집 성공은 아직 확인되지 않았습니다.'); }
   else { title = `자동 수집 자료 · ${snap.date.slice(0, 10)}`; }
@@ -74,6 +79,7 @@ function renderBanner() {
 
 async function loadSelection() {
   const op = ++state.pending;
+  $('saveServerBtn').disabled = true;
   $('content').setAttribute('aria-busy', 'true');
   try {
     const [current, previous] = await Promise.all([snapshotFor($('snapshotSelect').value), snapshotFor($('compareSelect').value)]);
@@ -88,7 +94,54 @@ async function loadSelection() {
     $('content').hidden = true; $('exportJsonBtn').disabled = true;
     $('statusBanner').className = 'status-banner error';
     $('statusBanner').innerHTML = `<span class="status-dot"></span><div><strong>선택한 자료를 불러오지 못했습니다.</strong><p>${escape(error.message)} · 새로고침하거나 다른 날짜를 선택해 주세요.</p></div>`;
-  } finally { if (op === state.pending) $('content').setAttribute('aria-busy', 'false'); }
+  } finally { if (op === state.pending) { $('content').setAttribute('aria-busy', 'false'); renderSaveState(); } }
+}
+
+function renderSaveState() {
+  const entry = state.entries.find(e => e.id === $('snapshotSelect').value);
+  $('saveServerBtn').disabled = state.saving || !state.current || !entry?.local;
+  $('saveServerBtn').textContent = state.saving ? '저장 확인 중…' : '서버에 저장';
+  $('pendingSaveCount').textContent = `서버 미저장 ${Object.keys(state.local).length}개`;
+}
+
+async function saveCurrentToServer() {
+  if (state.saving) return;
+  const id = $('snapshotSelect').value, snapshot = state.local[id];
+  if (!snapshot || !state.current) return;
+  const typed = $('githubToken').value.trim();
+  if (typed) githubToken = typed;
+  $('githubToken').value = '';
+  if (!githubToken) {
+    $('githubSetup').open = true; $('githubToken').focus();
+    $('serverSaveStatus').textContent = 'GitHub 연결 토큰을 입력한 뒤 서버에 저장을 눌러 주세요.';
+    return;
+  }
+  state.saving = true; renderSaveState();
+  for (const control of ['refreshBtn', 'snapshotSelect', 'compareSelect', 'clearLocalBtn', 'parseRawBtn', 'jsonInput']) $(control).disabled = true;
+  $('serverSaveLink').hidden = true;
+  try {
+    const result = await saveSnapshot(snapshot, { token: githubToken, onProgress: message => { $('serverSaveStatus').textContent = message; } });
+    // Remove a local draft only after its server file and index were read back.
+    delete state.local[id]; state.data.delete(id); persistLocal();
+    state.serverRef = result.ref;
+    state.entries = sortEntries([...result.index.snapshots, ...state.entries.filter(e => e.local && e.id !== id)]);
+    state.data.set(result.id, result.snapshot);
+    selectOptions(); $('snapshotSelect').value = result.id; compareOptions('');
+    await loadSelection();
+    $('serverSaveStatus').textContent = `${result.duplicate ? '이미 저장된 동일 자료를 확인했습니다.' : '서버 저장 완료.'} ${result.snapshot.date} · ${result.snapshot.items.length}건 재조회 확인. 다른 기기의 새로고침에서도 조회할 수 있습니다.`;
+    $('githubConnectionStatus').textContent = 'GitHub 연결 확인 · 이 탭에서 유지';
+    $('githubSetup').open = false;
+    $('serverSaveLink').href = result.commitUrl; $('serverSaveLink').hidden = false;
+    toast('서버 저장과 재조회 확인을 완료했습니다.');
+  } catch (error) {
+    $('serverSaveStatus').textContent = `저장 미완료 · ${error.message} 기기 자료는 그대로 남아 있습니다.`;
+    if ([401, 403, 404].includes(error.status)) { githubToken = ''; $('githubSetup').open = true; $('githubConnectionStatus').textContent = 'GitHub 연결을 다시 확인해 주세요.'; }
+    toast('서버 저장을 완료하지 못했습니다. 아래 상태를 확인해 주세요.');
+  } finally {
+    state.saving = false;
+    for (const control of ['refreshBtn', 'snapshotSelect', 'compareSelect', 'clearLocalBtn', 'parseRawBtn', 'jsonInput']) $(control).disabled = false;
+    renderSaveState();
+  }
 }
 
 function renderAll() {
@@ -174,7 +227,7 @@ function renderStats() {
   const bands = ranges.map(([low, high, label]) => ({ label, values: TYPES.map(type => rows.filter(r => r.type === type && r.minPrice >= low && r.minPrice < high).length) }));
   const max = Math.max(1, ...bands.map(b => b.values[0] + b.values[1]));
   $('bandChart').innerHTML = bands.map(b => `<div class="band-row"><span>${b.label}</span><div class="band-track" aria-label="78OB ${b.values[0]}건, 84OA ${b.values[1]}건"><i style="width:${b.values[0] / max * 100}%"></i><i style="width:${b.values[1] / max * 100}%"></i></div><strong>${b.values[0] + b.values[1]}건</strong></div>`).join('') + '<div class="chart-legend"><span>78OB</span><span>84OA</span></div>';
-  $('historyList').innerHTML = state.entries.map(e => `<div class="history-row"><strong>${escape(e.label)}</strong><span>${e.count} / 원문 ${e.declaredCount}건</span><span class="${e.complete ? 'good-text' : 'warn-text'}">${e.complete ? '수량 일치' : '일부 자료'}</span><span class="muted">${e.local ? '이 기기의 수동 자료' : e.sourceKind === 'naver-live' ? '네이버 자동 수집' : e.sourceKind === 'manual' ? '수동 입력' : '첨부 기준 자료'}</span></div>`).join('');
+  $('historyList').innerHTML = state.entries.map(e => `<div class="history-row"><strong>${escape(e.label)}</strong><span>${e.count} / 원문 ${e.declaredCount}건</span><span class="${e.complete ? 'good-text' : 'warn-text'}">${e.complete ? '수량 일치' : '일부 자료'}</span><span class="muted">${e.local ? '서버 미저장 · 이 기기' : e.sourceKind === 'naver-live' ? '네이버 자동 수집' : e.sourceKind === 'manual' ? '서버 저장 · 수동 입력' : '첨부 기준 자료'}</span></div>`).join('');
 }
 
 function download(name, type, data) {
@@ -192,22 +245,28 @@ function addLocal(data) {
   const snapshots = Array.isArray(data?.items) ? [data] : Object.values(data || {});
   if (!snapshots.length || snapshots.length > 60) throw new Error('날짜별 스냅샷 또는 최대 60개의 스냅샷 모음이 필요합니다.');
   snapshots.forEach(s => { validateSnapshot(s); if (s.items.length > 5000) throw new Error('한 스냅샷은 최대 5,000건까지 지원합니다.'); });
-  const prefix = Date.now().toString(36);
+  const prefix = globalThis.crypto.randomUUID();
   let selected;
   snapshots.forEach((s, n) => {
-    const id = `local-${prefix}-${n}`, snapshot = { ...s, source: { kind: 'manual-local' } };
+    const id = `local-${prefix}-${n}`, snapshot = { ...s, source: { ...s.source, kind: 'manual-local' } };
     state.local[id] = snapshot; state.data.set(id, snapshot);
     state.entries.unshift({ id, date: s.date.slice(0, 10), label: s.label || s.date, count: s.items.length, declaredCount: s.declaredCount, complete: validateSnapshot(s).complete, local: true });
     selected = selected || id;
   });
   persistLocal(); selectOptions(); $('snapshotSelect').value = selected; compareOptions(''); loadSelection();
-  $('importResult').textContent = `${snapshots.length}개 자료를 이 기기에 가져왔습니다. 공유 데이터는 변경하지 않았습니다.`;
+  $('importResult').textContent = `${snapshots.length}개 자료 분석 완료. 선택한 자료를 확인하고 서버에 저장을 눌러 주세요.`;
+  $('serverSaveStatus').textContent = '분석 결과는 기기에 보관 중입니다. 서버에 저장하면 누적자료로 사용할 수 있습니다.';
+  $('serverSaveLink').hidden = true;
 }
 
 async function initialize() {
+  if (state.saving) return;
   $('refreshBtn').disabled = true; $('refreshBtn').textContent = '확인 중…';
   try {
-    const [index, status, config] = await Promise.all([getJson('data/index.json'), getJson('data/status.json'), getJson('config.json')]);
+    const [shared, status, config] = await Promise.all([
+      loadSharedIndex().catch(async () => ({ index: await getJson('data/index.json'), ref: null })),
+      getJson('data/status.json'), getJson('config.json')]);
+    const index = shared.index; state.serverRef = shared.ref;
     if (!Array.isArray(index.snapshots) || !index.snapshots.length) throw new Error('스냅샷 목록이 없습니다.');
     state.data.clear(); state.entries = index.snapshots; state.status = status; state.config = config;
     state.local = {};
@@ -221,10 +280,11 @@ async function initialize() {
     selectOptions(); $('snapshotSelect').value = index.latest || state.entries[0].id; compareOptions('');
     await loadSelection();
   } catch (error) {
+    state.current = null; state.previous = null; $('exportJsonBtn').disabled = true;
     $('content').hidden = true;
     $('statusBanner').className = 'status-banner error';
     $('statusBanner').innerHTML = `<span class="status-dot"></span><div><strong>자료를 불러오지 못했습니다.</strong><p>${escape(error.message)} · 새로고침하거나 수동 자료를 가져오세요. HTML 파일을 직접 열었다면 README의 실행 안내를 확인하세요.</p></div>`;
-  } finally { $('refreshBtn').disabled = false; $('refreshBtn').textContent = '새로고침'; $('content').setAttribute('aria-busy', 'false'); }
+  } finally { $('refreshBtn').disabled = false; $('refreshBtn').textContent = '새로고침'; $('content').setAttribute('aria-busy', 'false'); renderSaveState(); }
 }
 
 function setTab(button, focus = false) {
@@ -235,6 +295,8 @@ function setTab(button, focus = false) {
 }
 
 function bindEvents() {
+  $('saveServerBtn').addEventListener('click', saveCurrentToServer);
+  $('disconnectGithubBtn').addEventListener('click', () => { githubToken = ''; $('githubToken').value = ''; $('githubConnectionStatus').textContent = 'GitHub 연결 해제 · 저장한 자료는 유지됩니다.'; });
   $('refreshBtn').addEventListener('click', initialize);
   $('snapshotSelect').addEventListener('change', () => { compareOptions(''); loadSelection(); });
   $('compareSelect').addEventListener('change', loadSelection);
@@ -286,3 +348,4 @@ function bindEvents() {
 }
 
 bindEvents(); $('rawDate').value = todayKst(); initialize();
+

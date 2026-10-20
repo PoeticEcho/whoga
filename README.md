@@ -145,9 +145,27 @@ GitHub Actions 직접 일일 수집은 해당 환경에서 성공을 확인한 �
 동일 원문 총수·카드 수·해석 수량이 두 차례 연속 일치해야 성공하며, 수집 도중 원문 총수가 바뀌면 보류합니다.
 
 웹페이지 `수동 자료`에서 JSON을 가져오거나, 총수와 각 매물의 내용을 포함한 네이버 원문을 붙여넣을 수 있습니다.
-이 자료는 **그 브라우저에만 저장**됩니다. 다른 기기·매일 알림에는 자동 반영되지 않습니다.
+분석 결과를 먼저 기기에 보관한 뒤 **서버에 저장** 버튼으로 누적자료에 등록합니다.
 
-공유 자료에 반영하려면 웹페이지에서 날짜별 JSON을 내려받은 뒤 로컬에서 다음 명령으로 등록하고 GitHub에 올리세요.
+### 수동자료 서버 저장 (2026-10-21 업데이트)
+
+1. `수동 자료`에서 원문을 검사하거나 JSON을 가져옵니다.
+2. 상단 `기준 자료`에서 저장할 자료를 선택하고 내용을 확인합니다. 예전에 기기에만 저장한 자료도 선택할 수 있습니다.
+3. `서버에 저장`을 누릅니다. 처음에는 `GitHub 저장 연결`에 연결 토큰을 입력합니다.
+   GitHub의 Fine-grained personal access token에서 **PoeticEcho/whoga만 선택**, **Contents: Read and write**를 지정합니다.
+   토큰을 채팅에 보내지 말고 사이트 입력란에서만 사용하세요. 토큰은 탭의 메모리에만 유지하며 새로고침하면 다시 입력해야 합니다.
+4. 날짜별 자료와 조회 목록을 한 커밋으로 저장한 뒤, 서버에서 원본을 다시 읽어 확인합니다.
+   `서버 저장 완료 · N건 재조회 확인`과 저장 기록 링크가 표시되면 완료입니다.
+5. 다른 기기에서 `새로고침`을 누르면 서버 최신 목록을 조회합니다. 공개 페이지 배포가 끝나기 전에도 API 조회가 가능하며, API 접근 실패 시에는 배포된 자료 목록으로 돌아갑니다.
+
+같은 날짜의 다른 내용은 별도 이력으로 추가하고 기존 파일을 덮어쓰지 않습니다.
+같은 내용은 파일 내용 해시로 구분해 중복 저장을 막으며, 다른 기기와 저장이 겹치면 최신 목록을 다시 합칩니다.
+저장에 실패하거나 서버 재조회가 일치하지 않으면 기기 자료를 유지합니다. 저장을 확인한 자료만 기기 임시 목록에서 제외합니다.
+자료 파일은 `data/YYYY-MM-DD_manual_<내용 해시>.json`이며 GitHub와 공개 사이트에서 조회됩니다.
+원문 기준일과 저장시각을 분리하며, 저장시각을 매물 관측시각으로 표시하지 않습니다.
+GitHub의 토큰 권한이나 브랜치 정책 때문에 쓰기가 거절되면 상태 메시지에서 확인할 수 있습니다.
+
+명령행을 이용하는 경우에는 기존 JSON 등록 방식도 사용할 수 있습니다.
 
 ```bash
 python crawler.py --input /path/to/snapshot.json --dry-run
@@ -226,3 +244,4 @@ GitHub Actions에서는 브라우저와 Linux 의존성까지 자동 설치합�
 Firecrawl interact 전체 수집과 예약 작업의 반복 성공은 아직 확인되지 않았습니다. 실행 환경·페이지 변경에 영향을 받습니다.
 
 공식 참고: [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages), [Pages 배포 워크플로](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), [예약 실행](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule), [Actions Secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets), [Telegram Bot API](https://core.telegram.org/bots/api#sendmessage).
+

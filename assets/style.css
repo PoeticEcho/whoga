@@ -6,3 +6,15 @@
 .listing-view-bar{display:flex;align-items:center;gap:16px;margin:0 0 18px;flex-wrap:wrap}.listing-view-bar label,.report-format{display:flex;align-items:center;gap:12px}.listing-view-bar select,.report-format select{min-width:145px}.report-actions{display:flex;gap:8px;flex-wrap:wrap}.report-actions .button{white-space:nowrap}.plain-list{font-family:ui-monospace,SFMono-Regular,Consolas,"Noto Sans KR",monospace;line-height:1.9;word-break:normal;overflow-wrap:anywhere;margin-bottom:0;user-select:text;min-width:0}.report-head{align-items:flex-start}.report-format{margin-bottom:18px}.report-format select{min-width:180px}
 @media(max-width:760px){.report-head{flex-wrap:wrap}.report-actions{gap:7px}.report-actions .button{min-height:40px;font-size:12px;padding:7px 12px}.listing-view-bar{gap:10px}.listing-view-bar>.muted{font-size:11px}.plain-list{padding:14px;font-size:12px;line-height:1.9}.report-format select{min-height:44px}.listing-view-bar select{min-height:44px}}
 @media(prefers-reduced-motion:no-preference){.button{transition:background .15s}.tabbar button{transition:color .15s,border-color .15s}}
+
+
+.server-save-panel { margin-top: 20px; padding: 20px; border: 1px solid var(--line, #dce3ec); border-radius: 14px; }
+.server-save-panel h3 { margin: 0 0 6px; }
+.server-save-panel details { margin: 16px 0; }
+.server-save-panel summary { cursor: pointer; font-weight: 600; }
+.server-save-panel input { width: 100%; max-width: 560px; }
+.server-save-panel p { overflow-wrap: anywhere; }
+.server-connection { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+#serverSaveStatus { font-weight: 600; line-height: 1.7; }
+#serverSaveLink { color: var(--blue, #2964df); }
+@media (max-width: 600px) { .server-save-panel { padding: 14px; } .server-save-panel .section-head { align-items: flex-start; gap: 12px; flex-wrap: wrap; } }

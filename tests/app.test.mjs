@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { fakeRepository } from './fixtures/github-api.mjs';
 
 class Element {
   constructor(id, tag = 'div', initial = '') {
@@ -123,6 +124,38 @@ test('dashboard loads from a project path and filters actual supplied data', asy
     assert.equal(elements.get('content').hidden, true);
     assert.equal(elements.get('exportJsonBtn').disabled, true);
     assert.ok(elements.get('statusBanner').innerHTML.includes('선택한 자료를 불러오지 못했습니다'));
+
+    // Existing drafts migrate only after successful server read-back.
+    denied = '';
+    const repo = fakeRepository(files['data/index.json'], Object.fromEntries(Object.entries(files).filter(([name]) => name.startsWith('data/') && name !== 'data/index.json')));
+    const staticFetch = globalThis.fetch;
+    globalThis.fetch = (url, options) => String(url).startsWith('https://api.github.com/') ? repo.fetch(url, options) : staticFetch(url, options);
+    const draft = { date: '2026-10-21', count: 1, declaredCount: 1, items: [row('103동')], source: { kind: 'manual-local' } };
+    storage.set('beomeoW_pages_v1_manual', JSON.stringify({ legacy: draft }));
+    await elements.get('refreshBtn').emit('click'); await flush();
+    assert.equal(elements.get('pendingSaveCount').textContent, '서버 미저장 1개');
+    elements.get('snapshotSelect').value = 'legacy'; await elements.get('snapshotSelect').emit('change'); await flush();
+    assert.equal(elements.get('saveServerBtn').disabled, false);
+    assert.ok(elements.get('statusBanner').innerHTML.includes('서버에 아직 저장하지 않은'));
+    await elements.get('saveServerBtn').emit('click');
+    assert.ok(elements.get('serverSaveStatus').textContent.includes('연결 토큰'));
+    repo.denyWrites = true;
+    elements.get('githubToken').value = 'test-token'; await elements.get('saveServerBtn').emit('click');
+    assert.ok(elements.get('serverSaveStatus').textContent.includes('저장 미완료'));
+    assert.ok(JSON.parse(storage.get('beomeoW_pages_v1_manual')).legacy);
+    assert.equal(elements.get('saveServerBtn').disabled, false);
+    repo.denyWrites = false;
+    elements.get('githubToken').value = 'test-token'; await elements.get('saveServerBtn').emit('click'); await flush();
+    assert.ok(elements.get('serverSaveStatus').textContent.includes('서버 저장 완료'));
+    assert.ok(elements.get('serverSaveStatus').textContent.includes('1건 재조회 확인'));
+    assert.deepEqual(JSON.parse(storage.get('beomeoW_pages_v1_manual')), {});
+    assert.ok(!JSON.stringify([...storage.values()]).includes('test-token'));
+    assert.equal(elements.get('githubToken').value, '');
+    assert.equal(elements.get('saveServerBtn').disabled, true);
+    await elements.get('refreshBtn').emit('click'); await flush();
+    assert.ok(elements.get('statusBanner').innerHTML.includes('서버에 저장된 수동 자료'));
+    assert.equal(elements.get('listTabCount').textContent, 1);
+    assert.equal(elements.get('pendingSaveCount').textContent, '서버 미저장 0개');
   } finally {
     for (const timer of timers) clearTimeout(timer);
     globalThis.setTimeout = originalTimeout;
@@ -130,3 +163,4 @@ test('dashboard loads from a project path and filters actual supplied data', asy
     delete globalThis.document; delete globalThis.localStorage; delete globalThis.fetch;
   }
 });
+

@@ -91,6 +91,20 @@ class DiffTests(unittest.TestCase):
 
 
 class PersistenceTests(unittest.TestCase):
+    def test_manual_revisions_survive_rebuild_and_become_latest_by_save_time(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            canonical = snapshot()
+            canonical["collectedAt"] = "2026-10-17T08:00:00+09:00"
+            manual = snapshot()
+            manual.update(source={"kind": "manual"}, savedAt="2026-10-17T01:30:00.000Z")
+            m.atomic_json(Path(tmp) / "2026-10-17.json", canonical)
+            m.atomic_json(Path(tmp) / "2026-10-17_manual_abc.json", manual)
+            idx = m.rebuild_index(tmp)
+            self.assertEqual(len(idx["snapshots"]), 2)
+            self.assertEqual(idx["latest"], "2026-10-17_manual_abc")
+            self.assertEqual(idx["snapshots"][0]["savedAt"], manual["savedAt"])
+            self.assertEqual(m.read_json(Path(tmp) / "2026-10-17.json"), canonical)
+
     def test_failure_preserves_last_success_and_snapshot_bytes(self):
         with tempfile.TemporaryDirectory() as tmp:
             m.save_snapshot(tmp, snapshot(), source_kind="manual")
@@ -184,3 +198,4 @@ class BuildTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
