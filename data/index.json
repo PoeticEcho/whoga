@@ -1,7 +1,18 @@
 {
   "schemaVersion": 2,
-  "latest": "2026-10-19",
+  "latest": "2026-10-21",
   "snapshots": [
+    {
+      "id": "2026-10-21",
+      "date": "2026-10-21",
+      "label": "2026-10-21",
+      "file": "2026-10-21.json",
+      "count": 121,
+      "declaredCount": 121,
+      "complete": true,
+      "sourceKind": "naver-live",
+      "collectedAt": "2026-10-21T08:09:40+09:00"
+    },
     {
       "id": "2026-10-19",
       "date": "2026-10-19",
