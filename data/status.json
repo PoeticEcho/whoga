@@ -1,9 +1,13 @@
 {
   "schemaVersion": 2,
   "lastAttemptResult": "success",
-  "lastAttemptAt": "2026-10-21T08:09:40+09:00",
-  "lastSuccessAt": "2026-10-21T08:09:40+09:00",
+  "lastAttemptAt": "2026-10-22T08:51:24+09:00",
+  "lastSuccessAt": "2026-10-22T08:51:24+09:00",
   "sourceKind": "naver-live",
-  "message": "클라우드 브라우저에서 목록을 30→60→90→120→121건까지 스크롤하고 121/121건 및 필수 항목을 두 차례 확인했습니다.",
-  "latestCollectedDate": "2026-10-21"
+  "message": "클라우드 브라우저에서 목록을 30→60→90→120건까지 스크롤하고 120/120건 및 필수 항목을 두 차례 확인했습니다.",
+  "latestCollectedDate": "2026-10-22",
+  "declaredCount": 120,
+  "verifiedCount": 120,
+  "collectionPath": "cua-cloud-browser",
+  "transport": "cloud-browser"
 }
