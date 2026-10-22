@@ -52,8 +52,7 @@ jobs:
           PY
       - name: Real framebuffer, mouse input, shared browser and dashboard
         run: |
-          docker cp nas/check_dashboard.py whoga-nas-test:/tmp/check_dashboard.py
-          docker exec whoga-nas-test python /tmp/check_dashboard.py
+          docker exec -i whoga-nas-test python - < nas/check_dashboard.py
       - name: Restart and verify retained settings and desktop recovery
         run: |
           docker restart whoga-nas-test
@@ -69,8 +68,7 @@ jobs:
           else:
               raise SystemExit('Desktop restart failed')
           PY
-          docker cp nas/check_dashboard.py whoga-nas-test:/tmp/check_dashboard.py
-          docker exec -e WHOGA_EXPECT_RESTART=1 whoga-nas-test python /tmp/check_dashboard.py
+          docker exec -i -e WHOGA_EXPECT_RESTART=1 whoga-nas-test python - < nas/check_dashboard.py
       - name: Preserve screenshots and logs
         if: always()
         run: |
