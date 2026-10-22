@@ -241,6 +241,14 @@ xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" python cua_actio
 `--dry-run`은 원문을 조회하고 검증 보고서를 만들지만 `data/`를 변경하지 않습니다.
 일반 실행의 브라우저·네트워크 예외도 실패 상태로 기록합니다.
 
+2026-10-22 [실제 Actions 시험](https://github.com/PoeticEcho/whoga/actions/runs/39719839606)에서는
+Xvfb·일반 Chromium 설치와 회귀 검사는 통과했지만, 네이버 첫 페이지 이동에서
+`net::ERR_CONNECTION_RESET`과 45초 시간 초과가 발생했습니다. 패널 JS·휠 입력 전의 연결 실패이며,
+이 워크플로의 실제 매물 수집 성공은 아직 확인하지 못했습니다. 기존 120건과 날짜별 이력은 보존됐고,
+실패 상태의 Git 저장·Pages 배포·공개 파일 대조는 통과했습니다.
+`data/status.json`의 `lastAttemptEvidence`는 이번 시도의 단계·오류를 표시하고,
+기존 `lastSuccessAt`·수량은 마지막 성공 자료의 값으로 보존합니다.
+
 GitHub Actions에서는 브라우저와 Linux 의존성까지 자동 설치합니다.
 알림 내용을 발송 없이 확인하려면 `python scripts/notify.py --dry-run`을 사용합니다.
 
