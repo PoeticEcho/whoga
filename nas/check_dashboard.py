@@ -16,8 +16,18 @@ with sync_playwright() as pw:
     dashboard.goto('http://127.0.0.1:8899')
     expect(dashboard.locator('#url')).to_have_value('https://fin.land.naver.com/complexes/140635')
     if os.environ.get('WHOGA_EXPECT_RESTART'):
+        expect(dashboard.locator('#scheduleMode')).to_have_value('daily')
+        expect(dashboard.locator('#dailyTime')).to_have_value('09:17')
+        expect(dashboard.locator('#dailyControls')).to_be_visible()
+        expect(dashboard.locator('#intervalControls')).to_be_hidden()
+        dashboard.locator('#scheduleMode').select_option('interval')
         expect(dashboard.locator('#intervalMinutes')).to_have_value('67')
+    else:
+        expect(dashboard.locator('#scheduleMode')).to_have_value('daily')
+        dashboard.locator('#scheduleMode').select_option('interval')
     dashboard.locator('#intervalMinutes').fill('67')
+    dashboard.locator('#scheduleMode').select_option('daily')
+    dashboard.locator('#dailyTime').fill('09:17')
     dashboard.get_by_role('button', name='설정 저장', exact=True).click()
     expect(dashboard.locator('#dirty')).to_have_text('저장됨')
 
@@ -72,5 +82,5 @@ with sync_playwright() as pw:
     dashboard.screenshot(path='/output/dashboard-mobile.png', full_page=True)
     assert dashboard.evaluate('document.documentElement.scrollWidth <= innerWidth')
     assert not errors, errors
-    print('PASS: authenticated framebuffer, real remote mouse input, same visible CDP browser, smoke, upload gate, mobile layouts and settings')
+    print('PASS: authenticated framebuffer, real remote mouse input, same visible CDP browser, smoke, upload gate, mobile layouts and daily/interval schedule settings')
     controller.close()

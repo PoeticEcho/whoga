@@ -1,10 +1,11 @@
 """Authenticated LAN dashboard for a single NAS collector."""
 import base64
 import copy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -21,11 +22,30 @@ from urllib.error import HTTPError
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 from urllib.request import Request, urlopen
 import uuid
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT = dict(url='https://fin.land.naver.com/complexes/140635', intervalMinutes=1440,
+               scheduleMode='daily', dailyTime='08:45',
                scheduleEnabled=False, autoUpload=False, repository='PoeticEcho/whoga',
                branch='map-collector-v2', githubToken='')
+SEOUL = ZoneInfo('Asia/Seoul')
+
+
+def schedule_key(config):
+    return ('daily:' + config['dailyTime'] if config['scheduleMode'] == 'daily'
+            else 'interval:' + str(config['intervalMinutes']))
+
+
+def next_run(config, now, last_daily_date=None):
+    if config['scheduleMode'] == 'interval':
+        return now + config['intervalMinutes'] * 60
+    local = datetime.fromtimestamp(now, SEOUL)
+    hour, minute = map(int, config['dailyTime'].split(':'))
+    target = local.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if target.timestamp() <= now or last_daily_date == local.date().isoformat():
+        target += timedelta(days=1)
+    return target.timestamp()
 
 
 def atomic(path, data):
@@ -51,6 +71,10 @@ def validate(config):
         raise ValueError('감시 주소는 https://fin.land.naver.com/complexes/숫자 형식이어야 합니다.')
     if type(config['intervalMinutes']) is not int or not 15 <= config['intervalMinutes'] <= 10080:
         raise ValueError('실행 간격은 15~10080분으로 입력하세요.')
+    if config['scheduleMode'] not in ('daily', 'interval'):
+        raise ValueError('예약 방식은 매일 지정 시각 또는 분 간격을 선택하세요.')
+    if not isinstance(config['dailyTime'], str) or not re.fullmatch(r'(?:[01][0-9]|2[0-3]):[0-5][0-9]', config['dailyTime']):
+        raise ValueError('매일 실행 시각은 한국 시각 00:00~23:59 형식으로 입력하세요.')
     for key in ('scheduleEnabled', 'autoUpload'):
         if type(config[key]) is not bool:
             raise ValueError('설정 값 형식이 올바르지 않습니다.')
@@ -88,13 +112,20 @@ class App:
         self.config_dir.mkdir(parents=True, exist_ok=True)
         self.output.mkdir(parents=True, exist_ok=True)
         self.lock = threading.RLock()
-        self.config = validate(read(self.config_dir / 'settings.json', DEFAULT))
+        saved_config = read(self.config_dir / 'settings.json', None)
+        self.config = copy.deepcopy(DEFAULT)
+        if saved_config is not None:
+            self.config.update(saved_config)
+            # Existing installations retain their configured interval schedule.
+            if 'scheduleMode' not in saved_config:
+                self.config['scheduleMode'] = 'interval'
+        validate(self.config)
         self.state = read(self.output / 'dashboard.json', dict(running=False, upload={'status': 'not-configured'}))
         if self.state.get('running'):
             self.state.update(running=False, result='interrupted', message='컨테이너가 재시작됐습니다. 이전 실행은 성공으로 처리하지 않습니다.')
         if self.state.get('upload', {}).get('status') == 'running':
             self.state['upload'] = dict(status='failed', message='재시작으로 업로드 확인이 중단됐습니다. GitHub 파일을 확인하세요.')
-        self.state['nextRun'] = time.time() + self.config['intervalMinutes'] * 60
+        self.update_schedule(preserve=True)
         self.process = None
         self.cancelled = False
         self.desktop_tickets = {}
@@ -103,6 +134,14 @@ class App:
 
     def save(self):
         atomic(self.output / 'dashboard.json', self.state)
+
+    def update_schedule(self, preserve=False):
+        key = schedule_key(self.config)
+        saved = self.state.get('nextRun')
+        if (not preserve or self.state.get('scheduleKey') != key or
+                type(saved) not in (int, float) or not math.isfinite(saved)):
+            self.state['nextRun'] = next_run(self.config, time.time(), self.state.get('lastDailyDate'))
+        self.state['scheduleKey'] = key
 
     def snapshot(self):
         with self.lock:
@@ -131,11 +170,12 @@ class App:
                 candidate['githubToken'] = ''
             validate(candidate)
             atomic(self.config_dir / 'settings.json', candidate)
+            preserve = self.config['scheduleEnabled'] == candidate['scheduleEnabled']
             self.config = candidate
-            self.state['nextRun'] = time.time() + candidate['intervalMinutes'] * 60
+            self.update_schedule(preserve=preserve)
             self.save()
 
-    def start(self, mode):
+    def start(self, mode, *, scheduled=False):
         if mode not in ('smoke', 'browse', 'probe', 'full'):
             raise ValueError('실행 모드를 확인하세요.')
         with self.lock:
@@ -144,8 +184,12 @@ class App:
             config = copy.deepcopy(self.config)
             job = uuid.uuid4().hex
             self.cancelled = False
+            if scheduled and config['scheduleMode'] == 'daily':
+                self.state['lastDailyDate'] = datetime.fromtimestamp(time.time(), SEOUL).date().isoformat()
+            if scheduled or config['scheduleMode'] == 'interval':
+                self.update_schedule()
             self.state.update(running=True, jobId=job, mode=mode, startedAt=time.time(), result='running',
-                              message='실행 중', lastResult=None, nextRun=time.time() + config['intervalMinutes'] * 60)
+                              message='실행 중', lastResult=None)
             self.log_path.write_text('')
             self.save()
             threading.Thread(target=self.worker, args=(mode, job, config), daemon=True).start()
@@ -192,8 +236,10 @@ class App:
         if config['autoUpload'] and mode == 'full' and self.state['result'] == 'full-passed':
             try:
                 self.start_upload()
-            except ValueError:
-                pass
+            except ValueError as exc:
+                with self.lock:
+                    self.state['upload'] = dict(status='failed', message=str(exc), at=time.time())
+                    self.save()
 
     def stop(self):
         with self.lock:
@@ -243,16 +289,28 @@ class App:
             self.state['upload'] = upload
             self.save()
 
+    def run_due(self):
+        with self.lock:
+            if (not self.config['scheduleEnabled'] or self.state['running'] or
+                    self.state.get('upload', {}).get('status') == 'running' or
+                    time.time() < self.state['nextRun']):
+                return False
+            today = datetime.fromtimestamp(time.time(), SEOUL).date().isoformat()
+            if self.config['scheduleMode'] == 'daily' and self.state.get('lastDailyDate') == today:
+                self.update_schedule()
+                self.save()
+                return False
+            # Advance and persist before starting: a restart cannot repeat today's slot.
+            self.start('full', scheduled=True)
+            return True
+
     def scheduler(self):
         while True:
             time.sleep(5)
-            with self.lock:
-                due = self.config['scheduleEnabled'] and not self.state['running'] and time.time() >= self.state['nextRun']
-            if due:
-                try:
-                    self.start('full')
-                except ValueError:
-                    pass
+            try:
+                self.run_due()
+            except ValueError:
+                pass
 
     def desktop_ticket(self):
         with self.lock:
