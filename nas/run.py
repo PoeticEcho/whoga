@@ -51,6 +51,7 @@ def main():
                 browser = pw.chromium.connect_over_cdp('http://127.0.0.1:9222', timeout=15000)
                 context = browser.contexts[0]
                 page = context.pages[0] if context.pages else context.new_page()
+                page.bring_to_front()
                 try:
                     if args.mode == 'smoke':
                         page.screenshot(path=str(output / 'browser-smoke.png'), timeout=10000)

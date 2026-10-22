@@ -25,6 +25,7 @@ with sync_playwright() as pw:
     remote = pw.chromium.connect_over_cdp('http://127.0.0.1:9222')
     page = remote.contexts[0].pages[0]
     page.set_content('<title>WhoGa 화면·입력 검사</title><body style="background:#edf3ed"><button style="position:absolute;left:80px;top:100px;width:400px;height:160px;font-size:30px" onclick="this.dataset.clicked=\'yes\';this.textContent=\'원격 클릭 확인\'">원격 입력 검사</button></body>')
+    page.bring_to_front()
     viewer = context.new_page()
     viewer.on('pageerror', lambda error: errors.append(str(error)))
     viewer.goto('http://127.0.0.1:8899/desktop/')
@@ -36,7 +37,7 @@ with sync_playwright() as pw:
       if(!c)return {width:0,height:0,colors:0};
       const p=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
       const colors=new Set();for(let i=0;i<p.length;i+=400)colors.add(p.slice(i,i+3).join(','));
-      return {width:c.width,height:c.height,colors:colors.size};
+      return {width:c.width,height:c.height,colors:colors.size,firstPixel:Array.from(p.slice(0,4))};
     }"""
     try:
         viewer.wait_for_function('() => {const f=('+framebuffer+')();return f.width===1440 && f.height===1000 && f.colors>10}', timeout=15000)

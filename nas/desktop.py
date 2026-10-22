@@ -15,6 +15,7 @@ def main():
                          '<body style="font:24px sans-serif;padding:60px;background:#edf3ed;color:#244b36">'
                          '<h1>WhoGa 브라우저 준비 완료</h1><p>관리 화면에서 원문 열기 또는 수집을 시작하세요.</p>'
                          '<p>이 창이 실제 수집에 사용됩니다.</p></body></html>')
+        page.bring_to_front()
         while context.pages:
             context.pages[0].wait_for_timeout(1000)
 

@@ -150,6 +150,7 @@ class DashboardTests(unittest.TestCase):
                 urlopen(base + '/desktop/')
             self.assertEqual(failure.exception.code, 401)
             response = urlopen(Request(base + '/desktop/', headers={'Authorization': auth}))
+            self.assertIn("img-src 'self' data: blob:", response.headers['Content-Security-Policy'])
             self.assertIn('client.js', response.read().decode())
             with self.assertRaises(HTTPError) as failure:
                 urlopen(base + '/desktop/websockify?ticket=unknown')
