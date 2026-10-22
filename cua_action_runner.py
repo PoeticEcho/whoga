@@ -143,11 +143,29 @@ def collect_browser(config, target_url, evidence_dir, report, *, headless=False,
         try:
             context = browser.new_context(viewport={'width': 1280, 'height': 900},
                                           locale='ko-KR', timezone_id='Asia/Seoul')
+            failures = report.setdefault('requestFailures', [])
+
+            def note_failure(request):
+                if len(failures) < 30:
+                    url = urlsplit(request.url)
+                    failures.append({'host': url.hostname, 'path': url.path,
+                                     'type': request.resource_type, 'error': request.failure})
+
+            context.on('requestfailed', note_failure)
+            http_errors = report.setdefault('httpErrors', [])
+
+            def note_response(response):
+                if response.status >= 400 and len(http_errors) < 30:
+                    url = urlsplit(response.url)
+                    http_errors.append({'host': url.hostname, 'path': url.path, 'status': response.status})
+
+            context.on('response', note_response)
             # Open the initial page, then a working tab in the same context.
             initial = context.new_page()
             page = initial
             try:
                 for new_tab in (False, True):
+                    report['stage'] = 'working-tab-navigation' if new_tab else 'first-navigation'
                     if new_tab:
                         page = context.new_page()
                     response = page.goto(target_url, wait_until='domcontentloaded', timeout=45000)
@@ -165,6 +183,11 @@ def collect_browser(config, target_url, evidence_dir, report, *, headless=False,
                 return snapshot
             finally:
                 try:
+                    report['pageTitle'] = page.title()
+                    report['pageExcerpt'] = page.locator('body').inner_text(timeout=3000)[:1000]
+                except Exception:
+                    pass
+                try:
                     page.screenshot(path=str(evidence_dir / 'last-screen.png'), timeout=5000)
                 except Exception:
                     pass  # Screenshot availability does not alter validation.
@@ -172,7 +195,15 @@ def collect_browser(config, target_url, evidence_dir, report, *, headless=False,
             browser.close()
 
 
-def persist_snapshot(data_dir, snapshot):
+def attempt_evidence(report):
+    # Keep this attempt separate from the preserved last-success counts.
+    keys = ('attemptAt', 'observedAt', 'stage', 'errorType', 'errorDetail', 'message',
+            'declaredCount', 'cardCount', 'parsedCount', 'atBottom', 'stableReads',
+            'scrollCounts', 'requestFailures', 'httpErrors', 'pageTitle', 'pageExcerpt')
+    return {key: report[key] for key in keys if key in report}
+
+
+def persist_snapshot(data_dir, snapshot, report=None):
     """Prepare all JSONs before replacing files; Git publishes the three together."""
     data_dir = Path(data_dir)
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -183,6 +214,10 @@ def persist_snapshot(data_dir, snapshot):
         for path in data_dir.glob('*.json'):
             shutil.copy2(path, stage / path.name)
         save_snapshot(stage, snapshot, source_kind='naver-live')
+        if report is not None:
+            status = read_json(stage / 'status.json')
+            status['lastAttemptEvidence'] = attempt_evidence(report)
+            atomic_json(stage / 'status.json', status)
         try:
             for name in names:
                 os.replace(stage / name, data_dir / name)
@@ -205,6 +240,7 @@ def write_summary(report):
              f"- JSON 저장: {'완료' if report.get('saved') else '하지 않음'}"]
     if report.get('message'):
         lines.append(f"- 사유: {report['message']}")
+        lines.append(f"- 실패 단계: {report['stage']} · 유형: {report.get('errorType', '미확인')}")
     output = '\n'.join(lines) + '\n'
     print(output)
     if os.environ.get('GITHUB_STEP_SUMMARY'):
@@ -258,15 +294,19 @@ def main(argv=None):
                                    headless=args.headless, executable=args.browser_executable)
         if not args.dry_run:
             report['stage'] = 'save-json'
-            persist_snapshot(args.data_dir, snapshot)
+            persist_snapshot(args.data_dir, snapshot, report)
             report['saved'] = True
         report.update(ok=True, stage='complete')
     except Exception as exc:
         report['errorType'] = type(exc).__name__
+        report['errorDetail'] = str(exc).split('Call log:')[0].strip()[:600]
         report['message'] = str(exc) if isinstance(exc, ValidationError) else '브라우저 연결 또는 저장에 실패했습니다. 실행 로그와 증거 파일을 확인해 주세요.'
         print(f"수집 실패 ({type(exc).__name__}): {exc}", file=sys.stderr)
         if not args.dry_run:
             record_failure(args.data_dir, report['message'])
+            status = read_json(args.data_dir / 'status.json')
+            status['lastAttemptEvidence'] = attempt_evidence(report)
+            atomic_json(args.data_dir / 'status.json', status)
     finally:
         atomic_json(args.evidence_dir / 'report.json', report)
         write_summary(report)

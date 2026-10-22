@@ -129,6 +129,7 @@ class PersistenceTests(unittest.TestCase):
             status = read_json(directory / 'status.json')
             self.assertEqual(status['lastAttemptResult'], 'failed')
             self.assertIn('lastSuccessAt', status)
+            self.assertEqual(status['lastAttemptEvidence']['errorType'], 'TimeoutError')
             self.assertFalse(read_json(Path(temp) / 'evidence/report.json')['ok'])
 
     def test_failed_file_replacement_rolls_back_prepared_json(self):

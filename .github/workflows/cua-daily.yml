@@ -52,7 +52,6 @@ jobs:
 
       - name: 3. Xvfb·한글 폰트·일반 Chromium 설치
         id: install
-        continue-on-error: true
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb fonts-nanum
@@ -61,8 +60,7 @@ jobs:
 
       - name: 4. 휠 입력 수집 및 하단·수량 2회 연속 검증
         id: collect
-        if: steps.install.outcome == 'success'
-        continue-on-error: true
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         env:
           TZ: Asia/Seoul
           PYTHONUNBUFFERED: '1'
@@ -111,15 +109,18 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: 6. 저장된 자료로 정적 사이트 빌드
+        id: build
         if: ${{ !cancelled() && steps.persist.outcome == 'success' }}
         run: python scripts/build_site.py
 
       - name: Pages 설정
-        if: ${{ !cancelled() && steps.persist.outcome == 'success' && success() }}
+        id: pages_config
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         uses: actions/configure-pages@v5
 
       - name: 공개 파일 업로드
-        if: ${{ !cancelled() && steps.persist.outcome == 'success' && success() }}
+        id: pages_artifact
+        if: ${{ !cancelled() && steps.pages_config.outcome == 'success' }}
         uses: actions/upload-pages-artifact@v4
         with:
           path: _site
@@ -127,7 +128,7 @@ jobs:
       # GITHUB_TOKEN의 push는 다른 Actions를 시작하지 않으므로 직접 배포합니다.
       - name: 7. 이 워크플로에서 Pages 직접 배포
         id: deployment
-        if: ${{ !cancelled() && steps.persist.outcome == 'success' && success() }}
+        if: ${{ !cancelled() && steps.pages_artifact.outcome == 'success' }}
         uses: actions/deploy-pages@v4
 
       - name: 8. 공개 화면·스냅샷·목록·상태를 이번 빌드와 대조
