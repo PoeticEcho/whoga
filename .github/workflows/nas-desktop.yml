@@ -1,0 +1,86 @@
+name: whoga · NAS visible desktop verification
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'nas/**'
+      - 'experiments/supplied-v2/**'
+      - '.github/workflows/nas-desktop.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Existing dashboard and desktop gateway tests
+        run: python -m unittest discover -s nas -p 'test_*.py' -v
+      - name: Build the actual NAS image
+        run: docker build --tag whoga-nas:desktop-test --file nas/Dockerfile .
+      - name: Start with the DS420+ compatible restrictions
+        shell: bash
+        run: |
+          set -euo pipefail
+          task_password=$(python -c 'import secrets; print(secrets.token_urlsafe(24))')
+          echo "::add-mask::$task_password"
+          echo "DASHBOARD_PASSWORD=$task_password" >> "$GITHUB_ENV"
+          docker volume create whoga-test-output
+          docker volume create whoga-test-config
+          docker run -d --name whoga-nas-test --init --read-only \
+            --tmpfs /tmp:rw,nosuid,nodev,size=512m,mode=1777 --shm-size=512m --memory=3g \
+            --cap-drop=ALL --security-opt no-new-privileges:true \
+            -p 127.0.0.1:18899:8899 -e DASHBOARD_PASSWORD="$task_password" \
+            -v whoga-test-output:/output -v whoga-test-config:/config whoga-nas:desktop-test
+          python - <<'PY'
+          import time, urllib.request
+          for _ in range(90):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:18899/health',timeout=2) as r:
+                      assert r.status==200
+                  break
+              except Exception:
+                  time.sleep(1)
+          else:
+              raise SystemExit('Desktop startup failed')
+          PY
+      - name: Real framebuffer, mouse input, shared browser and dashboard
+        run: |
+          docker cp nas/check_dashboard.py whoga-nas-test:/tmp/check_dashboard.py
+          docker exec whoga-nas-test python /tmp/check_dashboard.py
+      - name: Restart and verify retained settings and desktop recovery
+        run: |
+          docker restart whoga-nas-test
+          python - <<'PY'
+          import time, urllib.request
+          for _ in range(90):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:18899/health',timeout=2) as r:
+                      assert r.status==200
+                  break
+              except Exception:
+                  time.sleep(1)
+          else:
+              raise SystemExit('Desktop restart failed')
+          PY
+          docker cp nas/check_dashboard.py whoga-nas-test:/tmp/check_dashboard.py
+          docker exec -e WHOGA_EXPECT_RESTART=1 whoga-nas-test python /tmp/check_dashboard.py
+      - name: Preserve screenshots and logs
+        if: always()
+        run: |
+          mkdir -p test-results/nas
+          docker logs whoga-nas-test > test-results/nas/container.log 2>&1 || true
+          docker cp whoga-nas-test:/output/. test-results/nas/ || true
+          docker rm -f whoga-nas-test || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nas-visible-desktop-${{ github.run_id }}
+          path: test-results/nas/
+          retention-days: 14

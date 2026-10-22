@@ -1,0 +1,41 @@
+# Container Manager GUI: no .env or SSH required.
+# The first admin password is generated and displayed ONCE in container logs.
+services:
+  collector:
+    build:
+      context: ..
+      dockerfile: nas/Dockerfile
+    image: whoga-nas:2.0
+    platform: linux/amd64
+    init: true
+    restart: unless-stopped
+    ports:
+      - "8899:8899"
+    environment:
+      TZ: Asia/Seoul
+    volumes:
+      - whoga-nas-runs:/output
+      - whoga-nas-config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=512m,mode=1777
+    shm_size: 512m
+    mem_limit: 3g
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8899/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "2"
+
+volumes:
+  whoga-nas-runs:
+  whoga-nas-config:

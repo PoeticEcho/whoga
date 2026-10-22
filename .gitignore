@@ -9,3 +9,7 @@ config.local.json
 *.log
 test-results/
 node_modules/
+collector-runs/
+nas-config/
+nas/*.bak*
+nas/*.env*
