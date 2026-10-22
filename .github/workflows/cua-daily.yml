@@ -9,6 +9,13 @@ on:
         description: '비워두면 config.json의 범어W 매매 URL 사용'
         required: false
         default: ''
+      browser:
+        description: 'Playwright Chromium 또는 러너의 정식 Google Chrome 비교'
+        type: choice
+        options:
+          - chromium
+          - chrome
+        default: chromium
 
 permissions:
   contents: read
@@ -65,6 +72,7 @@ jobs:
           TZ: Asia/Seoul
           PYTHONUNBUFFERED: '1'
           TARGET_URL: ${{ inputs.target_url }}
+          BROWSER_EXECUTABLE: ${{ inputs.browser == 'chrome' && '/usr/bin/google-chrome' || '' }}
         shell: bash
         run: |
           set -euo pipefail

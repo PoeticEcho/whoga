@@ -210,6 +210,8 @@ python crawler.py
 
 `Actions → whoga · CUA 방식 수집·Pages 검증 → Run workflow`에서 `main`을 선택합니다.
 대상 URL은 비워두면 `config.json`의 범어W 매매 목록을 사용합니다.
+`browser`에서 `chromium`은 Playwright 포함 브라우저, `chrome`은 GitHub 러너에 설치된 정식 Google Chrome을 선택합니다.
+동일한 Xvfb·화면·언어 설정에서 실행 파일을 비교하며, 실제 브라우저 종류와 버전을 상태 증거에 남깁니다.
 이름의 CUA는 입력 절차를 가리키며, OpenAI CUA 서비스에 연결하는 방식은 아닙니다.
 
 `.github/workflows/cua-daily.yml`은 Xvfb의 `1280×960` 가상 화면에서 일반 Chromium 창을 열고

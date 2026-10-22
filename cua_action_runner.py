@@ -175,6 +175,9 @@ def collect_browser(config, target_url, evidence_dir, report, *, headless=False,
         if executable:
             options['executable_path'] = executable
         browser = p.chromium.launch(**options)
+        report.update(browserVersion=browser.version,
+                      browserExecutable=Path(executable).name if executable else 'playwright-chromium')
+        print(f"브라우저: {report['browserExecutable']} · {report['browserVersion']}", flush=True)
         try:
             context = browser.new_context(viewport={'width': 1280, 'height': 900},
                                           locale='ko-KR', timezone_id='Asia/Seoul')
@@ -236,7 +239,7 @@ def attempt_evidence(report):
             'declaredCount', 'cardCount', 'parsedCount', 'atBottom', 'stableReads',
             'scrollCounts', 'requestFailures', 'httpErrors', 'pageTitle', 'pageExcerpt',
             'navigationTimeoutSeconds', 'documentStatus', 'documentReceivedAt',
-            'panelWaitSeconds', 'loadingTimeline')
+            'panelWaitSeconds', 'loadingTimeline', 'browserVersion', 'browserExecutable')
     return {key: report[key] for key in keys if key in report}
 
 
@@ -270,6 +273,7 @@ def persist_snapshot(data_dir, snapshot, report=None):
 def write_summary(report):
     outcome = '성공' if report['ok'] else '실패 · 기존 자료 보존'
     lines = ['### 1. 매물 수집·JSON 검증', f'- 결과: **{outcome}**',
+             f"- 브라우저: {report.get('browserExecutable', '시작 전')} · {report.get('browserVersion', '미확인')}",
              f"- 확인 시각: {report.get('observedAt', report['attemptAt'])} (KST)",
              f"- 원문 / 카드 / 해석: {report.get('declaredCount', '—')} / {report.get('cardCount', '—')} / {report.get('parsedCount', '—')}",
              f"- 하단: {report.get('atBottom', False)} · 연속 일치: {report.get('stableReads', 0)}회",
