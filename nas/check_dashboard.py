@@ -3,6 +3,8 @@
 Only local fixture content is used. No Naver requests or GitHub writes.
 """
 import os
+import json
+import base64
 from playwright.sync_api import sync_playwright, expect
 
 with sync_playwright() as pw:
@@ -29,14 +31,23 @@ with sync_playwright() as pw:
     expect(viewer.locator('#connection')).to_have_text('● 화면 연결됨', timeout=30000)
     canvas = viewer.locator('#screen canvas')
     expect(canvas).to_be_visible()
-    viewer.wait_for_timeout(1500)
-    assert viewer.evaluate('''() => {
+    framebuffer = """() => {
       const c=document.querySelector('#screen canvas');
-      if(c.width!==1440 || c.height!==1000)return false;
+      if(!c)return {width:0,height:0,colors:0};
       const p=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
       const colors=new Set();for(let i=0;i<p.length;i+=400)colors.add(p.slice(i,i+3).join(','));
-      return colors.size>10;
-    }'''), 'VNC framebuffer is missing or blank'
+      return {width:c.width,height:c.height,colors:colors.size};
+    }"""
+    try:
+        viewer.wait_for_function('() => {const f=('+framebuffer+')();return f.width===1440 && f.height===1000 && f.colors>10}', timeout=15000)
+    except Exception:
+        print('FRAMEBUFFER_INFO: '+json.dumps(viewer.evaluate(framebuffer)),flush=True)
+        # Local fixture only: retain an inspectable image even if artifact storage
+        # is unavailable to the review environment. No credentials are displayed.
+        png=viewer.screenshot(path='/output/browser-failure.png',full_page=True)
+        encoded=base64.b64encode(png).decode()
+        for start in range(0,len(encoded),8000): print('WHOGA_FRAME:'+encoded[start:start+8000],flush=True)
+        raise
     button = page.locator('button').bounding_box()
     geometry = page.evaluate('({x:screenX,y:screenY,w:outerWidth-innerWidth,h:outerHeight-innerHeight})')
     box = canvas.bounding_box()

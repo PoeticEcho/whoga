@@ -74,6 +74,7 @@ jobs:
         run: |
           mkdir -p test-results/nas
           docker logs whoga-nas-test > test-results/nas/container.log 2>&1 || true
+          tail -70 test-results/nas/container.log
           docker cp whoga-nas-test:/output/. test-results/nas/ || true
           docker rm -f whoga-nas-test || true
       - uses: actions/upload-artifact@v4
