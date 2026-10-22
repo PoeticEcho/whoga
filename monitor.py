@@ -362,10 +362,10 @@ def build_briefing(current, previous=None):
     delta = len(current["items"]) - len(previous["items"])
     lines.append(f"({base} 총 관측: {len(previous['items'])}건 ➔ {len(current['items'])}건 [{delta:+d}건])" if delta > 0
                  else f"({base} 총 관측: {len(previous['items'])}건 ➔ {len(current['items'])}건 [{delta}건])")
-    for title, key, paired in [("🟢 [추가 관측]", "added", False),
-                                ("🔴 [미관측]", "unobserved", False),
-                                ("🔄 [호가 변동 · 매물번호 일치]", "changed", True),
-                                ("🟠 [호가 변동 후보 · 조건 일치]", "candidates", True)]:
+    for title, key, paired in [("🔄 [호가 변동 · 매물번호 일치]", "changed", True),
+                                ("🟠 [호가 변동 후보 · 조건 일치]", "candidates", True),
+                                ("🟢 [추가 관측]", "added", False),
+                                ("🔴 [미관측]", "unobserved", False)]:
         rows = diff[key]
         lines += ["", f"{title} (총 {len(rows)}건)"]
         if not rows:

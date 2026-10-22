@@ -83,10 +83,11 @@ test('morning report computes building counts, range upper bound and median inde
 test('plain list keeps every duplicate and price range, sorts within buildings and preserves actual floors', () => {
   const current = snap([{ ...row(6.5), agencyCount: 2 }, { ...row(5.4, null, 5.6), agencyCount: 9 }, { ...row(6.5), agencyInfo: '범어W스타' }, { ...row(6), dong: '102동', floor: '고/58층', agencyCount: 1 }]);
   const text = plainListings(current);
-  const records = text.split('\n').filter(line => /^10\d동\//.test(line));
+  const records = text.split('\n').filter(line => /^(78OB|84OA)  (?:\d+|저|중|고)층/.test(line));
   assert.equal(records.length, 4);
-  assert.deepEqual(records.slice(0, 3), ['101동/84/20층/5.40~5.60억/9곳', '101동/84/20층/6.50억/2곳', '101동/84/20층/6.50억/범어W스타']);
-  assert.ok(records[3].includes('/고층/6.00억/1곳'));
+  assert.deepEqual(records.slice(0, 3).map(line => line.trim().split(/\s+/)), [['84OA', '20층', '5.40~5.60억', '9곳'], ['84OA', '20층', '6.50억', '2곳'], ['84OA', '20층', '6.50억', '—']]);
+  assert.equal(records[0].indexOf('5.40'), records[1].indexOf('6.50'));
+  assert.deepEqual(records[3].trim().split(/\s+/), ['84OA', '고층', '6.00억', '1곳']);
   assert.ok(plainListings(current, current.items.slice(0, 1)).includes('필터 결과: 1건 / 전체 관측 4건'));
   assert.ok(plainListings(current, []).includes('조건에 맞는 매물이 없습니다'));
 });
@@ -98,6 +99,9 @@ test('change report separates confirmed changes, candidates, additions and unobs
   for (const label of ['[추가 관측] (총 1건)', '[미관측] (총 1건)', '[호가 변동 · 매물번호 일치] (총 1건)', '[호가 변동 후보 · 조건 일치] (총 1건)']) assert.ok(text.includes(label));
   assert.ok(text.includes('8.3억 ➔ 7.0~8.3억 (하한 1.3억 하락 ↓)'));
   assert.ok(text.includes('전일 대비 총 관측: 3건 ➔ 3건 [0건]'));
+  assert.ok(text.indexOf('[호가 변동 ·') < text.indexOf('[호가 변동 후보'));
+  assert.ok(text.indexOf('[호가 변동 후보') < text.indexOf('[추가 관측]'));
+  assert.ok(text.indexOf('[추가 관측]') < text.indexOf('[미관측]'));
   assert.ok(changeReport({ ...current, date: '2026-10-20' }, old).includes('비교일 2026-10-17 대비'));
   assert.ok(!/거래 추정|거둠|소진|급매물.*감춤|굴복/.test(text));
 });
@@ -112,12 +116,12 @@ test('partial reports identify observed statistics and refuse a changes report',
 
 test('real snapshot plain list preserves every original record and computes building totals', () => {
   const current = JSON.parse(fs.readFileSync(new URL('../data/2026-10-18.json', import.meta.url)));
-  const text = plainListings(current), lines = text.split('\n').filter(line => /^10\d동\//.test(line));
+  const text = plainListings(current), lines = text.split('\n').filter(line => /^(78OB|84OA)  (?:\d+|저|중|고)층/.test(line));
   assert.equal(lines.length, current.items.length);
   for (const dong of ['101동', '102동', '103동', '105동']) {
     const count = current.items.filter(row => row.dong === dong).length;
-    assert.equal(lines.filter(line => line.startsWith(dong + '/')).length, count);
-    assert.ok(text.includes(`📌 ${dong} (총 ${count}건)`));
+    const section = text.split(`${dong} · ${count}건`)[1].split(/\n10\d동 ·|\n※/)[0];
+    assert.equal(section.split('\n').filter(line => /^(78OB|84OA)  (?:\d+|저|중|고)층/.test(line)).length, count);
   }
 });
 

@@ -1,5 +1,5 @@
-import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing, plainListings } from './core.mjs?v=20261021-save';
-import { saveSnapshot, loadSharedIndex, loadSharedSnapshot, sortEntries } from './repository.mjs?v=20261021-save';
+import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing, plainListings } from './core.mjs?v=20261022-text';
+import { saveSnapshot, loadSharedIndex, loadSharedSnapshot, sortEntries } from './repository.mjs?v=20261022-text';
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -173,7 +173,7 @@ function renderOverview() {
   }).join('')}</div></div>`).join('') + '<div class="chart-legend"><span>78OB</span><span>84OA</span></div>';
   $('compareLabel').textContent = previous ? `${previous.date} → ${current.date}` : '비교 자료 없음';
   $('diffNote').textContent = diff.available ? '추가·미관측은 목록에서 관측한 변화입니다. 매물번호가 없는 자료의 변동 후보는 같은 호수인지 확인해야 합니다.' : diff.reason;
-  const columns = [['추가 관측', diff.added, false], ['번호 확인 변동', diff.changed, true], ['변동 후보', diff.candidates, true], ['미관측', diff.unobserved, false]];
+  const columns = [['번호 확인 변동', diff.changed, true], ['변동 후보', diff.candidates, true], ['추가 관측', diff.added, false], ['미관측', diff.unobserved, false]];
   $('diffCards').innerHTML = columns.map(([label, items, isPair]) => `<section class="diff-column"><h3 class="diff-title">${label}<span>${diff.available ? items.length + '건' : '—'}</span></h3><div class="diff-list">${!diff.available ? empty('비교할 수 없습니다.') : items.length ? items.map(pair => {
     const row = isPair ? pair.current : pair;
     return `<article class="diff-item"><strong>${escape(row.dong)} · ${escape(row.type)}</strong><p>${escape(row.floor)} · ${escape(row.direction)}</p><span class="price">${isPair ? escape(priceRange(pair.previous)) + ' → ' : ''}${escape(priceRange(row))}</span>${row.articleId ? `<p>매물번호 ${escape(row.articleId)}</p>` : ''}</article>`;
@@ -201,6 +201,7 @@ function renderListings() {
   $('listingGrid').hidden = textView;
   $('listingTextPanel').hidden = !textView;
   $('listingText').textContent = plainListings(state.current, rows, order);
+  $('listingDetails').innerHTML = rows.map(row => `<details class="listing-detail-row"><summary>${escape(row.dong)} · ${escape(row.type)} · ${escape(row.floor)} · ${escape(priceRange(row))}</summary><p>${escape(row.direction)} · 확인 ${escape(row.confirmDate || '미표기')}</p><p>${escape(row.agencyInfo || '중개사명 미표기')}${row.articleId ? ` · 매물번호 ${escape(row.articleId)}` : ''}</p>${row.desc ? `<p>${escape(row.desc)}</p>` : ''}</details>`).join('') || empty('조건에 맞는 매물이 없습니다.');
   $('groupNotice').hidden = !grouped;
   $('filterCount').textContent = `${rows.length}건 / 전체 ${state.current.items.length}건${grouped ? ` · ${visible.length}개 조건 묶음` : ''}`;
   const labels = { OBSERVED: '추가 관측', CHANGED: '번호 확인 변동', CANDIDATE: '변동 후보', SAME: '같은 조건 유지' };

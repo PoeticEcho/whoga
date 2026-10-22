@@ -188,37 +188,47 @@ export function changeReport(current, previous) {
   const base = gap === 1 ? '전일 대비' : gap === 0 ? '같은 날 비교 자료 대비' : `비교일 ${previous.date.slice(0, 10)} 대비`;
   const delta = current.items.length - previous.items.length;
   lines.push(`(${base} 총 관측: ${previous.items.length}건 ➔ ${current.items.length}건 [${delta > 0 ? '+' : ''}${delta}건])`);
-  for (const [title, rows, pair] of [['🟢 [추가 관측]', diff.added, false], ['🔴 [미관측]', diff.unobserved, false], ['🔄 [호가 변동 · 매물번호 일치]', diff.changed, true], ['🟠 [호가 변동 후보 · 조건 일치]', diff.candidates, true]]) {
+  for (const [title, rows, pair] of [['🔄 [호가 변동 · 매물번호 일치]', diff.changed, true], ['🟠 [호가 변동 후보 · 조건 일치]', diff.candidates, true], ['🟢 [추가 관측]', diff.added, false], ['🔴 [미관측]', diff.unobserved, false]]) {
     lines.push('', `${title} (총 ${rows.length}건)`, ...(rows.length ? rows.map(pair ? changePair : changeRow) : ['없음']));
   }
   lines.push('', '※ 미관측은 거래 완료를 뜻하지 않습니다. 조건 일치 후보는 동일 호실 미확인입니다.');
   return lines.join('\n');
 }
 
+// Hangul occupies two monospace cells; pad by display width rather than JS length.
+function textCell(value, width) {
+  const text = oneLine(String(value));
+  const cells = [...text].reduce((sum, char) => sum + (/[^\u0000-\u007f]/.test(char) ? 2 : 1), 0);
+  return text + ' '.repeat(Math.max(0, width - cells));
+}
+
+export function listingLine(row) {
+  const count = Number.isInteger(row.agencyCount) && row.agencyCount > 0 ? `${row.agencyCount}곳` : '—';
+  return `${textCell(row.type, 6)}${textCell(compactFloor(row), 6)}${textCell(reportRange(row, 2), 15)}${count}`;
+}
+
 export function plainListings(snapshot, rows = snapshot.items, order = 'priceAsc') {
   const subset = rows.length !== snapshot.items.length;
   const labels = { priceAsc: '최저 호가순', priceDesc: '최저 호가 역순', confirmDesc: '확인일 최신순', agencyDesc: '공동중개 많은순' };
   const sorted = [...rows].sort((a, b) => order === 'priceDesc' ? b.minPrice - a.minPrice : order === 'confirmDesc' ? String(b.confirmDate || '').localeCompare(String(a.confirmDate || '')) : order === 'agencyDesc' ? (b.agencyCount || 0) - (a.agencyCount || 0) : a.minPrice - b.minPrice);
-  const lines = ['[범어W 오피스텔 모닝 브리핑]', observationLabel(snapshot), '', ...marketLines(snapshot), '', '📊 [동별·타입별 심플 리스트]', `동·타입별 ${labels[order] || labels.priceAsc} ｜ 동 / 타입 / 층수 / 가격 / 중개사 수·명`];
+  const quality = validateSnapshot(snapshot);
+  const lines = ['[범어W 매물 목록]', observationLabel(snapshot), `${quality.complete ? '전체 관측' : '일부 관측'} ${snapshot.items.length}건 / 원문 ${snapshot.declaredCount}건`, ''];
+  for (const type of REPORT_TYPES) {
+    const summary = stats(snapshot.items.filter(row => row.type === type));
+    if (summary.count) lines.push(`${type}  ${summary.count}건  ${quality.complete ? '최저' : '관측 최저'} ${reportEok(summary.min)}억  중앙 ${reportEok(summary.median)}억`);
+  }
+  lines.push('', `동·타입별 ${labels[order] || labels.priceAsc}`);
   if (subset) lines.push(`필터 결과: ${rows.length}건 / 전체 관측 ${snapshot.items.length}건 (위 요약은 기준 자료 전체)`);
   if (!rows.length) lines.push('', '조건에 맞는 매물이 없습니다.');
   for (const dong of REPORT_DONGS) {
     const group = sorted.filter(row => row.dong === dong);
     if (!group.length) continue;
-    lines.push('', `📌 ${dong} (${subset ? '필터 ' : '총 '}${group.length}건)`);
+    lines.push('', `${dong} · ${subset ? '필터 ' : ''}${group.length}건`, `${textCell('타입', 6)}${textCell('층', 6)}${textCell('호가', 15)}중개`);
     for (const type of REPORT_TYPES) {
-      const typed = group.filter(row => row.type === type);
-      if (!typed.length) continue;
-      lines.push(`${type}:`);
-      for (const row of typed) {
-        const info = oneLine(row.agencyInfo);
-        const count = Number.isInteger(row.agencyCount) && row.agencyCount > 0 ? row.agencyCount : null;
-        const agency = count > 1 ? `${count}곳` : info || (count ? `${count}곳` : '미확인');
-        lines.push(`${dong}/${type.slice(0, 2)}/${compactFloor(row)}/${reportRange(row, 2)}/${agency}`);
-      }
+      for (const row of group.filter(row => row.type === type)) lines.push(listingLine(row));
     }
   }
-  lines.push('', '※ 공동중개 수는 세대 수가 아닙니다. 같은 조건도 원본 행별로 표시합니다.');
+  lines.push('', '※ 중개 수는 세대 수가 아닙니다.', '같은 조건도 원본 행별로 표시합니다.');
   return lines.join('\n');
 }
 
