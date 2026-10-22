@@ -1,0 +1,160 @@
+name: whoga · CUA 방식 수집·Pages 검증
+
+on:
+  schedule:
+    - cron: '45 23 * * *' # 다음 날 08:45 KST. ENABLE_CUA_DAILY=true로 활성화.
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: '비워두면 config.json의 범어W 매매 URL 사용'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+# 기존 수집·Pages 워크플로와 동시에 data/를 저장하거나 배포하지 않습니다.
+concurrency:
+  group: beomeo-w-daily-pages
+  cancel-in-progress: false
+
+jobs:
+  collect-and-deploy:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.ENABLE_CUA_DAILY == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 1. 최신 main 및 과거 자료 체크아웃
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: 2. 기존 데이터·화면·수집 회귀 검사
+        run: |
+          python -m unittest discover -s tests -v
+          node --test tests/*.test.mjs
+
+      - name: 3. Xvfb·한글 폰트·일반 Chromium 설치
+        id: install
+        continue-on-error: true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb fonts-nanum
+          python -m pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: 4. 휠 입력 수집 및 하단·수량 2회 연속 검증
+        id: collect
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        env:
+          TZ: Asia/Seoul
+          PYTHONUNBUFFERED: '1'
+          TARGET_URL: ${{ inputs.target_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/cua
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" \
+            python cua_action_runner.py 2>&1 | tee test-results/cua/run.log
+
+      - name: 설치 실패 상태 기록
+        id: setup_failure
+        if: ${{ !cancelled() && steps.install.outcome == 'failure' }}
+        run: |
+          python -c "from monitor import record_failure; record_failure('data', '수집 브라우저 설치에 실패했습니다. Actions 설치 로그를 확인해 주세요.')"
+          echo '### 1. 수집 실패: 브라우저 설치 실패 · 기존 스냅샷 보존' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 5. 검증된 JSON 또는 실패 상태를 Git에 저장
+        id: persist
+        if: ${{ !cancelled() && (steps.collect.outcome == 'success' || steps.collect.outcome == 'failure' || steps.setup_failure.outcome == 'success') }}
+        env:
+          COLLECT_RESULT: ${{ steps.collect.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ "$COLLECT_RESULT" = success ]; then
+            git add -- data/
+            message='data: record verified wheel-based observation'
+          else
+            git add -- data/status.json
+            message='data: record collection failure; preserve snapshots'
+          fi
+          if ! git diff --cached --quiet; then
+            git commit -m "$message"
+            # 동시 수정이 있으면 실패를 표시합니다. 생성된 index를 강제 병합하지 않습니다.
+            git push origin HEAD:main
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          {
+            echo '### 2. GitHub 저장'
+            echo "- 저장 커밋: $(git rev-parse HEAD)"
+            echo "- 수집 결과: $COLLECT_RESULT (실패 시 status.json만 저장)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 6. 저장된 자료로 정적 사이트 빌드
+        if: ${{ !cancelled() && steps.persist.outcome == 'success' }}
+        run: python scripts/build_site.py
+
+      - name: Pages 설정
+        if: ${{ !cancelled() && steps.persist.outcome == 'success' && success() }}
+        uses: actions/configure-pages@v5
+
+      - name: 공개 파일 업로드
+        if: ${{ !cancelled() && steps.persist.outcome == 'success' && success() }}
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      # GITHUB_TOKEN의 push는 다른 Actions를 시작하지 않으므로 직접 배포합니다.
+      - name: 7. 이 워크플로에서 Pages 직접 배포
+        id: deployment
+        if: ${{ !cancelled() && steps.persist.outcome == 'success' && success() }}
+        uses: actions/deploy-pages@v4
+
+      - name: 8. 공개 화면·스냅샷·목록·상태를 이번 빌드와 대조
+        if: ${{ !cancelled() && steps.deployment.outcome == 'success' }}
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+          COLLECT_RESULT: ${{ steps.collect.outcome }}
+        run: |
+          python cua_action_runner.py --verify-site "$SITE_URL" --site-dir _site
+          {
+            echo '### 3. Pages 배포·공개 반영 확인'
+            echo '- 화면·모든 스냅샷·index.json·status.json의 SHA-256이 이번 빌드와 일치합니다.'
+            echo "- 공개 페이지: $SITE_URL"
+            echo "- 이번 수집 결과: $COLLECT_RESULT (수집 실패와 배포 성공은 별도로 표시)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 수집 증거·검증 보고서 보관
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cua-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results/cua/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: 수집 실패를 최종 실행 결과에 반영
+        if: ${{ !cancelled() && (steps.install.outcome == 'failure' || steps.collect.outcome == 'failure') }}
+        run: |
+          echo '수집 실패. 이전 자료를 보존했습니다. 상태 저장·배포 결과는 각각의 단계를 확인하세요.'
+          exit 1

@@ -206,6 +206,41 @@ python -m playwright install chromium
 python crawler.py
 ```
 
+### Actions에서 휠 입력으로 수집·JSON 저장·Pages 대조
+
+`Actions → whoga · CUA 방식 수집·Pages 검증 → Run workflow`에서 `main`을 선택합니다.
+대상 URL은 비워두면 `config.json`의 범어W 매매 목록을 사용합니다.
+이름의 CUA는 입력 절차를 가리키며, OpenAI CUA 서비스에 연결하는 방식은 아닙니다.
+
+`.github/workflows/cua-daily.yml`은 Xvfb의 `1280×960` 가상 화면에서 일반 Chromium 창을 열고
+`cua_action_runner.py`를 실행합니다. 별도의 `sitecustomize.py` 주입이나 브라우저 식별 속성 변경은 사용하지 않습니다.
+접근 제한·인증·오류 화면이면 중단하며, 일반 창 실행만으로 원문 접속 성공을 보장하지 않습니다.
+
+첨부된 읽기 전용 패널 조회 JS를 그대로 사용하고, 패널 내부의 휠 입력 12회 후 접근성 트리를 읽습니다.
+원문 총수·카드 수·파서 검증 수가 같고, 하단에서 동일한 자료가 2회 연속 확인되어야 저장합니다.
+관측 중 총수가 바뀌거나 일부만 읽히면 실패로 처리합니다.
+
+성공하면 기존 `monitor.py`의 저장·인덱스 생성 함수를 통해 날짜별 JSON, 과거 이력을 포함한 `index.json`,
+`status.json`을 준비한 뒤 한 Git 커밋으로 저장합니다. 실패하면 기존 날짜 자료와 목록을 보존하고
+`status.json`에만 실패를 기록합니다. 실행 요약에는 수집·Git 저장·공개 반영 결과를 나눠 표시하며,
+`cua-evidence-*` 아티팩트에서 진행 수량·최종 화면·검증 보고서를 확인할 수 있습니다.
+
+`GITHUB_TOKEN`으로 만든 push는 다른 워크플로를 자동 실행하지 않으므로, 같은 실행에서 Pages를 직접 배포합니다.
+배포 완료 후 공개 HTML·상태·목록·전체 스냅샷의 SHA-256을 빌드 결과와 대조합니다.
+실패 상태만 정상 배포된 경우에도 최종 수집 실행은 실패로 표시합니다. 텔레그램은 발송하지 않습니다.
+
+매일 08:45 KST 예약 수집은 저장소 변수 `ENABLE_CUA_DAILY=true`일 때만 동작합니다.
+수동 시험으로 전체 성공을 확인한 다음 활성화하고, 기존 경로의 `ENABLE_DAILY`와 중복 활성화하지 마세요.
+
+로컬에서 같은 방식으로 검사하려면 Chromium과 Xvfb를 설치한 뒤 실행합니다.
+
+```bash
+xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" python cua_action_runner.py --dry-run
+```
+
+`--dry-run`은 원문을 조회하고 검증 보고서를 만들지만 `data/`를 변경하지 않습니다.
+일반 실행의 브라우저·네트워크 예외도 실패 상태로 기록합니다.
+
 GitHub Actions에서는 브라우저와 Linux 의존성까지 자동 설치합니다.
 알림 내용을 발송 없이 확인하려면 `python scripts/notify.py --dry-run`을 사용합니다.
 
