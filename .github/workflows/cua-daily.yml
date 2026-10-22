@@ -58,7 +58,7 @@ jobs:
           python -m pip install -r requirements.txt
           python -m playwright install --with-deps chromium
 
-      - name: 4. 휠 입력 수집 및 하단·수량 2회 연속 검증
+      - name: 4. 문서 3분·패널 5분 대기 후 전체 수집 검증
         id: collect
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         env:
@@ -70,7 +70,8 @@ jobs:
           set -euo pipefail
           mkdir -p test-results/cua
           xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" \
-            python cua_action_runner.py 2>&1 | tee test-results/cua/run.log
+            python cua_action_runner.py --navigation-timeout 180 --panel-timeout 300 \
+            2>&1 | tee test-results/cua/run.log
 
       - name: 설치 실패 상태 기록
         id: setup_failure

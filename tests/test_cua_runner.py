@@ -26,6 +26,7 @@ class Page:
 
     def __init__(self, frames):
         self.frames, self.reads, self.wheels = frames, 0, []
+        self.screenshots = []
         self.mouse = types.SimpleNamespace(move=lambda *args: None,
                                           wheel=lambda x, y: self.wheels.append((x, y)))
 
@@ -36,6 +37,41 @@ class Page:
         result = self.frames[min(self.reads, len(self.frames) - 1)]
         self.reads += 1
         return result
+
+    def screenshot(self, **kwargs):
+        self.screenshots.append(kwargs['path'])
+
+
+class LoadingTests(unittest.TestCase):
+    def wait(self, page, seconds=300):
+        clock = [0.0]
+        self.report = {}
+        page.wait_for_timeout = lambda ms: clock.__setitem__(0, clock[0] + ms / 1000)
+        cdp = types.SimpleNamespace(send=lambda *args: None)
+        with patch.object(runner.time, 'monotonic', side_effect=lambda: clock[0]):
+            runner.wait_for_panel(page, cdp, self.report, Path('/tmp'), timeout_seconds=seconds)
+
+    def test_panel_can_appear_after_a_minute_without_reloading(self):
+        loading = {'sourceReady': False, 'text': '단지 상세 · 로딩중'}
+        page = Page([loading] * 12 + [frame()])
+        self.wait(page)
+        self.assertEqual(self.report['panelWaitSeconds'], 60)
+        self.assertEqual(page.reads, 13)
+        self.assertEqual(page.wheels, [])
+        self.assertTrue(any('loading-60s.png' in path for path in page.screenshots))
+
+    def test_zero_loading_counts_do_not_become_success(self):
+        page = Page([frame(count=0, total=0, raw='매물 0개 · 로딩중')])
+        with self.assertRaisesRegex(ValidationError, '30초 동안 기다렸지만'):
+            self.wait(page, seconds=30)
+        self.assertEqual(self.report['panelWaitSeconds'], 30)
+        self.assertEqual(page.wheels, [])
+
+    def test_explicit_restriction_stops_long_wait_immediately(self):
+        page = Page([{'sourceReady': False, 'text': '접근이 제한되었습니다'}])
+        with self.assertRaisesRegex(ValidationError, '접근 제한'):
+            self.wait(page)
+        self.assertEqual(page.reads, 1)
 
 
 class CollectorTests(unittest.TestCase):

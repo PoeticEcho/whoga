@@ -62,6 +62,40 @@ def guard_page(state):
         raise ValidationError('접근 제한·인증 또는 오류 화면입니다. 우회하지 않고 중단합니다.')
 
 
+def wait_for_panel(page, cdp, report, evidence_dir, *, timeout_seconds=300):
+    """Keep the loaded tab open while map scripts and the listing panel initialize."""
+    started = time.monotonic()
+    checkpoints = iter((30, 60, 120, 180, 240, 300))
+    next_checkpoint = next(checkpoints, None)
+    report['stage'] = 'panel-loading'
+    timeline = report.setdefault('loadingTimeline', [])
+    while True:
+        elapsed = time.monotonic() - started
+        cdp.send('Accessibility.getFullAXTree', {'depth': 2})
+        state = page.evaluate(READ_PANEL_JS)
+        guard_page(state)
+        observation = {
+            'elapsedSeconds': round(elapsed, 1),
+            'sourceReady': bool(state.get('sourceReady')),
+            'declaredCount': state.get('declaredCount'),
+            'cardCount': state.get('cardCount', 0),
+        }
+        timeline.append(observation)
+        report['panelWaitSeconds'] = observation['elapsedSeconds']
+        print('초기 화면 대기: ' + json.dumps(observation, ensure_ascii=False), flush=True)
+        if next_checkpoint is not None and elapsed >= next_checkpoint:
+            try:
+                page.screenshot(path=str(evidence_dir / f'loading-{next_checkpoint}s.png'), timeout=5000)
+            except Exception:
+                pass
+            next_checkpoint = next(checkpoints, None)
+        if state.get('sourceReady') and (state.get('declaredCount') or 0) > 0 and state.get('cardCount', 0) > 0:
+            return
+        if elapsed >= timeout_seconds:
+            raise ValidationError(f'문서 접속 후 {timeout_seconds:g}초 동안 기다렸지만 매물 패널이 준비되지 않았습니다. 기존 자료를 유지합니다.')
+        page.wait_for_timeout(min(5000, max(1, (timeout_seconds - elapsed) * 1000)))
+
+
 def collect_panel(page, cdp, config, report, *, max_reads=100):
     """Require two identical complete reads at the panel bottom, including parsing."""
     initial_total, previous_fingerprint = None, None
@@ -131,7 +165,8 @@ def collect_panel(page, cdp, config, report, *, max_reads=100):
     raise ValidationError(f"전체 목록 검증 실패: 원문 {report.get('declaredCount')} / 카드 {report.get('cardCount')} / 해석 {report.get('parsedCount')}건. 기존 자료를 유지합니다.")
 
 
-def collect_browser(config, target_url, evidence_dir, report, *, headless=False, executable=None):
+def collect_browser(config, target_url, evidence_dir, report, *, headless=False, executable=None,
+                    navigation_timeout=180, panel_timeout=300):
     from playwright.sync_api import sync_playwright
     if not headless and not os.environ.get('DISPLAY'):
         raise ValidationError('가상 화면이 없습니다. xvfb-run으로 실행해 주세요.')
@@ -160,22 +195,22 @@ def collect_browser(config, target_url, evidence_dir, report, *, headless=False,
                     http_errors.append({'host': url.hostname, 'path': url.path, 'status': response.status})
 
             context.on('response', note_response)
-            # Open the initial page, then a working tab in the same context.
+            # Create the working tab once; keep it open throughout slow map loading.
             initial = context.new_page()
-            page = initial
+            page = context.new_page()
+            initial.close()
             try:
-                for new_tab in (False, True):
-                    report['stage'] = 'working-tab-navigation' if new_tab else 'first-navigation'
-                    if new_tab:
-                        page = context.new_page()
-                    response = page.goto(target_url, wait_until='domcontentloaded', timeout=45000)
-                    if not response or response.status >= 400:
-                        raise ValidationError(f'원문 HTTP 응답 실패: {response.status if response else "없음"}. 수집을 중단합니다.')
-                    if urlsplit(page.url).netloc != urlsplit(target_url).netloc:
-                        raise ValidationError('원문이 인증 또는 다른 사이트로 이동했습니다. 수집을 중단합니다.')
-                    guard_page({'text': page.locator('body').inner_text(timeout=10000)})
-                initial.close()
+                report.update(stage='document-commit', navigationTimeoutSeconds=navigation_timeout)
+                # Receipt of the document and completion of dynamic map scripts
+                # have separate budgets. Do not wait for ads or networkidle here.
+                response = page.goto(target_url, wait_until='commit', timeout=navigation_timeout * 1000)
+                if not response or response.status >= 400:
+                    raise ValidationError(f'원문 HTTP 응답 실패: {response.status if response else "없음"}. 수집을 중단합니다.')
+                report.update(documentStatus=response.status, documentReceivedAt=now_kst())
+                if urlsplit(page.url).netloc != urlsplit(target_url).netloc:
+                    raise ValidationError('원문이 인증 또는 다른 사이트로 이동했습니다. 수집을 중단합니다.')
                 cdp = context.new_cdp_session(page)
+                wait_for_panel(page, cdp, report, evidence_dir, timeout_seconds=panel_timeout)
                 report['stage'] = 'panel-scroll'
                 snapshot = collect_panel(page, cdp, config, report)
                 if headless:
@@ -199,7 +234,9 @@ def attempt_evidence(report):
     # Keep this attempt separate from the preserved last-success counts.
     keys = ('attemptAt', 'observedAt', 'stage', 'errorType', 'errorDetail', 'message',
             'declaredCount', 'cardCount', 'parsedCount', 'atBottom', 'stableReads',
-            'scrollCounts', 'requestFailures', 'httpErrors', 'pageTitle', 'pageExcerpt')
+            'scrollCounts', 'requestFailures', 'httpErrors', 'pageTitle', 'pageExcerpt',
+            'navigationTimeoutSeconds', 'documentStatus', 'documentReceivedAt',
+            'panelWaitSeconds', 'loadingTimeline')
     return {key: report[key] for key in keys if key in report}
 
 
@@ -237,6 +274,7 @@ def write_summary(report):
              f"- 원문 / 카드 / 해석: {report.get('declaredCount', '—')} / {report.get('cardCount', '—')} / {report.get('parsedCount', '—')}",
              f"- 하단: {report.get('atBottom', False)} · 연속 일치: {report.get('stableReads', 0)}회",
              f"- 스크롤 수량: {' → '.join(map(str, report.get('scrollCounts', []))) or '미확인'}",
+             f"- 문서 HTTP: {report.get('documentStatus', '미수신')} · 패널 로딩 대기: {report.get('panelWaitSeconds', 0)}초",
              f"- JSON 저장: {'완료' if report.get('saved') else '하지 않음'}"]
     if report.get('message'):
         lines.append(f"- 사유: {report['message']}")
@@ -279,9 +317,13 @@ def main(argv=None):
     parser.add_argument('--headless', action='store_true', help='로컬 진단용. Actions는 Xvfb headed 사용')
     parser.add_argument('--browser-executable', default=os.environ.get('BROWSER_EXECUTABLE'))
     parser.add_argument('--dry-run', action='store_true', help='검증만 수행. data/ 변경 없음')
+    parser.add_argument('--navigation-timeout', type=int, default=180, help='최초 문서 응답 대기 초 (기본 180)')
+    parser.add_argument('--panel-timeout', type=int, default=300, help='문서 수신 후 매물 패널 대기 초 (기본 300)')
     parser.add_argument('--verify-site', help='배포 후 공개 파일 대조만 수행')
     parser.add_argument('--site-dir', type=Path, default=ROOT / '_site')
     args = parser.parse_args(argv)
+    if args.navigation_timeout <= 0 or args.panel_timeout <= 0:
+        parser.error('대기 시간은 0보다 커야 합니다.')
     if args.verify_site:
         verify_site(args.verify_site, args.site_dir)
         return 0
@@ -291,7 +333,8 @@ def main(argv=None):
         config = read_json(ROOT / 'config.json')
         target_url = validate_target(args.target_url or config['sourceUrl'], config)
         snapshot = collect_browser(config, target_url, args.evidence_dir, report,
-                                   headless=args.headless, executable=args.browser_executable)
+                                   headless=args.headless, executable=args.browser_executable,
+                                   navigation_timeout=args.navigation_timeout, panel_timeout=args.panel_timeout)
         if not args.dry_run:
             report['stage'] = 'save-json'
             persist_snapshot(args.data_dir, snapshot, report)
