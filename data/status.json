@@ -1,34 +1,13 @@
 {
   "schemaVersion": 2,
-  "lastAttemptResult": "failed",
-  "lastAttemptAt": "2026-10-22T14:44:18+09:00",
-  "lastSuccessAt": "2026-10-22T08:51:24+09:00",
+  "lastAttemptResult": "success",
+  "lastAttemptAt": "2026-10-23T09:18:26+09:00",
+  "lastSuccessAt": "2026-10-23T09:20:51+09:00",
   "sourceKind": "naver-live",
-  "message": "브라우저 연결 또는 저장에 실패했습니다. 실행 로그와 증거 파일을 확인해 주세요.",
-  "latestCollectedDate": "2026-10-22",
+  "message": "클라우드 브라우저에서 목록을 30→60→90→120건까지 스크롤하고, 하단에서 120/120건을 두 차례 확인한 뒤 필수 항목 전수 검증을 통과했습니다.",
+  "latestCollectedDate": "2026-10-23",
   "declaredCount": 120,
   "verifiedCount": 120,
   "collectionPath": "cua-cloud-browser",
-  "transport": "cloud-browser",
-  "lastAttemptEvidence": {
-    "attemptAt": "2026-10-22T14:43:29+09:00",
-    "stage": "document-commit",
-    "errorType": "Error",
-    "errorDetail": "Page.goto: net::ERR_CONNECTION_RESET at https://fin.land.naver.com/complexes/140635?tab=article&articleTradeTypes=A1",
-    "message": "브라우저 연결 또는 저장에 실패했습니다. 실행 로그와 증거 파일을 확인해 주세요.",
-    "requestFailures": [
-      {
-        "host": "fin.land.naver.com",
-        "path": "/complexes/140635",
-        "type": "document",
-        "error": "net::ERR_CONNECTION_RESET"
-      }
-    ],
-    "httpErrors": [],
-    "pageTitle": "",
-    "pageExcerpt": "This site can’t be reached\n\nThe connection was reset.\n\nTry:\n\nChecking the connection\nChecking the proxy and the firewall\nERR_CONNECTION_RESET\nReload\nDetails",
-    "navigationTimeoutSeconds": 180,
-    "browserVersion": "155.0.8059.84",
-    "browserExecutable": "google-chrome"
-  }
+  "transport": "cloud-browser"
 }
