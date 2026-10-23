@@ -1,0 +1,62 @@
+name: whoga · clean complex URL probe then full
+on:
+  push:
+    branches: [map-collector-v2]
+    paths: ['.github/workflows/complex_probe.yml']
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'probe only, or probe then full'
+        type: choice
+        options: [probe, full]
+        default: probe
+      runner:
+        description: 'Execution environment'
+        type: choice
+        options: [github-hosted]
+        default: github-hosted
+permissions:
+  contents: read
+concurrency:
+  group: whoga-clean-complex-probe-ubuntu22
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    env:
+      TARGET_URL: https://fin.land.naver.com/complexes/140635
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install browser
+        run: |
+          python -m pip install -r experiments/supplied-v2/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Record requested configuration
+        run: |
+          mkdir -p collector-runs/complex-140635
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path('collector-runs/complex-140635/request.json').write_text(json.dumps({'url': os.environ['TARGET_URL'], 'runner': 'github-hosted', 'firstMode': 'probe', 'fullRequires': 'successful probe in this run', 'publication': 'disabled'}, indent=2))
+          PY
+      - name: 'mode = probe (three cards)'
+        id: probe
+        run: python experiments/supplied-v2/collector.py --url "$TARGET_URL" --probe --headless --output collector-runs/complex-140635/probe
+      - name: 'mode = full (only after probe succeeds)'
+        if: success() && steps.probe.outcome == 'success' && (github.event_name == 'push' || inputs.mode == 'full')
+        run: python experiments/supplied-v2/collector.py --url "$TARGET_URL" --headless --output collector-runs/complex-140635/full
+      - name: Save evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: complex-140635-${{ github.run_id }}
+          path: collector-runs/complex-140635/
+          retention-days: 7
+          if-no-files-found: error

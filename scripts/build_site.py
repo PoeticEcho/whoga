@@ -26,6 +26,21 @@ def build(destination=None):
     (destination / "data").mkdir()
     for file in ["index.json", "status.json"] + [e["file"] for e in index["snapshots"]]:
         shutil.copy2(ROOT / "data" / file, destination / "data" / file)
+    collector = ROOT / "whoga-naver-collector"
+    if (collector / "latest.json").exists():
+        public = destination / "whoga-naver-collector"
+        public.mkdir()
+        for pattern in ("latest.json", "snapshot-*.json"):
+            for file in collector.glob(pattern):
+                validate_snapshot(read_json(file), require_complete=True)
+                shutil.copy2(file, public / file.name)
+        for folder in ("history", "evidence"):
+            if (collector / folder).exists():
+                (public / folder).mkdir()
+                for file in (collector / folder).glob("*.json"):
+                    if folder == "evidence" and file.name != "validation.json":
+                        continue
+                    shutil.copy2(file, public / folder / file.name)
     print(f"정적 배포 파일 준비 완료 · {len(index['snapshots'])}개 스냅샷")
     return destination
 

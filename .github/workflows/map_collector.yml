@@ -1,0 +1,139 @@
+name: whoga · 검증형 지도 수집
+on:
+  push:
+    branches: [map-collector-v2]
+    paths: ['whoga-naver-collector/**', '.github/workflows/map_collector.yml']
+  schedule:
+    - cron: '0 0 * * *' # 09:00 Asia/Seoul; queue delay is possible
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: '시험 전용 지도 URL; 비우면 고정 URL. 수동 실행은 발행하지 않음'
+        type: string
+        default: ''
+      transport:
+        description: '수집 실행 환경'
+        type: choice
+        options: [browserbase, local]
+        default: browserbase
+permissions:
+  contents: read
+concurrency:
+  group: beomeo-w-daily-pages
+  cancel-in-progress: false
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: |
+          python -m unittest discover -s tests -v
+          python -m unittest discover -s whoga-naver-collector -p 'test_*.py' -v
+          node --test tests/*.test.mjs
+  collect:
+    needs: checks
+    if: (github.event_name == 'schedule' && vars.ENABLE_MAP_DAILY == 'true') || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[live-map-trial]'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    outputs:
+      run_id: ${{ steps.collect.outputs.run_id }}
+      run_dir: ${{ steps.collect.outputs.run_dir }}
+    env:
+      MANUAL_URL: ${{ inputs.target_url }}
+      TRANSPORT: ${{ inputs.transport || 'browserbase' }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Check regression and fail-closed publication
+        run: |
+          python -m unittest discover -s tests -v
+          python -m unittest discover -s whoga-naver-collector -p 'test_*.py' -v
+          node --test tests/*.test.mjs
+      - name: Install pinned browser client
+        run: python -m pip install -r whoga-naver-collector/requirements.txt
+      - name: Install Chromium for local mode
+        if: env.TRANSPORT == 'local'
+        run: python -m playwright install --with-deps chromium
+      - name: Collect exact map; one ordinary Singapore session
+        id: collect
+        env:
+          BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
+        run: python whoga-naver-collector/collector.py --transport "$TRANSPORT" --region ap-southeast-1
+      - name: Build from this run only
+        env:
+          RUN_DIR: ${{ steps.collect.outputs.run_dir }}
+        run: python whoga-naver-collector/build_snapshot.py "$RUN_DIR"
+      - name: Preserve evidence on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: map-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: collector-runs/
+          if-no-files-found: warn
+          retention-days: 7
+  publish:
+    needs: collect
+    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main' && vars.ENABLE_MAP_DAILY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: map-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: collector-runs
+      - name: Stage validated data and preserve same-day history
+        env:
+          RUN_DIR: ${{ needs.collect.outputs.run_dir }}
+        run: python whoga-naver-collector/publish.py "$RUN_DIR"
+      - name: Build whole existing WhoGa site
+        run: python scripts/build_site.py
+      - name: Commit validated data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,'whoga-naver-collector')
+          from publish import commit
+          commit()
+          PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+        id: deployment
+      - name: Verify public JSON and existing app
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          RUN_DIR: ${{ needs.collect.outputs.run_dir }}
+        run: python whoga-naver-collector/verify_pages.py "$PAGE_URL" "$RUN_DIR/snapshot.json"

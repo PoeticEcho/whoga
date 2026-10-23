@@ -1,0 +1,10 @@
+**
+!nas
+!nas/run.py
+!nas/web.py
+!nas/static
+!nas/static/**
+!experiments
+!experiments/supplied-v2
+!experiments/supplied-v2/collector.py
+!experiments/supplied-v2/requirements.txt

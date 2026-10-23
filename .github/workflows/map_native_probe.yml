@@ -1,0 +1,43 @@
+name: whoga · macOS 지도 수집 비교
+on:
+  push:
+    branches: [map-collector-v2]
+    paths: ['.github/workflows/map_native_probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: whoga-macos-probe
+  cancel-in-progress: false
+jobs:
+  native:
+    runs-on: macos-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Test safe collector
+        run: python -m unittest discover -s whoga-naver-collector -p 'test_*.py' -v
+      - name: Install ordinary Chromium
+        run: |
+          python -m pip install -r whoga-naver-collector/requirements.txt
+          python -m playwright install chromium
+      - name: Collect exact map using standard local browser
+        id: collect
+        run: python whoga-naver-collector/collector.py --transport local
+      - name: Validate same-run snapshot
+        env:
+          RUN_DIR: ${{ steps.collect.outputs.run_dir }}
+        run: python whoga-naver-collector/build_snapshot.py "$RUN_DIR"
+      - name: Save evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: map-macos-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: collector-runs/
+          if-no-files-found: warn
+          retention-days: 7
