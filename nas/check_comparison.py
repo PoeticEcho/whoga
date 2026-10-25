@@ -52,6 +52,8 @@ with sync_playwright() as pw:
         assert env['maxTouchPoints'] > 0 if condition['profile'] == 'android' else env['maxTouchPoints'] == 0
         if condition['profile'] == 'android':
             assert env['userAgentData']['platform'] == 'Android', env
+        else:
+            assert env['userAgentData']['platform'] == 'Linux' and env['userAgentData']['brands'], env
         process = reload['resources']['browser']
         assert not process['headless'] and not process['sharedMemoryDisabled'], process
         assert process['automationFlag'] == (condition['launcher'] == 'playwright'), process

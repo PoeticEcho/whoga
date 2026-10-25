@@ -98,15 +98,24 @@ def configure(page, profile, width, height, browser_version):
     session.send('Emulation.setTimezoneOverride', {'timezoneId': 'Asia/Seoul'})
     session.send('Emulation.setLocaleOverride', {'locale': 'ko-KR'})
     # Keep UA/Client Hints consistent; this remains emulation on Linux, not a real phone.
-    native = page.evaluate('({ua:navigator.userAgent, data:navigator.userAgentData?.toJSON()})')
+    native = page.evaluate('''async () => ({ua:navigator.userAgent,
+        data:navigator.userAgentData?.toJSON(),
+        entropy:await navigator.userAgentData?.getHighEntropyValues(['platformVersion','architecture','bitness','model'])})''')
     version = browser_version.split('.')[0]
     data = native.get('data') or {'brands': [{'brand': 'Chromium', 'version': version}], 'platform': 'Linux'}
-    override = dict(userAgent=native['ua'], acceptLanguage='ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7')
+    entropy = native.get('entropy') or {}
+    # Supplying a UA without metadata suppresses Client Hints even on desktop.
+    metadata = dict(brands=data['brands'], fullVersion=browser_version,
+                    platform=data['platform'], platformVersion=entropy.get('platformVersion', ''),
+                    architecture=entropy.get('architecture', 'x86'), bitness=entropy.get('bitness', '64'),
+                    model=entropy.get('model', ''), mobile=False)
+    override = dict(userAgent=native['ua'], acceptLanguage='ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+                    userAgentMetadata=metadata)
     if profile == 'android':
         override.update(userAgent=f'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 '
                         f'(KHTML, like Gecko) Chrome/{version}.0.0.0 Mobile Safari/537.36', platform='Linux armv8l',
                         userAgentMetadata=dict(brands=data['brands'], fullVersion=browser_version,
-                        platform='Android', platformVersion='13.0.0', architecture='', model='Pixel 7', mobile=True))
+                        platform='Android', platformVersion='13.0.0', architecture='', bitness='', model='Pixel 7', mobile=True))
     session.send('Network.setUserAgentOverride', override)
     return session
 
