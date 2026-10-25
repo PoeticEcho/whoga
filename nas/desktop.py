@@ -4,7 +4,12 @@ from diagnostics import BrowserEvents
 from browser_control import READY, comparison_active
 from browser_runtime import bootstrap, configure, launch
 from pathlib import Path
+import json
 import time
+
+
+def lifecycle(phase):
+    print(json.dumps({'component': 'desktop', 'phase': phase}), flush=True)
 
 
 def main():
@@ -16,11 +21,14 @@ def main():
 
 
 def desktop():
+    lifecycle('driver-start')
     with sync_playwright() as pw:
         # NAS evidence: this native launcher loaded the real complex and listing API.
         with launch(pw, 'native', Path('/tmp/whoga-native-profile'), port=9222) as (browser, context):
+            lifecycle('browser-connected')
             page = context.pages[0] if context.pages else context.new_page()
             bootstrap(page)
+            lifecycle('bootstrap-loaded')
             configure(page, 'desktop', 1440, 900, browser.version)
             events = BrowserEvents(context)
             page.set_content('<html lang="ko"><meta charset="utf-8"><title>WhoGa NAS 브라우저</title>'
@@ -29,12 +37,16 @@ def desktop():
                              '<p>이 창이 실제 수집에 사용됩니다.</p></body></html>')
             page.bring_to_front()
             READY.touch()
+            lifecycle('ready')
             try:
                 while context.pages and not comparison_active():
                     context.pages[0].wait_for_timeout(1000)
                     events.persist('/output/browser-diagnostics.json')
             finally:
                 READY.unlink(missing_ok=True)
+                lifecycle('browser-stopping')
+        lifecycle('browser-stopped')
+    lifecycle('driver-stopped')
 
 if __name__ == '__main__':
     main()
