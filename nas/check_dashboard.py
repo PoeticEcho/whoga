@@ -15,6 +15,8 @@ with sync_playwright() as pw:
     dashboard.on('pageerror', lambda error: errors.append(str(error)))
     dashboard.goto('http://127.0.0.1:8899')
     expect(dashboard.locator('#url')).to_have_value('https://fin.land.naver.com/complexes/140635')
+    expect(dashboard.locator('#buildVersion')).to_contain_text('WhoGa NAS 2.2')
+    expect(dashboard.locator('#buildVersion')).to_contain_text(os.environ['WHOGA_EXPECT_SOURCE_COMMIT'][:7])
     if os.environ.get('WHOGA_EXPECT_RESTART'):
         expect(dashboard.locator('#scheduleMode')).to_have_value('daily')
         expect(dashboard.locator('#dailyTime')).to_have_value('09:17')
@@ -77,6 +79,8 @@ with sync_playwright() as pw:
     expect(dashboard.locator('#result')).to_have_text('브라우저 정상', timeout=60000)
     assert page.title() == 'WhoGa 화면·입력 검사'
     assert dashboard.locator('#upload').is_disabled()
+    expect(dashboard.locator('#diagnosticDownload')).to_be_visible()
+    expect(dashboard.locator('#diagnosticScreenshot')).to_be_visible()
     dashboard.screenshot(path='/output/dashboard-desktop.png', full_page=True)
     dashboard.set_viewport_size({'width':390,'height':844})
     dashboard.screenshot(path='/output/dashboard-mobile.png', full_page=True)

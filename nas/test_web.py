@@ -116,6 +116,29 @@ class DashboardTests(unittest.TestCase):
         finally:
             server.shutdown();server.server_close();thread.join()
 
+    def test_diagnostic_artifacts_require_auth_and_are_confined_to_run(self):
+        job, run_id = 'a' * 32, 'b' * 32
+        folder = self.app.output / 'jobs' / job / 'runs' / run_id
+        web.atomic(folder / 'diagnostics.json', {'runId': run_id, 'phase': 'probe:list-count'})
+        self.app.state.update(jobId=job, lastResult={'runId': run_id, 'diagnosticsPath': f'runs/{run_id}/diagnostics.json'})
+        link = self.app.snapshot()['state']['diagnosticLinks']['report']
+        self.assertEqual(link, f'/artifacts/{job}/{run_id}/diagnostics.json')
+        server = ThreadingHTTPServer(('127.0.0.1', 0), web.handler(self.app, 'test-password-123'))
+        thread = threading.Thread(target=server.serve_forever, daemon=True);thread.start()
+        base = 'http://127.0.0.1:' + str(server.server_port)
+        auth = 'Basic ' + base64.b64encode(b'admin:test-password-123').decode()
+        try:
+            with self.assertRaises(HTTPError) as failure:
+                urlopen(base + link)
+            self.assertEqual(failure.exception.code, 401)
+            result = json.load(urlopen(Request(base + link, headers={'Authorization': auth})))
+            self.assertEqual(result['phase'], 'probe:list-count')
+            with self.assertRaises(HTTPError) as failure:
+                urlopen(Request(base + f'/artifacts/{job}/{run_id}/%2e%2e/settings.json', headers={'Authorization': auth}))
+            self.assertEqual(failure.exception.code, 404)
+        finally:
+            server.shutdown();server.server_close();thread.join()
+
     def test_desktop_ticket_is_short_lived_and_single_use(self):
         ticket = self.app.desktop_ticket()
         self.assertTrue(self.app.use_desktop_ticket(ticket))

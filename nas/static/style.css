@@ -3,3 +3,5 @@
 .desktop-controls{margin-top:18px}.desktop-open{display:inline-block;padding:12px 18px;border-radius:9px;background:var(--green);color:white;text-decoration:none;font-size:14px;font-weight:600}.desktop-controls .help{margin-bottom:4px}
 
 select{min-width:0;border:1px solid #ccd6ce;background:#fafbf9;border-radius:8px;padding:10px 8px;color:var(--ink);font:inherit;font-size:12px}.schedule{flex-wrap:wrap}.schedule-options [hidden]{display:none}.schedule-options .interval{justify-content:flex-start;margin-top:6px}.schedule-options input[type=time]{max-width:145px}
+
+.diagnostics{margin-top:22px}.diagnostics[hidden],.diagnostic-links a[hidden]{display:none}#diagnosticSummary{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.8 ui-monospace,monospace}.diagnostic-links{display:flex;flex-wrap:wrap;gap:18px}.diagnostic-links a{color:var(--green);font-size:13px}#buildVersion{overflow-wrap:anywhere}

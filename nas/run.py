@@ -6,6 +6,11 @@ import json
 from pathlib import Path
 import sys
 import uuid
+from urllib.parse import urlsplit
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from diagnostics import BrowserEvents, capture_run, clean, write_json
+from version import build_info
 
 SOURCE = Path(__file__).resolve().parents[1] / 'experiments/supplied-v2/collector.py'
 spec = importlib.util.spec_from_file_location('supplied', SOURCE)
@@ -20,6 +25,16 @@ def sequence(mode, stage):
         stage('full')
 
 
+def choose_page(context, url):
+    requested = urlsplit(url)
+    for page in context.pages:
+        current = urlsplit(page.url)
+        if (current.scheme, current.netloc, current.path.rstrip('/')) == (requested.scheme, requested.netloc, requested.path.rstrip('/')):
+            return page
+    return next((page for page in context.pages if urlsplit(page.url).hostname == requested.hostname),
+                context.pages[0] if context.pages else context.new_page())
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=['smoke', 'browse', 'probe', 'full'], nargs='?', default='probe')
@@ -29,7 +44,6 @@ def main():
     import re
     if not re.fullmatch(r'https://fin\.land\.naver\.com/complexes/[0-9]+', args.url):
         parser.error('단지 주소 https://fin.land.naver.com/complexes/숫자 를 입력하세요.')
-    from playwright.sync_api import sync_playwright
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
     # Kernel releases this lock even after container termination.
@@ -41,63 +55,87 @@ def main():
             return 2
         run_id = uuid.uuid4().hex
         run_dir = output / 'runs' / run_id
+        run_dir.mkdir(parents=True, exist_ok=True)
         status = dict(runId=run_id, startedAt=collector.now(), url=args.url,
-                      mode=args.mode, runner='nas-docker', publicationEligible=False)
-        phase = 'browser-launch'
+                      mode=args.mode, runner='nas-docker', publicationEligible=False,
+                      build=build_info(), status='running')
+        phases, page, events = [], None, None
+        saved = False
+
+        def step(name, details=None):
+            status['phase'] = name
+            event = clean(dict(phase=name, at=collector.now(), **(details or {})))
+            phases.append(event)
+            write_json(run_dir / 'status.json', status)
+            print(json.dumps(event, ensure_ascii=False), flush=True)
+
+        def fail(error):
+            status.update(status='failed', failedPhase=status.get('phase', 'browser-connect'),
+                          error=clean(str(error)), errorType=type(error).__name__)
+
+        def finish():
+            nonlocal saved
+            try:
+                capture_run(page, run_dir, status, phases, events, Path('/output/browser-diagnostics.json'))
+            except Exception as error:
+                # A failed diagnostic must never turn a failed collection into success.
+                status['diagnosticsError'] = clean(str(error))
+            status['completedAt'] = collector.now()
+            write_json(run_dir / 'status.json', status)
+            write_json(output / 'status.json', status)
+            saved = True
+            print(json.dumps(status, ensure_ascii=False), file=sys.stderr if status['status'] == 'failed' else sys.stdout)
+
+        step('browser-connect')
         try:
+            from playwright.sync_api import sync_playwright
             with sync_playwright() as pw:
-                # This is the same persistent, visible browser shown by noVNC.
-                # Stopping this client disconnects CDP without stopping Chrome.
-                browser = pw.chromium.connect_over_cdp('http://127.0.0.1:9222', timeout=15000)
-                context = browser.contexts[0]
-                page = context.pages[0] if context.pages else context.new_page()
-                page.bring_to_front()
                 try:
+                    # This is the same persistent, visible browser shown by noVNC.
+                    browser = pw.chromium.connect_over_cdp('http://127.0.0.1:9222', timeout=15000)
+                    context = browser.contexts[0]
+                    page = choose_page(context, args.url)
+                    events = BrowserEvents(context)
+                    status['browserVersion'] = browser.version
+                    page.bring_to_front()
                     if args.mode == 'smoke':
+                        step('smoke-browser')
                         page.screenshot(path=str(output / 'browser-smoke.png'), timeout=10000)
-                        status['browserVersion'] = browser.version
                         status['status'] = 'browser-ready'
                     elif args.mode == 'browse':
+                        step('browse-document')
                         response = page.goto(args.url, wait_until='commit', timeout=180000)
+                        status['documentStatus'] = response.status if response else None
                         if not response or response.status >= 400:
                             raise RuntimeError('원문 문서 응답을 확인하지 못했습니다.')
                         # Opening a document is not a successful collection.
                         status['status'] = 'page-opened'
                     else:
                         def stage(mode):
-                            nonlocal phase
-                            phase = mode
-                            try:
-                                raw, expected, counts, final_url, target = collector.collect(page, args.url, probe=(mode == 'probe'))
-                                groups, articles = collector.normalize(raw, len(raw) if mode == 'probe' else expected,
-                                                                      target['complexName'], target['estateTypeText'])
-                                result = dict(schemaVersion='nas-experiment-1', runId=run_id, target=target,
-                                              collectedAt=collector.now(), mode=mode, displayedCardCount=expected,
-                                              collectedCardCount=len(groups), articleCount=len(articles),
-                                              observedCardCounts=counts, finalUrl=final_url,
-                                              publicationEligible=False, cards=groups, articles=articles)
-                                collector.atomic_json(run_dir / (mode + '.json'), result)
-                                status[mode] = dict(status='passed', cards=len(groups), articles=len(articles))
-                            finally:
-                                try:
-                                    page.screenshot(path=str(run_dir / (mode + '-screen.png')), timeout=5000)
-                                except Exception:
-                                    pass
+                            progress = lambda name, details: step(mode + ':' + name, details)
+                            raw, expected, counts, final_url, target = collector.collect(
+                                page, args.url, probe=(mode == 'probe'), progress=progress)
+                            step(mode + ':normalize')
+                            groups, articles = collector.normalize(raw, len(raw) if mode == 'probe' else expected,
+                                                                  target['complexName'], target['estateTypeText'])
+                            result = dict(schemaVersion='nas-experiment-1', runId=run_id, target=target,
+                                          collectedAt=collector.now(), mode=mode, displayedCardCount=expected,
+                                          collectedCardCount=len(groups), articleCount=len(articles),
+                                          observedCardCounts=counts, finalUrl=final_url,
+                                          publicationEligible=False, cards=groups, articles=articles)
+                            collector.atomic_json(run_dir / (mode + '.json'), result)
+                            status[mode] = dict(status='passed', cards=len(groups), articles=len(articles))
                         sequence(args.mode, stage)
                         status['status'] = args.mode + '-passed'
+                except Exception as error:
+                    fail(error)
                 finally:
-                    pass  # Keep the desktop window available for inspection.
-        except Exception as exc:
-            status.update(status='failed', failedPhase=phase, error=str(exc), completedAt=collector.now())
-            collector.atomic_json(run_dir / 'status.json', status)
-            collector.atomic_json(output / 'status.json', status)
-            print(json.dumps(status, ensure_ascii=False), file=sys.stderr)
-            return 1
-        status['completedAt'] = collector.now()
-        collector.atomic_json(run_dir / 'status.json', status)
-        collector.atomic_json(output / 'status.json', status)
-        print(json.dumps(status, ensure_ascii=False))
-        return 0
+                    finish()  # Capture before disconnecting; leave the Chrome window open.
+        except Exception as error:
+            if not saved:
+                fail(error)
+                finish()
+        return 1 if status['status'] == 'failed' else 0
 
 
 if __name__ == '__main__':

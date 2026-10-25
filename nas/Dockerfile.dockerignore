@@ -4,6 +4,9 @@
 !nas/web.py
 !nas/desktop.py
 !nas/entrypoint.py
+!nas/diagnostics.py
+!nas/version.py
+!nas/source-version.json
 !nas/static
 !nas/static/**
 !experiments

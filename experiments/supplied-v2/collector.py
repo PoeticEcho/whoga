@@ -138,10 +138,19 @@ def check_block(page):
         raise RuntimeError('접근/인증 확인 화면입니다. 자동 재시도 없이 중단합니다.')
 
 
+def parse_header_count(text):
+    match = re.match(r'^\s*매물\s*([\d,]+)', text)
+    if not match:
+        raise ValueError('매물 목록 제목의 건수를 확인할 수 없습니다: ' + text)
+    return int(match[1].replace(',', ''))
+
+
 def header_count(page):
-    title = page.get_by_role('heading', name=re.compile(r'^매물\s*[\d,]+\s*개'))
+    # Some layouts render "매물 121" without the former "개" suffix.
+    # Only the selected complex's list heading is authoritative, never "매매 121".
+    title = page.locator('#complex_detail').get_by_role('heading', name=re.compile(r'^매물\s*[\d,]+'))
     text = title.inner_text(timeout=30000)
-    return int(re.search(r'매물\s*([\d,]+)', text)[1].replace(',', ''))
+    return parse_header_count(text)
 
 
 def validate_url(url):
@@ -156,7 +165,12 @@ def validate_url(url):
     raise ValueError('단지 /complexes/숫자 URL 또는 단지를 선택한 /map?layer=... URL이 필요합니다')
 
 
-def collect(page, url, probe=False, sample_cards=3):
+def collect(page, url, probe=False, sample_cards=3, progress=None):
+    def step(name, **details):
+        if progress:
+            progress(name, details)
+
+    step('navigation')
     requested_id = validate_url(url)
     # A user may already have opened this complex in the visible NAS browser.
     # Preserve its loading progress instead of discarding the tab and session.
@@ -165,25 +179,30 @@ def collect(page, url, probe=False, sample_cards=3):
         response = page.goto(url, wait_until='commit', timeout=180000)
         if not response or response.status >= 400:
             raise RuntimeError('원문 문서 HTTP 응답 실패. 기존 결과를 유지합니다.')
+    step('complex-panel')
     panel = page.locator('#complex_detail')
     panel.wait_for(state='visible', timeout=300000)
     check_block(page)
     complex_name = panel.get_by_role('heading', level=3).first.inner_text().strip()
+    step('sale-filter')
     sale = panel.get_by_role('button', name=re.compile(r'^매매\s*[\d,]+$'))
     sale.wait_for(state='visible', timeout=30000)
     # 단지 URL의 기본 전체거래유형 및 지도 바깥쪽 필터와 구별합니다.
     sale.click()
     panel.locator('button[id="거래유형"]').wait_for(state='visible', timeout=30000)
     page.wait_for_function('''() => document.querySelector('#complex_detail button[id="거래유형"]')?.textContent.trim() === '매매' ''', timeout=30000)
+    step('complex-identity')
     tab = panel.get_by_role('tab', name=re.compile(r'^매물(?:\s*현재 위치)?$'))
     href = tab.get_attribute('href') or ''
     match = re.search(r'/complexes/(\d+)', href)
     if not match or (requested_id and match[1] != requested_id):
         raise ValueError('화면에서 단지번호를 확인할 수 없거나 URL과 다릅니다')
     complex_id = match[1]
+    step('list-count')
     expected = header_count(page)
     if expected <= 0:
         raise ValueError('매매 0건: 로딩/실제 0건 구별이 필요하므로 자동 저장하지 않습니다')
+    step('first-cards', displayedCount=expected)
     cards = page.locator(CARDS)
     cards.first.wait_for(timeout=30000)
     page.wait_for_function('''selector => {
@@ -200,6 +219,7 @@ def collect(page, url, probe=False, sample_cards=3):
         current = cards.count()
         if probe or current >= expected:
             break
+        step('scroll-list', loadedCards=current, displayedCount=expected)
         cards.last.scroll_into_view_if_needed()
         panel.evaluate('(el) => {el.scrollTop += Math.max(200, el.clientHeight / 2);}')
         try:
@@ -215,11 +235,13 @@ def collect(page, url, probe=False, sample_cards=3):
     limit = min(sample_cards, cards.count()) if probe else expected
     results = []
     for index in range(limit):
+        step('extract-card', cardIndex=index, sampleSize=limit)
         check_block(page)
         card = cards.nth(index)
         expand = card.get_by_role('button', name='매물목록 펼치기')
         grouped = expand.count() > 0
         if grouped:
+            step('expand-group', cardIndex=index)
             expand.click()
             card.locator('[data-sentry-component="ArticleCardSub"]').first.wait_for(state='attached', timeout=20000)
             # UI가 알리는 묶음 수량까지 기다리고, 부분 응답은 성공으로 저장하지 않습니다.
@@ -236,6 +258,7 @@ def collect(page, url, probe=False, sample_cards=3):
             card.get_by_role('button', name='매물목록 접기').click()
         print(f'카드 {index + 1}/{limit} (화면 총 {expected})', flush=True)
         time.sleep(1)
+    step('verify-counts', extractedCards=len(results), displayedCount=expected)
     if header_count(page) != expected or (not probe and cards.count() != expected):
         raise RuntimeError('수집 도중 목록 건수가 변경되었습니다')
     metadata['estateTypeText'] = results[0]['summary'][0]

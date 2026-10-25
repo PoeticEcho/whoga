@@ -23,7 +23,7 @@ jobs:
       - name: Existing dashboard and desktop gateway tests
         run: python -m unittest discover -s nas -p 'test_*.py' -v
       - name: Build the actual NAS image
-        run: docker build --tag whoga-nas:desktop-test --file nas/Dockerfile .
+        run: docker build --build-arg VCS_REF="$GITHUB_SHA" --tag whoga-nas:desktop-test --file nas/Dockerfile .
       - name: Start with the DS420+ compatible restrictions
         shell: bash
         run: |
@@ -52,7 +52,10 @@ jobs:
           PY
       - name: Real framebuffer, mouse input, shared browser and dashboard
         run: |
-          docker exec -i whoga-nas-test python - < nas/check_dashboard.py
+          docker exec -i -e WHOGA_EXPECT_SOURCE_COMMIT="$GITHUB_SHA" whoga-nas-test python - < nas/check_dashboard.py
+      - name: Local collection fixture and complete failure diagnostics
+        run: |
+          docker exec -i -e WHOGA_EXPECT_SOURCE_COMMIT="$GITHUB_SHA" whoga-nas-test python - < nas/check_diagnostics.py
       - name: Restart and verify retained settings and desktop recovery
         run: |
           docker restart whoga-nas-test
@@ -68,7 +71,7 @@ jobs:
           else:
               raise SystemExit('Desktop restart failed')
           PY
-          docker exec -i -e WHOGA_EXPECT_RESTART=1 whoga-nas-test python - < nas/check_dashboard.py
+          docker exec -i -e WHOGA_EXPECT_RESTART=1 -e WHOGA_EXPECT_SOURCE_COMMIT="$GITHUB_SHA" whoga-nas-test python - < nas/check_dashboard.py
       - name: Preserve screenshots and logs
         if: always()
         run: |
