@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 import sys
 
-VERSION = '2.5'
+VERSION = '2.5.1'
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_FILES = [
     'experiments/supplied-v2/collector.py',
@@ -28,10 +28,15 @@ def build_info(root=ROOT):
     if baked.exists():
         return json.loads(baked.read_text())
     source = root / 'nas/source-version.json'
-    commit = json.loads(source.read_text()).get('sourceCommit') if source.exists() else None
+    source_info = json.loads(source.read_text()) if source.exists() else {}
+    commit = source_info.get('sourceCommit')
     if not isinstance(commit, str) or not re.fullmatch(r'[a-f0-9]{40}', commit):
         commit = None
-    return dict(version=VERSION, sourceCommit=commit, sourceFingerprint=source_fingerprint(root), builtAt=None)
+    info = dict(version=VERSION, sourceCommit=commit, sourceFingerprint=source_fingerprint(root), builtAt=None)
+    base_commit = source_info.get('baseSourceCommit')
+    if isinstance(base_commit, str) and re.fullmatch(r'[a-f0-9]{40}', base_commit):
+        info['baseSourceCommit'] = base_commit
+    return info
 
 
 if __name__ == '__main__':

@@ -154,6 +154,11 @@ PAGE_SNAPSHOT = r'''(() => {
     url: location.href, title: document.title, readyState: document.readyState,
     bodyText: /https?:/.test(location.protocol) ? (document.body?.innerText || '').slice(0,6000) : '',
     panelPresent: Boolean(panel), headings: headingTexts(document), panelHeadings: panel ? headingTexts(panel) : [],
+    panelTabs: panel ? [...panel.querySelectorAll('a[role="tab"]')].slice(0,20).map(el => ({
+      href: el.href, text: el.textContent.trim().slice(0,200), selected: el.getAttribute('aria-selected'),
+      ariaHidden: Boolean(el.closest('[aria-hidden="true"]')), visible: visible(el)
+    })) : [],
+    panelScroll: panel ? {top: panel.scrollTop, height: panel.clientHeight, contentHeight: panel.scrollHeight} : null,
     cardCount: document.querySelectorAll('ul[class*="ComplexArticleTab"][class*="__article"] > li').length,
     saleFilter: panel?.querySelector('button[id="거래유형"]')?.textContent.trim() || null,
     metaCsp: [...document.querySelectorAll('meta[http-equiv]')]

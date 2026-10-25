@@ -1,1 +1,5 @@
-{"sourceCommit": null}
+{
+  "sourceCommit": null,
+  "baseSourceCommit": "868e2b612efdbea60ebcca5eafa90397d7dd9696",
+  "patch": "2.5.1-local-archive"
+}

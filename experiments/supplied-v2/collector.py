@@ -14,7 +14,7 @@ import re
 import sys
 import tempfile
 import time
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, urljoin
 
 KST = timezone(timedelta(hours=9))
 CARDS = 'ul[class*="ComplexArticleTab"][class*="__article"] > li'
@@ -165,6 +165,30 @@ def validate_url(url):
     raise ValueError('단지 /complexes/숫자 URL 또는 단지를 선택한 /map?layer=... URL이 필요합니다')
 
 
+def listing_complex_id(page):
+    """Read identity from panel links, independent of sticky-tab accessibility names.
+
+    A scrolled panel can hide the original tab from the accessibility tree or
+    render a second compact tab. Read both DOM links and require one identity;
+    never substitute the requested URL for evidence from the selected panel.
+    """
+    tabs = page.locator('#complex_detail a[role="tab"]').evaluate_all(
+        '(els) => els.map(el => ({href: el.getAttribute("href"), text: el.textContent}))')
+    identities = set()
+    for tab in tabs:
+        link = urlparse(urljoin(page.url, tab['href'] or ''))
+        match = re.fullmatch(r'/complexes/(\d+)/?', link.path)
+        if link.scheme != 'https' or link.netloc != 'fin.land.naver.com' or not match:
+            continue
+        # Prefer the route; tolerate the existing text-only tab markup too.
+        name = re.sub(r'[\s\u200b\ufeff]+', '', tab['text'] or '')
+        if parse_qs(link.query).get('tab') == ['article'] or name in ('매물', '매물현재위치'):
+            identities.add(match[1])
+    if len(identities) != 1:
+        raise ValueError('화면의 매물 탭에서 단지번호를 확인할 수 없거나 여러 단지가 표시됩니다')
+    return identities.pop()
+
+
 def collect(page, url, probe=False, sample_cards=3, progress=None, navigation_url=None):
     def step(name, **details):
         if progress:
@@ -178,9 +202,10 @@ def collect(page, url, probe=False, sample_cards=3, progress=None, navigation_ur
     same_complex = (current.scheme, current.netloc, current.path.rstrip('/')) == (requested.scheme, requested.netloc, requested.path.rstrip('/'))
     if not same_complex and current.netloc == requested.netloc and current.path == '/map' and requested_id:
         # Retain the authenticated anonymous session and loaded list between probe/full.
-        tabs = page.locator('#complex_detail a[role="tab"]')
-        same_complex = any(re.search(r'/complexes/' + re.escape(requested_id) + r'(?:[/?#]|$)', href or '')
-                           for href in tabs.evaluate_all('(els) => els.map(el => el.getAttribute("href"))'))
+        try:
+            same_complex = listing_complex_id(page) == requested_id
+        except ValueError:
+            same_complex = False
     if not same_complex:
         response = page.goto(navigation_url or url, wait_until='commit', timeout=180000)
         if not response or response.status >= 400:
@@ -200,12 +225,11 @@ def collect(page, url, probe=False, sample_cards=3, progress=None, navigation_ur
     trade_filter.wait_for(state='visible', timeout=30000)
     page.wait_for_function('''() => document.querySelector('#complex_detail button[id="거래유형"]')?.textContent.trim() === '매매' ''', timeout=30000)
     step('complex-identity')
-    tab = panel.get_by_role('tab', name=re.compile(r'^매물(?:\s*현재 위치)?$'))
-    href = tab.get_attribute('href') or ''
-    match = re.search(r'/complexes/(\d+)', href)
-    if not match or (requested_id and match[1] != requested_id):
+    panel.locator('a[role="tab"]').first.wait_for(state='attached', timeout=30000)
+    complex_id = listing_complex_id(page)
+    if requested_id and complex_id != requested_id:
         raise ValueError('화면에서 단지번호를 확인할 수 없거나 URL과 다릅니다')
-    complex_id = match[1]
+    step('complex-identity-verified', complexNo=complex_id)
     step('list-count')
     expected = header_count(page)
     deadline = time.monotonic() + 45

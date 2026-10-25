@@ -1,0 +1,152 @@
+{
+  "evidenceSource": "User-supplied NAS diagnostics and terminal log; not a fresh cloud collection",
+  "runId": "48554cc571f94d679f6018fc3781dac2",
+  "startedAt": "2026-10-26T07:40:59+09:00",
+  "completedAt": "2026-10-26T07:45:20+09:00",
+  "status": "full-passed",
+  "build": {
+    "version": "2.5.1",
+    "sourceCommit": null,
+    "sourceFingerprint": "14ea6b275741f9239de9077a71b36b1bcda1337cd816bc232f25c7a628dc75b6",
+    "builtAt": "2026-10-25T22:37:09+00:00",
+    "baseSourceCommit": "868e2b612efdbea60ebcca5eafa90397d7dd9696"
+  },
+  "probe": {
+    "status": "passed",
+    "cards": 3,
+    "articles": 47
+  },
+  "full": {
+    "status": "passed",
+    "cards": 122,
+    "articles": 578
+  },
+  "browserVersion": "153.0.8010.12",
+  "assessment": {
+    "pageState": "listing-cards-visible",
+    "cspBlockedDuringRun": false,
+    "resourceFailureDuringRun": false,
+    "javascriptErrorDuringRun": false
+  },
+  "environment": {
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "language": "ko-KR",
+    "languages": [
+      "ko-KR",
+      "ko",
+      "en-US",
+      "en"
+    ],
+    "userAgentData": {
+      "brands": [
+        {
+          "brand": "Chromium",
+          "version": "153"
+        },
+        {
+          "brand": "Not_A Brand",
+          "version": "8"
+        }
+      ],
+      "mobile": false,
+      "platform": "Linux"
+    },
+    "platform": "Linux x86_64",
+    "hardwareConcurrency": 2,
+    "deviceMemory": 4,
+    "maxTouchPoints": 0,
+    "screen": {
+      "width": 1440,
+      "height": 1000
+    },
+    "timeZone": "Asia/Seoul",
+    "webdriver": false,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "devicePixelRatio": 1,
+    "mobile": false
+  },
+  "browser": {
+    "processCounts": {
+      "browser": 1,
+      "renderer": 7,
+      "GPU": 1,
+      "network.mojom.NetworkService": 1,
+      "storage.mojom.StorageService": 1
+    },
+    "pageCount": 1,
+    "sharedMemoryDisabled": false,
+    "headless": false,
+    "automationFlag": false,
+    "debuggingPipe": false,
+    "openFileDescriptors": 238
+  },
+  "memory": {
+    "version": 1,
+    "currentBytes": 1898762240,
+    "limitBytes": 3221225472,
+    "peakBytes": 1943191552,
+    "failCount": 0,
+    "host": {
+      "MemTotalBytes": 6056714240,
+      "MemAvailableBytes": 2009800704
+    }
+  },
+  "filesystems": {
+    "tmp": {
+      "totalBytes": 536870912,
+      "availableBytes": 486469632,
+      "usedBytes": 50401280,
+      "availableInodes": 738943
+    },
+    "sharedMemory": {
+      "totalBytes": 536870912,
+      "availableBytes": 459091968,
+      "usedBytes": 77778944,
+      "availableInodes": 738818
+    }
+  },
+  "scrollPhases": [
+    {
+      "phase": "full:scroll-list",
+      "at": "2026-10-26T07:41:08+09:00",
+      "loadedCards": 30,
+      "displayedCount": 122
+    },
+    {
+      "phase": "full:scroll-list",
+      "at": "2026-10-26T07:41:10+09:00",
+      "loadedCards": 60,
+      "displayedCount": 122
+    },
+    {
+      "phase": "full:scroll-list",
+      "at": "2026-10-26T07:41:13+09:00",
+      "loadedCards": 90,
+      "displayedCount": 122
+    },
+    {
+      "phase": "full:scroll-list",
+      "at": "2026-10-26T07:41:16+09:00",
+      "loadedCards": 120,
+      "displayedCount": 122
+    }
+  ],
+  "verificationPhase": {
+    "phase": "full:verify-counts",
+    "at": "2026-10-26T07:45:19+09:00",
+    "extractedCards": 122,
+    "displayedCount": 122
+  },
+  "listingTab": {
+    "href": "https://fin.land.naver.com/complexes/140635?tab=article&articleTradeTypes=A1",
+    "text": "매물현재 위치",
+    "selected": "true",
+    "ariaHidden": true,
+    "visible": true
+  },
+  "githubUploadVerified": false,
+  "productionPublicationVerified": false
+}

@@ -1,0 +1,44 @@
+<!doctype html><meta charset="utf-8"><title>WhoGa collection regression</title>
+<style>#complex_detail{height:500px;width:550px;overflow:auto}li{min-height:180px}</style>
+<section id="complex_detail">
+<h3>수성범어더블유</h3><button id="거래유형">매매</button>
+<nav><a role="tab" href="/complexes/140635?tab=article">매물</a></nav>
+<h4>매물<span id="count">122</span>개<button>도움말 보기</button></h4>
+<ul class="ComplexArticleTab_fixture__article"></ul></section>
+<script>
+const panel=document.querySelector('#complex_detail'), list=document.querySelector('ul');
+let added=0, pending=false;
+function append(){
+  const end=Math.min(added+30,122);
+  for(;added<end;added++){
+    const i=added, wanted=[8,17,8][i], li=document.createElement('li');
+    li.innerHTML=`<div><a class="__link" href="/articles/${10000+i}"><span class="__name">수성범어더블유 103동</span></a>
+    <span class="__price">매매 5억 4,000</span><span class="__item-summary">오피스텔</span>
+    <span class="__item-summary">168OB㎡ (전용78.36OB)</span><span class="__item-summary">20/58층</span>
+    <span class="__item-summary">남서향</span><span data-sentry-component="PropertyBadgeList">확인매물 2026.10.24</span></div>`;
+    if(wanted){
+      li.firstElementChild.insertAdjacentHTML('beforeend',`<span class="__text-more">중개사 ${wanted}곳에서 등록했어요</span>`);
+      const button=document.createElement('button');button.textContent='매물목록 펼치기';li.append(button);
+      button.onclick=()=>{
+        if(button.textContent==='매물목록 접기'){
+          li.querySelectorAll('[data-sentry-component="ArticleCardSub"]').forEach(el=>el.remove());
+          button.textContent='매물목록 펼치기';return;
+        }
+        setTimeout(()=>{
+          for(let j=0;j<wanted;j++)li.insertAdjacentHTML('beforeend',`<div data-sentry-component="ArticleCardSub"><a class="__link" href="/articles/${20000+i*100+j}">매물</a><span class="__price">매매 5억 4,000</span><span data-sentry-component="PropertyBadgeList">확인매물 2026.10.24</span></div>`);
+          button.textContent='매물목록 접기';
+        },50);
+      };
+    }
+    list.append(li);
+  }
+}
+append();
+panel.addEventListener('scroll',()=>{
+  // Model a sticky header whose original tab leaves the accessibility tree.
+  document.querySelector('nav').setAttribute('aria-hidden',String(panel.scrollTop>100));
+  if(!pending && added<122 && panel.scrollTop+panel.clientHeight>=panel.scrollHeight-30){
+    pending=true;setTimeout(()=>{append();pending=false},80);
+  }
+});
+</script>
