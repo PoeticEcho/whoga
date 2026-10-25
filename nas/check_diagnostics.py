@@ -71,7 +71,7 @@ with sync_playwright() as pw:
         return wait_for(finished)
 
     build = api('/api/status')['build']
-    assert build['version'] == '2.3' and len(build['sourceFingerprint']) == 64
+    assert build['version'] == '2.4' and len(build['sourceFingerprint']) == 64
     assert build['sourceCommit'] == os.environ['WHOGA_EXPECT_SOURCE_COMMIT']
 
     # Regression: "매물 1" has no "개" suffix. Exercise the real collector and normalizer.

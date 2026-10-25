@@ -6,6 +6,8 @@
 !nas/entrypoint.py
 !nas/diagnostics.py
 !nas/resources.py
+!nas/comparison.py
+!nas/browser_control.py
 !nas/version.py
 !nas/source-version.json
 !nas/static

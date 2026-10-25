@@ -1,9 +1,18 @@
 """Keep a visible browser alive; collection clients attach over local CDP."""
 from playwright.sync_api import sync_playwright
 from diagnostics import BrowserEvents
+from browser_control import comparison_active
+import time
 
 
 def main():
+    while True:
+        while comparison_active():
+            time.sleep(.2)
+        desktop()
+
+
+def desktop():
     with sync_playwright() as pw:
         # Retain the supplied DS420+ compatibility setting. No host privileges.
         context = pw.chromium.launch_persistent_context(
@@ -20,9 +29,10 @@ def main():
                          '<h1>WhoGa 브라우저 준비 완료</h1><p>관리 화면에서 원문 열기 또는 수집을 시작하세요.</p>'
                          '<p>이 창이 실제 수집에 사용됩니다.</p></body></html>')
         page.bring_to_front()
-        while context.pages:
+        while context.pages and not comparison_active():
             context.pages[0].wait_for_timeout(1000)
             events.persist('/output/browser-diagnostics.json')
+        context.close()
 
 
 if __name__ == '__main__':

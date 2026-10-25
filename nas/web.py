@@ -188,7 +188,7 @@ class App:
             self.save()
 
     def start(self, mode, *, scheduled=False):
-        if mode not in ('smoke', 'browse', 'probe', 'full'):
+        if mode not in ('smoke', 'browse', 'probe', 'full', 'compare'):
             raise ValueError('실행 모드를 확인하세요.')
         with self.lock:
             if self.state['running'] or self.state.get('upload', {}).get('status') == 'running':
@@ -230,11 +230,14 @@ class App:
             if code != 0 or not result or self.cancelled:
                 phase = result.get('failedPhase', '')
                 raise ValueError('수집 실패 또는 중지' + (' · ' + phase if phase else '') + '. 진단 기록과 화면을 확인하세요.')
-            expected = {'smoke': 'browser-ready', 'browse': 'page-opened', 'probe': 'probe-passed', 'full': 'full-passed'}[mode]
+            expected = {'smoke': 'browser-ready', 'browse': 'page-opened', 'probe': 'probe-passed',
+                        'full': 'full-passed', 'compare': 'comparison-complete'}[mode]
             if result.get('status') != expected or result.get('url') != config['url']:
                 raise ValueError('이번 실행 결과를 검증하지 못했습니다.')
             with self.lock:
                 message = '원문 탭을 열었습니다. 지도·매물 로딩은 브라우저 화면에서 확인하세요.' if mode == 'browse' else '검사가 완료됐습니다.'
+                if mode == 'compare':
+                    message = '비교 기록을 저장했습니다. 아래 조건별 목록 표시 결과를 확인하세요. 전체 수집 성공을 뜻하지 않습니다.'
                 self.state.update(result=expected, message=message, lastResult=result, successfulJob=job)
         except Exception as exc:
             with self.lock:

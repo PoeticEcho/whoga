@@ -6,12 +6,12 @@ from pathlib import Path
 import re
 import sys
 
-VERSION = '2.3'
+VERSION = '2.4'
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_FILES = [
     'experiments/supplied-v2/collector.py',
     'nas/run.py', 'nas/web.py', 'nas/desktop.py', 'nas/entrypoint.py',
-    'nas/diagnostics.py', 'nas/resources.py', 'nas/version.py',
+    'nas/diagnostics.py', 'nas/resources.py', 'nas/version.py', 'nas/comparison.py', 'nas/browser_control.py',
 ]
 
 

@@ -86,7 +86,10 @@ class BrowserEvents:
         headers = response.headers
         csp = headers.get('content-security-policy')
         report_only = headers.get('content-security-policy-report-only')
-        if resource == 'document' or response.status >= 400 or csp or report_only:
+        parts = urlsplit(response.url)
+        listing_api = (parts.hostname == 'fin.land.naver.com' and '/front-api/' in parts.path and
+                       parts.path.rsplit('/', 1)[-1] in ('list', 'mount', 'recentView', 'legalDivisionView'))
+        if resource == 'document' or listing_api or response.status >= 400 or csp or report_only:
             self.add('http-response', url=safe_url(response.url), resourceType=resource,
                      status=response.status, csp=csp, cspReportOnly=report_only,
                      contentType=headers.get('content-type'))
@@ -155,7 +158,10 @@ PAGE_SNAPSHOT = r'''(() => {
     saleFilter: panel?.querySelector('button[id="거래유형"]')?.textContent.trim() || null,
     metaCsp: [...document.querySelectorAll('meta[http-equiv]')]
       .filter(el => el.httpEquiv.toLowerCase() === 'content-security-policy').map(el => el.content),
-    environment: {userAgent: navigator.userAgent, language: navigator.language,
+    environment: {userAgent: navigator.userAgent, language: navigator.language, languages: navigator.languages,
+      userAgentData: navigator.userAgentData?.toJSON(), platform: navigator.platform,
+      hardwareConcurrency: navigator.hardwareConcurrency, deviceMemory: navigator.deviceMemory,
+      maxTouchPoints: navigator.maxTouchPoints, screen: {width: screen.width, height: screen.height},
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, webdriver: navigator.webdriver,
       viewport: {width: innerWidth, height: innerHeight}, devicePixelRatio,
       mobile: navigator.userAgentData?.mobile ?? /Mobile|iPhone|Android/.test(navigator.userAgent)}

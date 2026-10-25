@@ -2,6 +2,11 @@ name: whoga · NAS visible desktop verification
 
 on:
   workflow_dispatch:
+    inputs:
+      live_comparison:
+        description: '실제 네이버에 여섯 조건으로 접속 비교 (수집·업로드 없음)'
+        type: boolean
+        default: false
   push:
     paths:
       - 'nas/**'
@@ -56,6 +61,8 @@ jobs:
       - name: Local collection fixture and complete failure diagnostics
         run: |
           docker exec -i -e WHOGA_EXPECT_SOURCE_COMMIT="$GITHUB_SHA" whoga-nas-test python - < nas/check_diagnostics.py
+      - name: Sequential native and Playwright desktop and mobile comparison fixture
+        run: docker exec -i whoga-nas-test python - < nas/check_comparison.py
       - name: Restart and verify retained settings and desktop recovery
         run: |
           docker restart whoga-nas-test
@@ -72,6 +79,11 @@ jobs:
               raise SystemExit('Desktop restart failed')
           PY
           docker exec -i -e WHOGA_EXPECT_RESTART=1 -e WHOGA_EXPECT_SOURCE_COMMIT="$GITHUB_SHA" whoga-nas-test python - < nas/check_dashboard.py
+      - name: Optional live Naver comparison with the same NAS image
+        if: inputs.live_comparison == true
+        run: |
+          docker exec whoga-nas-test python /app/nas/run.py compare --output /output/live-comparison
+          docker exec whoga-nas-test python -c 'import json; r=json.load(open("/output/live-comparison/status.json")); print(json.dumps(r.get("comparison"),ensure_ascii=False,indent=2))' >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve screenshots and logs
         if: always()
         run: |

@@ -37,7 +37,7 @@ def choose_page(context, url):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=['smoke', 'browse', 'probe', 'full'], nargs='?', default='probe')
+    parser.add_argument('mode', choices=['smoke', 'browse', 'probe', 'full', 'compare'], nargs='?', default='probe')
     parser.add_argument('--output', default='/output')
     parser.add_argument('--url', default=URL)
     args = parser.parse_args()
@@ -76,7 +76,8 @@ def main():
         def finish():
             nonlocal saved
             try:
-                capture_run(page, run_dir, status, phases, events, Path('/output/browser-diagnostics.json'))
+                if args.mode != 'compare':
+                    capture_run(page, run_dir, status, phases, events, Path('/output/browser-diagnostics.json'))
             except Exception as error:
                 # A failed diagnostic must never turn a failed collection into success.
                 status['diagnosticsError'] = clean(str(error))
@@ -90,6 +91,16 @@ def main():
         try:
             from playwright.sync_api import sync_playwright
             with sync_playwright() as pw:
+                if args.mode == 'compare':
+                    from comparison import compare
+                    try:
+                        report = compare(pw, args.url, run_dir, status, step)
+                        status['status'] = 'comparison-complete'
+                        status['stoppedReason'] = report.get('stoppedReason')
+                    except Exception as error:
+                        fail(error)
+                    finish()
+                    return 1 if status['status'] == 'failed' else 0
                 try:
                     # This is the same persistent, visible browser shown by noVNC.
                     browser = pw.chromium.connect_over_cdp('http://127.0.0.1:9222', timeout=15000)
