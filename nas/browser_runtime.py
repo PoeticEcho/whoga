@@ -49,14 +49,14 @@ def launch(pw, launcher, directory, executable=None, port=9223):
                     if time.monotonic() >= deadline:
                         raise RuntimeError('일반 Chromium 연결 시간 초과')
                     time.sleep(.2)
-            browser = pw.chromium.connect_over_cdp(f'http://127.0.0.1:{port}')
+            browser = pw.chromium.connect_over_cdp(f'http://127.0.0.1:{port}', timeout=15000)
             context = browser.contexts[0]
         yield browser, context
     finally:
         try:
             if browser and process:
-                session = browser.new_browser_cdp_session()
                 try:
+                    session = browser.new_browser_cdp_session()
                     session.send('Browser.close')
                 except Exception:
                     pass

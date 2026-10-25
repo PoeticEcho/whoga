@@ -5,6 +5,7 @@ from browser_control import READY, comparison_active
 from browser_runtime import bootstrap, configure, launch
 from pathlib import Path
 import json
+import tempfile
 import time
 
 
@@ -22,11 +23,16 @@ def main():
 
 def desktop():
     lifecycle('driver-start')
-    with sync_playwright() as pw:
+    # A comparison closes the default browser deliberately. Reusing its profile
+    # can restore old tabs and stall CDP attachment before emulation is applied.
+    # Workers share this browser until it closes; only a new desktop gets a profile.
+    with tempfile.TemporaryDirectory(prefix='whoga-native-') as directory, sync_playwright() as pw:
         # NAS evidence: this native launcher loaded the real complex and listing API.
-        with launch(pw, 'native', Path('/tmp/whoga-native-profile'), port=9222) as (browser, context):
+        with launch(pw, 'native', Path(directory), port=9222) as (browser, context):
             lifecycle('browser-connected')
             page = context.pages[0] if context.pages else context.new_page()
+            for extra in context.pages[1:]:
+                extra.close()
             bootstrap(page)
             lifecycle('bootstrap-loaded')
             configure(page, 'desktop', 1440, 900, browser.version)

@@ -66,5 +66,6 @@ with sync_playwright() as pw:
     assert len(list(folder.glob('*.png'))) == 12
     wait_for_desktop()
     restored = pw.chromium.connect_over_cdp('http://127.0.0.1:9222')
+    assert len(restored.contexts[0].pages) == 1, 'Old tabs were restored into the fresh desktop'
     assert restored.contexts[0].pages[0].title() == 'WhoGa NAS 브라우저 준비 완료' or 'WhoGa NAS' in restored.contexts[0].pages[0].title()
 print('PASS: six fresh headed conditions, matching mobile UA/Client Hints, warm reload, saved evidence and restored desktop', flush=True)
