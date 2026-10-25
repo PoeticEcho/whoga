@@ -75,6 +75,7 @@ def browser_snapshot(browser):
                 info['sharedMemoryDisabled'] = b'--disable-dev-shm-usage' in arguments
                 info['headless'] = any(value.startswith(b'--headless') for value in arguments)
                 info['automationFlag'] = b'--enable-automation' in arguments
+                info['debuggingPipe'] = b'--remote-debugging-pipe' in arguments
                 info['openFileDescriptors'] = len(list(process.joinpath('fd').iterdir()))
             except OSError as error:
                 info['processInspectionUnavailable'] = type(error).__name__

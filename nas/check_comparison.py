@@ -48,6 +48,7 @@ with sync_playwright() as pw:
         env = reload['page']['environment']
         assert env['viewport']['width'] == (1440 if condition['profile'] == 'desktop' else 400), env
         assert env['timeZone'] == 'Asia/Seoul' and env['language'] == 'ko-KR', env
+        assert env['languages'] == ['ko-KR', 'ko', 'en-US', 'en'], env
         assert env['mobile'] == (condition['profile'] == 'android'), env
         assert env['maxTouchPoints'] > 0 if condition['profile'] == 'android' else env['maxTouchPoints'] == 0
         if condition['profile'] == 'android':
@@ -56,7 +57,8 @@ with sync_playwright() as pw:
             assert env['userAgentData']['platform'] == 'Linux' and env['userAgentData']['brands'], env
         process = reload['resources']['browser']
         assert not process['headless'] and not process['sharedMemoryDisabled'], process
-        assert process['automationFlag'] == (condition['launcher'] == 'playwright'), process
+        # Playwright 1.63 uses a debugging pipe; do not assume an automation flag.
+        assert process['debuggingPipe'] == (condition['launcher'] == 'playwright'), process
         assert reload['resources']['memory']['limitBytes'] == 3 * 1024**3
         assert any(e.get('status') == 200 and '/auth/mount' in e.get('url', '') for e in reload['duringRun']['events'])
         assert not reload['assessment']['resourceFailureDuringRun']

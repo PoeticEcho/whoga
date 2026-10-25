@@ -109,7 +109,7 @@ def configure(page, profile, width, height, browser_version):
                     platform=data['platform'], platformVersion=entropy.get('platformVersion', ''),
                     architecture=entropy.get('architecture', 'x86'), bitness=entropy.get('bitness', '64'),
                     model=entropy.get('model', ''), mobile=False)
-    override = dict(userAgent=native['ua'], acceptLanguage='ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+    override = dict(userAgent=native['ua'], acceptLanguage='ko-KR,ko,en-US,en',
                     userAgentMetadata=metadata)
     if profile == 'android':
         override.update(userAgent=f'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 '
@@ -178,6 +178,9 @@ def compare(pw, url, run_dir, status, step, *, seconds=45, launchers=('playwrigh
                             page = context.pages[0] if context.pages else context.new_page()
                             for extra in context.pages[1:]:
                                 extra.close()
+                            # Client Hints are unavailable on about:blank. Read the native
+                            # brands on a trusted local origin before applying emulation.
+                            page.goto('http://127.0.0.1:8899/health', wait_until='domcontentloaded', timeout=5000)
                             configure(page, profile, width, height, browser.version)
                             if fixture:
                                 fixture(context, page)
@@ -225,7 +228,9 @@ def compare(pw, url, run_dir, status, step, *, seconds=45, launchers=('playwrigh
                                       cardsVisible=attempt['cardsVisible'], assessment=assessment,
                                       documentStatus=attempt.get('documentStatus'),
                                       finalUrl=snapshot.get('url'), environment=snapshot.get('environment'),
-                                      listing=evidence, resources=attempt['resources'])), ensure_ascii=False), flush=True)
+                                      listing=evidence, resources=attempt['resources'],
+                                      network=[e for e in during if e['kind'] in ('http-response', 'request-failed',
+                                          'browser-blocked', 'csp-violation')])), ensure_ascii=False), flush=True)
                                 if assessment['pageState'] == 'access-or-verification-screen':
                                     condition['outcome'] = 'verification-required'
                                     report['stoppedReason'] = 'verification-required'
