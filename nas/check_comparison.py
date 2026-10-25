@@ -6,7 +6,7 @@ import time
 
 sys.path.insert(0, '/app/nas')
 from playwright.sync_api import sync_playwright
-from browser_control import desktop_connected
+from browser_control import wait_for_desktop
 from comparison import compare
 from version import build_info
 
@@ -26,7 +26,7 @@ def fixture(context, page):
         <script>
           const warm = sessionStorage.getItem('seen'); sessionStorage.setItem('seen','yes');
           document.addEventListener('DOMContentLoaded', () => {
-            document.body.innerHTML = warm ? '<h3>매물 122</h3><ul class="ComplexArticleTab_test__article"><li><a href="/articles/123">매매 7억</a></li></ul>' : '<h3>매물 0</h3>';
+            document.body.innerHTML = warm ? '<h3>매물<strong>122</strong><span>개</span><button>도움말 보기</button></h3><ul class="ComplexArticleTab_test__article"><li><a href="/articles/123">매매 7억</a></li></ul>' : '<h3>매물 0</h3>';
             fetch('/front-api/v1/complex/auth/mount'); fetch('/front-api/v1/complex/article/list');
             fetch('https://nlog.naver.com/n', {method:'POST'}).catch(()=>{});
           });
@@ -64,10 +64,7 @@ with sync_playwright() as pw:
         assert not reload['assessment']['resourceFailureDuringRun']
     assert status['diagnosticsPath'] and (folder / 'diagnostics.json').exists()
     assert len(list(folder.glob('*.png'))) == 12
-    deadline = time.monotonic() + 30
-    while not desktop_connected():
-        assert time.monotonic() < deadline, 'Persistent desktop was not restored'
-        time.sleep(.2)
+    wait_for_desktop()
     restored = pw.chromium.connect_over_cdp('http://127.0.0.1:9222')
     assert restored.contexts[0].pages[0].title() == 'WhoGa NAS 브라우저 준비 완료' or 'WhoGa NAS' in restored.contexts[0].pages[0].title()
 print('PASS: six fresh headed conditions, matching mobile UA/Client Hints, warm reload, saved evidence and restored desktop', flush=True)

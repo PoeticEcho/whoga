@@ -165,7 +165,7 @@ def validate_url(url):
     raise ValueError('단지 /complexes/숫자 URL 또는 단지를 선택한 /map?layer=... URL이 필요합니다')
 
 
-def collect(page, url, probe=False, sample_cards=3, progress=None):
+def collect(page, url, probe=False, sample_cards=3, progress=None, navigation_url=None):
     def step(name, **details):
         if progress:
             progress(name, details)
@@ -175,8 +175,14 @@ def collect(page, url, probe=False, sample_cards=3, progress=None):
     # A user may already have opened this complex in the visible NAS browser.
     # Preserve its loading progress instead of discarding the tab and session.
     current, requested = urlparse(page.url), urlparse(url)
-    if (current.scheme, current.netloc, current.path.rstrip('/')) != (requested.scheme, requested.netloc, requested.path.rstrip('/')):
-        response = page.goto(url, wait_until='commit', timeout=180000)
+    same_complex = (current.scheme, current.netloc, current.path.rstrip('/')) == (requested.scheme, requested.netloc, requested.path.rstrip('/'))
+    if not same_complex and current.netloc == requested.netloc and current.path == '/map' and requested_id:
+        # Retain the authenticated anonymous session and loaded list between probe/full.
+        tabs = page.locator('#complex_detail a[role="tab"]')
+        same_complex = any(re.search(r'/complexes/' + re.escape(requested_id) + r'(?:[/?#]|$)', href or '')
+                           for href in tabs.evaluate_all('(els) => els.map(el => el.getAttribute("href"))'))
+    if not same_complex:
+        response = page.goto(navigation_url or url, wait_until='commit', timeout=180000)
         if not response or response.status >= 400:
             raise RuntimeError('원문 문서 HTTP 응답 실패. 기존 결과를 유지합니다.')
     step('complex-panel')
@@ -185,11 +191,13 @@ def collect(page, url, probe=False, sample_cards=3, progress=None):
     check_block(page)
     complex_name = panel.get_by_role('heading', level=3).first.inner_text().strip()
     step('sale-filter')
-    sale = panel.get_by_role('button', name=re.compile(r'^매매\s*[\d,]+$'))
-    sale.wait_for(state='visible', timeout=30000)
-    # 단지 URL의 기본 전체거래유형 및 지도 바깥쪽 필터와 구별합니다.
-    sale.click()
-    panel.locator('button[id="거래유형"]').wait_for(state='visible', timeout=30000)
+    trade_filter = panel.locator('button[id="거래유형"]')
+    if not (trade_filter.count() and trade_filter.is_visible() and trade_filter.inner_text().strip() == '매매'):
+        sale = panel.get_by_role('button', name=re.compile(r'^매매\s*[\d,]+$'))
+        sale.wait_for(state='visible', timeout=30000)
+        # 단지 URL의 기본 전체거래유형 및 지도 바깥쪽 필터와 구별합니다.
+        sale.click()
+    trade_filter.wait_for(state='visible', timeout=30000)
     page.wait_for_function('''() => document.querySelector('#complex_detail button[id="거래유형"]')?.textContent.trim() === '매매' ''', timeout=30000)
     step('complex-identity')
     tab = panel.get_by_role('tab', name=re.compile(r'^매물(?:\s*현재 위치)?$'))
@@ -200,6 +208,11 @@ def collect(page, url, probe=False, sample_cards=3, progress=None):
     complex_id = match[1]
     step('list-count')
     expected = header_count(page)
+    deadline = time.monotonic() + 45
+    while expected == 0 and time.monotonic() < deadline:
+        page.wait_for_timeout(500)
+        check_block(page)
+        expected = header_count(page)
     if expected <= 0:
         raise ValueError('매매 0건: 로딩/실제 0건 구별이 필요하므로 자동 저장하지 않습니다')
     step('first-cards', displayedCount=expected)

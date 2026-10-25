@@ -6,6 +6,7 @@ import socket
 import subprocess
 import sys
 import time
+from browser_control import wait_for_desktop
 
 
 def wait_port(port, process, timeout=45):
@@ -58,6 +59,7 @@ def main():
         wait_port(6080, proxy)
         browser = start([sys.executable, '/app/nas/desktop.py'])
         wait_port(9222, browser)
+        wait_for_desktop()
         start([sys.executable, '/app/nas/web.py'], env=dict(os.environ))
         while not stopping:
             if any(child.poll() is not None for child in children):

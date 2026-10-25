@@ -7,6 +7,7 @@ import socket
 import time
 
 REQUEST = Path('/tmp/whoga-comparison-owner')
+READY = Path('/tmp/whoga-browser-ready')
 
 
 def comparison_active():
@@ -26,6 +27,14 @@ def desktop_connected():
             return True
     except OSError:
         return False
+
+
+def wait_for_desktop(timeout=30):
+    deadline = time.monotonic() + timeout
+    while not (READY.exists() and desktop_connected()):
+        if time.monotonic() >= deadline:
+            raise RuntimeError('수집 브라우저가 준비되지 않았습니다.')
+        time.sleep(.2)
 
 
 @contextmanager

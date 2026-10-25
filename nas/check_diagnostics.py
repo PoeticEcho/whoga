@@ -27,7 +27,7 @@ def fixture(kind):
         return prefix + '<p>로딩중</p></section></html>'
     if kind == 'error':
         return '<html><title>500 Internal Server Error</title><h1>서비스 오류</h1></html>'
-    return prefix + '''<h4>매물 1</h4><ul class="ComplexArticleTab_fixture__article"><li><div>
+    return prefix + '''<h4>매물<strong>1</strong><span>개</span><button>도움말 보기</button></h4><ul class="ComplexArticleTab_fixture__article"><li><div>
       <a class="__link" href="/articles/1234567890"><span class="__name">수성범어더블유</span></a>
       <span class="__price">매매 10억</span><span class="__item-summary">오피스텔</span>
       <span class="__item-summary">100/84㎡</span><span class="__item-summary">20/59층</span>
@@ -71,7 +71,7 @@ with sync_playwright() as pw:
         return wait_for(finished)
 
     build = api('/api/status')['build']
-    assert build['version'] == '2.4' and len(build['sourceFingerprint']) == 64
+    assert build['version'] == '2.5' and len(build['sourceFingerprint']) == 64
     assert build['sourceCommit'] == os.environ['WHOGA_EXPECT_SOURCE_COMMIT']
 
     # Regression: "매물 1" has no "개" suffix. Exercise the real collector and normalizer.
@@ -87,6 +87,9 @@ with sync_playwright() as pw:
     assert resources['filesystems']['tmp']['availableBytes'] > 0
     assert resources['browser']['sharedMemoryDisabled'] is False
     assert resources['browser']['headless'] is False
+    assert resources['browser']['debuggingPipe'] is False
+    assert success['lastResult']['assessment']['pageState'] == 'listing-cards-visible'
+    assert api(success['diagnosticLinks']['report'])['page']['environment']['webdriver'] is False
 
     # browse stops at document response; errors occurring afterward remain in browser history.
     kind = 'csp'

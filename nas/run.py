@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from diagnostics import BrowserEvents, capture_run, clean, write_json
 from version import build_info
+from browser_control import wait_for_desktop
 
 SOURCE = Path(__file__).resolve().parents[1] / 'experiments/supplied-v2/collector.py'
 spec = importlib.util.spec_from_file_location('supplied', SOURCE)
@@ -103,6 +104,7 @@ def main():
                     return 1 if status['status'] == 'failed' else 0
                 try:
                     # This is the same persistent, visible browser shown by noVNC.
+                    wait_for_desktop()
                     browser = pw.chromium.connect_over_cdp('http://127.0.0.1:9222', timeout=15000)
                     context = browser.contexts[0]
                     page = choose_page(context, args.url)
@@ -115,7 +117,7 @@ def main():
                         status['status'] = 'browser-ready'
                     elif args.mode == 'browse':
                         step('browse-document')
-                        response = page.goto(args.url, wait_until='commit', timeout=180000)
+                        response = page.goto(args.url + '?tab=article&articleTradeTypes=A1', wait_until='commit', timeout=180000)
                         status['documentStatus'] = response.status if response else None
                         if not response or response.status >= 400:
                             raise RuntimeError('원문 문서 응답을 확인하지 못했습니다.')
@@ -125,7 +127,8 @@ def main():
                         def stage(mode):
                             progress = lambda name, details: step(mode + ':' + name, details)
                             raw, expected, counts, final_url, target = collector.collect(
-                                page, args.url, probe=(mode == 'probe'), progress=progress)
+                                page, args.url, probe=(mode == 'probe'), progress=progress,
+                                navigation_url=args.url + '?tab=article&articleTradeTypes=A1')
                             step(mode + ':normalize')
                             groups, articles = collector.normalize(raw, len(raw) if mode == 'probe' else expected,
                                                                   target['complexName'], target['estateTypeText'])

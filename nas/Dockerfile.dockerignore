@@ -8,6 +8,7 @@
 !nas/resources.py
 !nas/comparison.py
 !nas/browser_control.py
+!nas/browser_runtime.py
 !nas/version.py
 !nas/source-version.json
 !nas/static

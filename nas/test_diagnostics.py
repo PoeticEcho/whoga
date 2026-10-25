@@ -15,7 +15,8 @@ spec.loader.exec_module(run)
 
 class DiagnosticsTests(unittest.TestCase):
     def test_count_heading_supports_optional_suffix_without_using_sale_summary(self):
-        for text, expected in [('매물 121', 121), ('매물 1,234개', 1234), ('매물 12 건', 12), ('매물 0', 0)]:
+        for text, expected in [('매물 121', 121), ('매물 1,234개', 1234), ('매물 12 건', 12),
+                               ('매물122개도움말 보기', 122), ('매물\n122\n개\n도움말 보기', 122), ('매물 0', 0)]:
             self.assertEqual(run.collector.parse_header_count(text), expected)
         for text in ('매매 121', '등록매물 121', '매물 로딩중'):
             with self.assertRaises(ValueError):

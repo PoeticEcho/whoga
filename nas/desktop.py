@@ -1,11 +1,14 @@
 """Keep a visible browser alive; collection clients attach over local CDP."""
 from playwright.sync_api import sync_playwright
 from diagnostics import BrowserEvents
-from browser_control import comparison_active
+from browser_control import READY, comparison_active
+from browser_runtime import bootstrap, configure, launch
+from pathlib import Path
 import time
 
 
 def main():
+    READY.unlink(missing_ok=True)
     while True:
         while comparison_active():
             time.sleep(.2)
@@ -14,26 +17,24 @@ def main():
 
 def desktop():
     with sync_playwright() as pw:
-        # Retain the supplied DS420+ compatibility setting. No host privileges.
-        context = pw.chromium.launch_persistent_context(
-            '/tmp/whoga-browser-profile', headless=False, chromium_sandbox=False,
-            # Use the container's dedicated /dev/shm instead of the profile's /tmp.
-            ignore_default_args=['--disable-dev-shm-usage'],
-            locale='ko-KR', timezone_id='Asia/Seoul', viewport={'width': 1440, 'height': 900},
-            args=['--remote-debugging-address=127.0.0.1', '--remote-debugging-port=9222',
-                  '--window-size=1440,1000', '--start-maximized'])
-        page = context.pages[0] if context.pages else context.new_page()
-        events = BrowserEvents(context)
-        page.set_content('<html lang="ko"><meta charset="utf-8"><title>WhoGa NAS 브라우저</title>'
-                         '<body style="font:24px sans-serif;padding:60px;background:#edf3ed;color:#244b36">'
-                         '<h1>WhoGa 브라우저 준비 완료</h1><p>관리 화면에서 원문 열기 또는 수집을 시작하세요.</p>'
-                         '<p>이 창이 실제 수집에 사용됩니다.</p></body></html>')
-        page.bring_to_front()
-        while context.pages and not comparison_active():
-            context.pages[0].wait_for_timeout(1000)
-            events.persist('/output/browser-diagnostics.json')
-        context.close()
-
+        # NAS evidence: this native launcher loaded the real complex and listing API.
+        with launch(pw, 'native', Path('/tmp/whoga-native-profile'), port=9222) as (browser, context):
+            page = context.pages[0] if context.pages else context.new_page()
+            bootstrap(page)
+            configure(page, 'desktop', 1440, 900, browser.version)
+            events = BrowserEvents(context)
+            page.set_content('<html lang="ko"><meta charset="utf-8"><title>WhoGa NAS 브라우저</title>'
+                             '<body style="font:24px sans-serif;padding:60px;background:#edf3ed;color:#244b36">'
+                             '<h1>WhoGa 브라우저 준비 완료</h1><p>관리 화면에서 원문 열기 또는 수집을 시작하세요.</p>'
+                             '<p>이 창이 실제 수집에 사용됩니다.</p></body></html>')
+            page.bring_to_front()
+            READY.touch()
+            try:
+                while context.pages and not comparison_active():
+                    context.pages[0].wait_for_timeout(1000)
+                    events.persist('/output/browser-diagnostics.json')
+            finally:
+                READY.unlink(missing_ok=True)
 
 if __name__ == '__main__':
     main()

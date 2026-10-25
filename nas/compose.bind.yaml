@@ -3,7 +3,7 @@ services:
     build:
       context: ..
       dockerfile: nas/Dockerfile
-    image: whoga-nas:2.4
+    image: whoga-nas:2.5
     platform: linux/amd64
     init: true
     restart: unless-stopped
