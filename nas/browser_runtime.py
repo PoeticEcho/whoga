@@ -24,7 +24,7 @@ def launch(pw, launcher, directory, executable=None, port=9223):
             # Same Chromium binary, started as an ordinary process. CDP observes/operates it.
             # No webdriver JS patch, stealth injection, CSP bypass or ignored TLS errors.
             default = directory / 'Default'
-            default.mkdir(parents=True)
+            default.mkdir(parents=True, exist_ok=True)
             preferences = default / 'Preferences'
             try:
                 settings = json.loads(preferences.read_text())
