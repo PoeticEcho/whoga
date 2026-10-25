@@ -75,13 +75,12 @@ with sync_playwright() as pw:
             request.fulfill(status=200, body='')
         else:
             documents.append(request.request.url)
-            if urlsplit(request.request.url).path.startswith('/complexes/'):
-                request.fulfill(status=307, headers={'Location': 'https://fin.land.naver.com/map?layer=fixture'})
-            else:
-                request.fulfill(status=200, content_type='text/html; charset=utf-8', body=HTML)
+            request.fulfill(status=200, content_type='text/html; charset=utf-8', body=HTML)
 
     context.route('**/*', route)
-    page.goto(TARGET)
+    # Start at the already-selected map URL. Playwright routing doesn't intercept
+    # every redirect hop, so a synthetic 307 must not be used for this fixture.
+    page.goto('https://fin.land.naver.com/map?layer=fixture', wait_until='domcontentloaded')
     api('/api/run', {'mode': 'full'})
     deadline = time.monotonic() + 120
     while True:
@@ -91,7 +90,7 @@ with sync_playwright() as pw:
         assert time.monotonic() < deadline, 'Full collection timed out'
         page.wait_for_timeout(100)
     assert state['result'] == 'full-passed', state
-    assert len(documents) == 2, ('Unnecessary map navigation lost the loaded list', documents)
+    assert len(documents) == 1, ('Unnecessary map navigation lost the loaded list', documents)
     run = state['lastResult']['runId']
     payload = json.loads((Path('/output/jobs') / state['jobId'] / 'runs' / run / 'full.json').read_text())
     assert payload['displayedCardCount'] == payload['collectedCardCount'] == 8, payload
