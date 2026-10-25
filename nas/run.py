@@ -120,6 +120,12 @@ def main():
                         response = page.goto(args.url + '?tab=article&articleTradeTypes=A1', wait_until='commit', timeout=180000)
                         status['documentStatus'] = response.status if response else None
                         if not response or response.status >= 400:
+                            # A native browser may have committed headers while the old
+                            # document is still being replaced. Capture the error document.
+                            try:
+                                page.wait_for_load_state('domcontentloaded', timeout=5000)
+                            except Exception:
+                                pass
                             raise RuntimeError('원문 문서 응답을 확인하지 못했습니다.')
                         # Opening a document is not a successful collection.
                         status['status'] = 'page-opened'
