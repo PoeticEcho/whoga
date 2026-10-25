@@ -23,6 +23,7 @@ from urllib.parse import parse_qs, quote, unquote, urlsplit
 from urllib.request import Request, urlopen
 import uuid
 from zoneinfo import ZoneInfo
+from version import build_info
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT = dict(url='https://fin.land.naver.com/complexes/140635', intervalMinutes=1440,
@@ -129,6 +130,7 @@ class App:
         self.process = None
         self.cancelled = False
         self.desktop_tickets = {}
+        self.build = build_info()
         self.log_path = self.output / 'current.log'
         self.save()
 
@@ -148,6 +150,16 @@ class App:
             config = {k: v for k, v in self.config.items() if k != 'githubToken'}
             config['tokenStored'] = bool(self.config['githubToken'])
             state = copy.deepcopy(self.state)
+            result = state.get('lastResult') or {}
+            job, run_id = state.get('jobId', ''), result.get('runId', '')
+            state['diagnosticLinks'] = {}
+            if re.fullmatch(r'[a-f0-9]{32}', job) and re.fullmatch(r'[a-f0-9]{32}', run_id):
+                prefix = f'/artifacts/{job}/{run_id}/'
+                if result.get('diagnosticsPath') == f'runs/{run_id}/diagnostics.json':
+                    state['diagnosticLinks']['report'] = prefix + 'diagnostics.json'
+                screenshot = (result.get('screenshotPath') or '').rsplit('/', 1)[-1]
+                if re.fullmatch(r'[a-z0-9-]+\.png', screenshot):
+                    state['diagnosticLinks']['screenshot'] = prefix + screenshot
         logs = ''
         if self.log_path.exists():
             with self.log_path.open('rb') as f:
@@ -156,7 +168,7 @@ class App:
         # Defensive masking; collector itself never receives credentials.
         if self.config['githubToken']:
             logs = logs.replace(self.config['githubToken'], '[REDACTED]')
-        return dict(config=config, state=state, log=logs)
+        return dict(config=config, state=state, log=logs, build=self.build)
 
     def settings(self, patch):
         with self.lock:
@@ -216,7 +228,8 @@ class App:
                     raise ValueError('30분 실행 제한으로 중지했습니다.')
             result = read(folder / 'status.json', {})
             if code != 0 or not result or self.cancelled:
-                raise ValueError('수집에 실패하거나 중지됐습니다. 아래 로그를 확인하세요.')
+                phase = result.get('failedPhase', '')
+                raise ValueError('수집 실패 또는 중지' + (' · ' + phase if phase else '') + '. 진단 기록과 화면을 확인하세요.')
             expected = {'smoke': 'browser-ready', 'browse': 'page-opened', 'probe': 'probe-passed', 'full': 'full-passed'}[mode]
             if result.get('status') != expected or result.get('url') != config['url']:
                 raise ValueError('이번 실행 결과를 검증하지 못했습니다.')
@@ -334,7 +347,7 @@ def handler(app, password):
         def reply(self, code, payload, mime='application/json'):
             body = json.dumps(payload, ensure_ascii=False).encode() if mime == 'application/json' else payload
             self.send_response(code)
-            self.send_header('Content-Type', mime + '; charset=utf-8')
+            self.send_header('Content-Type', mime + ('; charset=utf-8' if mime != 'image/png' else ''))
             self.send_header('Content-Length', str(len(body)))
             self.send_header('Cache-Control', 'no-store')
             self.send_header('X-Content-Type-Options', 'nosniff')
@@ -364,6 +377,16 @@ def handler(app, password):
                 return
             if self.path == '/api/status':
                 return self.reply(200, app.snapshot())
+            artifact = re.fullmatch(r'/artifacts/([a-f0-9]{32})/([a-f0-9]{32})/(diagnostics\.json|status\.json|[a-z0-9-]+\.png)', parsed.path)
+            if artifact:
+                job, run_id, name = artifact.groups()
+                root = app.output.resolve()
+                file = (root / 'jobs' / job / 'runs' / run_id / name).resolve()
+                if not file.is_relative_to(root) or not file.is_file():
+                    return self.reply(404, {'error': '진단 파일을 찾을 수 없습니다.'})
+                if file.suffix == '.json':
+                    return self.reply(200, json.loads(file.read_text()))
+                return self.reply(200, file.read_bytes(), 'image/png')
             if self.path == '/desktop' or self.path == '/desktop/':
                 return self.reply(200, (ROOT / 'static/desktop.html').read_bytes(), 'text/html')
             if parsed.path.startswith('/desktop/core/') or parsed.path.startswith('/desktop/vendor/'):
