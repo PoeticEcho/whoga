@@ -8,6 +8,8 @@ def main():
         # Retain the supplied DS420+ compatibility setting. No host privileges.
         context = pw.chromium.launch_persistent_context(
             '/tmp/whoga-browser-profile', headless=False, chromium_sandbox=False,
+            # Use the container's dedicated /dev/shm instead of the profile's /tmp.
+            ignore_default_args=['--disable-dev-shm-usage'],
             locale='ko-KR', timezone_id='Asia/Seoul', viewport={'width': 1440, 'height': 900},
             args=['--remote-debugging-address=127.0.0.1', '--remote-debugging-port=9222',
                   '--window-size=1440,1000', '--start-maximized'])

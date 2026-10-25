@@ -71,7 +71,7 @@ with sync_playwright() as pw:
         return wait_for(finished)
 
     build = api('/api/status')['build']
-    assert build['version'] == '2.2' and len(build['sourceFingerprint']) == 64
+    assert build['version'] == '2.3' and len(build['sourceFingerprint']) == 64
     assert build['sourceCommit'] == os.environ['WHOGA_EXPECT_SOURCE_COMMIT']
 
     # Regression: "매물 1" has no "개" suffix. Exercise the real collector and normalizer.
@@ -80,6 +80,13 @@ with sync_playwright() as pw:
     assert success['result'] == 'probe-passed', success
     assert success['lastResult']['probe']['cards'] == 1
     assert success['lastResult']['assessment']['pageState'] == 'listing-cards-visible'
+    resources = success['lastResult']['resources']
+    assert resources['memory']['currentBytes'] > 0
+    assert resources['memory']['limitBytes'] == 3 * 1024**3
+    assert resources['filesystems']['sharedMemory']['totalBytes'] == 512 * 1024**2
+    assert resources['filesystems']['tmp']['availableBytes'] > 0
+    assert resources['browser']['sharedMemoryDisabled'] is False
+    assert resources['browser']['headless'] is False
 
     # browse stops at document response; errors occurring afterward remain in browser history.
     kind = 'csp'
@@ -120,4 +127,4 @@ with sync_playwright() as pw:
     assert error_page['status'] == 'failed' and error_page['documentStatus'] == 500
     assert error_page['assessment']['pageState'] == 'error-screen'
     context.unroute('**/*', route)
-    print('PASS: heading without suffix, real probe extraction, exact failure stage, CSP audit and JS errors, post-browse history, HTTP 500 screen, authenticated screenshot/report and source commit')
+    print('PASS: real probe, failure diagnostics, CSP and JS errors, post-browse history, HTTP 500, source commit, measured cgroup/tmp/shm and headed browser using /dev/shm')

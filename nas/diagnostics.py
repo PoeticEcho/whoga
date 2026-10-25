@@ -10,6 +10,7 @@ import time
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from version import build_info
+from resources import resource_snapshot
 
 SAFE_QUERY = {'tab', 'articleTradeTypes', 'page', 'pageSize', 'complexNo', 'tradeType'}
 
@@ -70,6 +71,8 @@ class BrowserEvents:
             self.attach_page(page)
 
     def add(self, kind, **details):
+        if 'ERR_INSUFFICIENT_RESOURCES' in str(details.get('failure', '')) + str(details.get('text', '')):
+            self.totals['insufficientResourcesErrors'] += 1
         if ((kind == 'browser-blocked' and details.get('blockedReason') == 'csp') or
                 (kind == 'csp-violation' and not details.get('reportOnly'))):
             self.totals['cspBlocks'] += 1
@@ -135,7 +138,7 @@ class BrowserEvents:
 
     def persist(self, path):
         if self.dirty:
-            write_json(path, dict(build=build_info(), capturedAt=time.time(), **self.snapshot()))
+            write_json(path, dict(build=build_info(), capturedAt=time.time(), resources=resource_snapshot(), **self.snapshot()))
             self.dirty = False
 
 
@@ -190,7 +193,9 @@ def classify(snapshot, events, totals=None):
         state = 'unexpected-or-unavailable-page'
     csp = bool((totals or {}).get('cspBlocks')) or any((e['kind'] == 'browser-blocked' and e.get('blockedReason') == 'csp') or
               (e['kind'] == 'csp-violation' and not e.get('reportOnly')) for e in events)
-    return dict(pageState=state, cspBlockedDuringRun=csp,
+    exhausted = bool((totals or {}).get('insufficientResourcesErrors')) or any(
+        'ERR_INSUFFICIENT_RESOURCES' in str(e.get('failure', '')) + str(e.get('text', '')) for e in events)
+    return dict(pageState=state, cspBlockedDuringRun=csp, resourceFailureDuringRun=exhausted,
                 javascriptErrorDuringRun=any(e['kind'] == 'javascript-error' for e in events))
 
 
@@ -215,6 +220,7 @@ def capture_run(page, run_dir, status, phases, events, history_path):
         except Exception as error:
             report['screenshotError'] = str(error)
     report['page'] = snapshot
+    report['resources'] = resource_snapshot(page.context.browser if page is not None else None)
     report['assessment'] = classify(snapshot, report['duringRun']['events'], report['duringRun']['totals'])
     try:
         # History includes asynchronous failures occurring after browse exited.
@@ -225,6 +231,7 @@ def capture_run(page, run_dir, status, phases, events, history_path):
         report['browserHistory'] = None
     status.update(finalUrl=snapshot.get('url', safe_url(page.url) if page else None),
                   pageTitle=snapshot.get('title'), assessment=report['assessment'],
+                  resources=report['resources'],
                   diagnosticsPath='runs/' + status['runId'] + '/diagnostics.json')
     write_json(run_dir / 'diagnostics.json', report)
     return report

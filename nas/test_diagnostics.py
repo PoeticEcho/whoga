@@ -61,6 +61,9 @@ class DiagnosticsTests(unittest.TestCase):
             self.assertFalse(result['cspBlockedDuringRun'])
         self.assertTrue(diagnostics.classify({}, [{'kind': 'browser-blocked', 'blockedReason': 'csp'}])['cspBlockedDuringRun'])
         self.assertFalse(diagnostics.classify({}, [{'kind': 'csp-violation', 'reportOnly': True}])['cspBlockedDuringRun'])
+        self.assertTrue(diagnostics.classify({}, [{'kind': 'request-failed', 'failure': 'net::ERR_INSUFFICIENT_RESOURCES'}])['resourceFailureDuringRun'])
+        self.assertFalse(diagnostics.classify({}, [{'kind': 'http-response', 'status': 500}])['resourceFailureDuringRun'])
+        self.assertTrue(diagnostics.classify({}, [], {'insufficientResourcesErrors': 1})['resourceFailureDuringRun'])
 
     def test_fingerprint_changes_with_source_but_not_packaging_metadata(self):
         with tempfile.TemporaryDirectory() as directory:

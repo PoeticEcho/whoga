@@ -8,7 +8,7 @@ WORKDIR /app
 COPY experiments/supplied-v2/requirements.txt /app/requirements.txt
 RUN python -m pip install --no-cache-dir -r /app/requirements.txt
 COPY experiments/supplied-v2/collector.py /app/experiments/supplied-v2/collector.py
-COPY nas/run.py nas/web.py nas/desktop.py nas/entrypoint.py nas/diagnostics.py nas/version.py nas/source-version.json /app/nas/
+COPY nas/run.py nas/web.py nas/desktop.py nas/entrypoint.py nas/diagnostics.py nas/resources.py nas/version.py nas/source-version.json /app/nas/
 COPY nas/static /app/nas/static
 ARG VCS_REF=unknown
 RUN python /app/nas/version.py --write-build-info "$VCS_REF"

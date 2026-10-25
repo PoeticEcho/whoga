@@ -15,7 +15,7 @@ with sync_playwright() as pw:
     dashboard.on('pageerror', lambda error: errors.append(str(error)))
     dashboard.goto('http://127.0.0.1:8899')
     expect(dashboard.locator('#url')).to_have_value('https://fin.land.naver.com/complexes/140635')
-    expect(dashboard.locator('#buildVersion')).to_contain_text('WhoGa NAS 2.2')
+    expect(dashboard.locator('#buildVersion')).to_contain_text('WhoGa NAS 2.3')
     expect(dashboard.locator('#buildVersion')).to_contain_text(os.environ['WHOGA_EXPECT_SOURCE_COMMIT'][:7])
     if os.environ.get('WHOGA_EXPECT_RESTART'):
         expect(dashboard.locator('#scheduleMode')).to_have_value('daily')
