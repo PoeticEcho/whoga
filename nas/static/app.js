@@ -55,7 +55,7 @@ async function refresh(){
     $('settings').querySelectorAll('input,select,button').forEach(el=>el.disabled=busy);
     $('nextRun').textContent=c.scheduleEnabled?'다음 실행: '+time(s.nextRun)+' (한국 시각)':'예약 실행 꺼짐';
     $('lastRun').textContent=time(s.startedAt);
-    $('runTrigger').textContent=s.trigger==='scheduled'?'예약 실행':s.trigger==='manual'?'수동 실행':'실행 방식 미기록';
+    $('runTrigger').textContent=s.trigger==='startup'?'업데이트 후 최초 실행':s.trigger==='scheduled'?'예약 실행':s.trigger==='manual'?'수동 실행':'실행 방식 미기록';
     $('modeLabel').textContent=s.mode||'최근 실행';
     const log=$('log'),bottom=log.scrollHeight-log.scrollTop-log.clientHeight<30;
     log.textContent=latest.log||'아직 실행 기록이 없습니다.';

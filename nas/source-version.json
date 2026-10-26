@@ -1,5 +1,1 @@
-{
-  "sourceCommit": null,
-  "baseSourceCommit": "f89e753856418f485106fb4ff06ddef3eadf8de3",
-  "patch": "2.5.2-upload-guidance"
-}
+{"sourceCommit": null, "baseSourceCommit": "c5a30545d1de6cef1cf3c411aebb43608b9cede0", "patch": "2.5.3-startup-collection"}

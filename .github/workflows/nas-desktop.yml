@@ -46,7 +46,7 @@ jobs:
           docker run -d --name whoga-nas-test --init --read-only \
             --tmpfs /tmp:rw,nosuid,nodev,size=512m,mode=1777 --shm-size=512m --memory=3g \
             --cap-drop=ALL --security-opt no-new-privileges:true \
-            -p 127.0.0.1:18899:8899 -e DASHBOARD_PASSWORD="$task_password" \
+            -e WHOGA_STARTUP_COLLECT=0 -p 127.0.0.1:18899:8899 -e DASHBOARD_PASSWORD="$task_password" \
             -v whoga-test-output:/output -v whoga-test-config:/config whoga-nas:desktop-test
           python - <<'PY'
           import time, urllib.request

@@ -187,7 +187,7 @@ class App:
             self.update_schedule(preserve=preserve)
             self.save()
 
-    def start(self, mode, *, scheduled=False):
+    def start(self, mode, *, scheduled=False, trigger=None):
         if mode not in ('smoke', 'browse', 'probe', 'full', 'compare'):
             raise ValueError('실행 모드를 확인하세요.')
         with self.lock:
@@ -200,7 +200,7 @@ class App:
                 self.state['lastDailyDate'] = datetime.fromtimestamp(time.time(), SEOUL).date().isoformat()
             if scheduled or config['scheduleMode'] == 'interval':
                 self.update_schedule()
-            self.state.update(running=True, jobId=job, mode=mode, trigger='scheduled' if scheduled else 'manual', startedAt=time.time(), result='running',
+            self.state.update(running=True, jobId=job, mode=mode, trigger=trigger or ('scheduled' if scheduled else 'manual'), startedAt=time.time(), result='running',
                               message='실행 중', lastResult=None)
             self.log_path.write_text('')
             self.save()
@@ -320,11 +320,37 @@ class App:
             self.start('full', scheduled=True)
             return True
 
+    def run_startup_once(self):
+        """Claim one attempt per source fingerprint before launching any worker."""
+        if os.environ.get('WHOGA_STARTUP_COLLECT', '1') == '0':
+            return False
+        from browser_control import READY, desktop_connected
+        with self.lock:
+            if self.state['running'] or self.state.get('upload', {}).get('status') == 'running':
+                return False
+            if not READY.exists() or not desktop_connected():
+                return False
+            key = self.build['sourceFingerprint']
+            marker_path = self.config_dir / 'startup-collections.json'
+            markers = read(marker_path, {})
+            if key in markers:
+                return False
+            now = time.time()
+            today = datetime.fromtimestamp(now, SEOUL).date().isoformat()
+            due = (self.config['scheduleEnabled'] and now >= self.state['nextRun'] and
+                   (self.config['scheduleMode'] != 'daily' or self.state.get('lastDailyDate') != today))
+            # At-most-once: interruption/failure is recorded, never retried on reboot.
+            markers[key] = dict(version=self.build['version'], claimedAt=now, url=self.config['url'])
+            atomic(marker_path, markers)
+            self.start('full', scheduled=due, trigger='startup')
+            return True
+
     def scheduler(self):
         while True:
             time.sleep(5)
             try:
-                self.run_due()
+                if not self.run_startup_once():
+                    self.run_due()
             except ValueError:
                 pass
 

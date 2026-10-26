@@ -128,6 +128,8 @@ class UploadGuidanceTests(unittest.TestCase):
         self.data['state']['trigger']='scheduled';self.refresh()
         self.assertIn('자동 업로드 켜짐',self.page.locator('#autoUploadState').inner_text())
         self.assertEqual(self.page.locator('#runTrigger').inner_text(),'예약 실행')
+        self.data['state']['trigger']='startup';self.refresh()
+        self.assertEqual(self.page.locator('#runTrigger').inner_text(),'업데이트 후 최초 실행')
 
 
 if __name__=='__main__':
