@@ -5,8 +5,19 @@
     {
       "id": "2026-10-27",
       "date": "2026-10-27",
-      "label": "2026-10-27 08:06",
+      "label": "2026-10-27 08:38",
       "file": "2026-10-27.json",
+      "count": 122,
+      "declaredCount": 122,
+      "complete": true,
+      "sourceKind": "naver-live",
+      "collectedAt": "2026-10-27T08:38:00+09:00"
+    },
+    {
+      "id": "2026-10-27_nas_f2688995f5524082a86e75680059427a",
+      "date": "2026-10-27",
+      "label": "2026-10-27 08:06",
+      "file": "2026-10-27_nas_f2688995f5524082a86e75680059427a.json",
       "count": 122,
       "declaredCount": 122,
       "complete": true,
