@@ -2,7 +2,6 @@ import copy
 import importlib.util
 import json
 from pathlib import Path
-import shutil
 import tempfile
 import unittest
 
@@ -26,6 +25,13 @@ def fixture():
 
 class NasImportTests(unittest.TestCase):
     def convert(self,p):return m.convert(p,CONFIG,PATH,'b'*40)
+    def seed_history(self, folder):
+        # Tests must not inherit live snapshots created earlier in the import job.
+        data=Path(folder)/'data';data.mkdir()
+        payload=fixture();payload['collectedAt']='2026-10-23T08:00:00+09:00'
+        m.atomic_json(data/'2026-10-23.json',self.convert(payload))
+        m.rebuild_index(data)
+        return data
     def test_card_counts_identity_and_korean_date(self):
         s=self.convert(fixture());self.assertEqual(s['date'],'2026-10-26')
         self.assertEqual(s['count'],2);self.assertEqual(s['source']['articleCount'],3)
@@ -51,7 +57,7 @@ class NasImportTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.convert(p)
     def test_preserves_history_idempotent_and_does_not_replace_newer(self):
         with tempfile.TemporaryDirectory() as folder:
-            data=Path(folder)/'data';shutil.copytree(ROOT/'data',data)
+            data=self.seed_history(folder)
             original=(data/'2026-10-23.json').read_bytes()
             self.assertTrue(m.import_snapshots([(PATH,fixture())],data,CONFIG,'b'*40))
             self.assertEqual((data/'2026-10-23.json').read_bytes(),original)
@@ -64,7 +70,7 @@ class NasImportTests(unittest.TestCase):
             self.assertEqual(before,{p.name:p.read_bytes() for p in data.glob('*.json')})
     def test_invalid_batch_does_not_modify_any_public_file(self):
         with tempfile.TemporaryDirectory() as folder:
-            data=Path(folder)/'data';shutil.copytree(ROOT/'data',data)
+            data=self.seed_history(folder)
             before={p.name:p.read_bytes() for p in data.glob('*.json')}
             bad=fixture();bad['articles'].pop()
             with self.assertRaises(ValueError):m.import_snapshots([(PATH,fixture()),(PATH,bad)],data,CONFIG,'b'*40)
