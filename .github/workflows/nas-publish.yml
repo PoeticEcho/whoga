@@ -1,0 +1,77 @@
+name: whoga · NAS JSON to public app
+on:
+  push:
+    branches: [main, map-collector-v2]
+    paths: ['nas-imports/140635/*.json', '.github/workflows/nas-publish.yml', 'scripts/import_nas.py', 'tests/test_nas_import.py']
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: beomeo-w-daily-pages
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.persist.outputs.changed }}
+    steps:
+      # Only main supplies executable code. The NAS branch supplies JSON only.
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Fetch NAS uploads
+        run: git fetch origin map-collector-v2:refs/remotes/origin/nas-input
+      - name: Validate and convert complete NAS snapshots
+        run: python scripts/import_nas.py --source-ref refs/remotes/origin/nas-input
+      - name: Validate application data and comparisons
+        run: |
+          python -m unittest discover -s tests -v
+          node --test tests/*.test.mjs
+          python scripts/build_site.py
+      - name: Persist imported data
+        id: persist
+        env:
+          FORCE_DEPLOY: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/
+          if git diff --cached --quiet; then
+            echo "changed=$FORCE_DEPLOY" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m 'data: publish validated NAS observations [skip ci]'
+            git push origin HEAD:main
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
+      # GITHUB_TOKEN commits do not trigger another push workflow; deploy here.
+      - uses: actions/upload-pages-artifact@v4
+        if: steps.persist.outputs.changed == 'true'
+        with:
+          path: _site
+  deploy:
+    needs: import
+    if: needs.import.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - uses: actions/deploy-pages@v4
+        id: deployment

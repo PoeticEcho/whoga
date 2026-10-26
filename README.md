@@ -1,5 +1,7 @@
 # whoga · W 호가 · GitHub Pages 배포본 v1.0.0
 
+**NAS 연동:** [NAS JSON을 공개 호가앱에 반영하는 경로와 검증 기준](docs/NAS-PUBLICATION.md). 업로드 후 자동 검증·main 저장·Pages 배포를 수행합니다.
+
 날짜별 호가를 확인하는 웹페이지와 수집·검증 도구를 제공합니다. 현재 알림은 ChatGPT 예약 작업을 사용합니다.
 별도 PHP 서버나 데이터베이스는 필요하지 않습니다.
 
