@@ -20,6 +20,7 @@ jobs:
       contents: write
     outputs:
       changed: ${{ steps.persist.outputs.changed }}
+      digest: ${{ steps.persist.outputs.digest }}
     steps:
       # Only main supplies executable code. The NAS branch supplies JSON only.
       - uses: actions/checkout@v6
@@ -48,12 +49,26 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/ complexes.json
-          if git diff --cached --quiet; then
-            echo "changed=$FORCE_DEPLOY" >> "$GITHUB_OUTPUT"
-          else
+          if ! git diff --cached --quiet; then
             git commit -m 'data: publish validated NAS observations [skip ci]'
             git push origin HEAD:main
+          fi
+          digest=$(python - <<'PYHASH'
+          import hashlib
+          from pathlib import Path
+          digest=hashlib.sha256()
+          for path in sorted(Path('_site').rglob('*')):
+              if path.is_file():
+                  digest.update(str(path.relative_to('_site')).encode()+b'\0'+path.read_bytes()+b'\0')
+          print(digest.hexdigest())
+          PYHASH
+          )
+          published=$(cat _state/whoga-pages.sha256 2>/dev/null || true)
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF" = refs/heads/main ] && { [ "$FORCE_DEPLOY" = true ] || [ "$digest" != "$published" ]; }; then
             echo 'changed=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
           fi
       # GITHUB_TOKEN commits do not trigger another push workflow; deploy here.
       - uses: actions/upload-pages-artifact@v4
@@ -68,6 +83,7 @@ jobs:
     permissions:
       pages: write
       id-token: write
+      contents: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -75,3 +91,25 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/deploy-pages@v4
         id: deployment
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Record successfully deployed content
+        env:
+          SITE_DIGEST: ${{ needs.import.outputs.digest }}
+        run: |
+          python - <<'PYHASH'
+          import os,re
+          from pathlib import Path
+          digest=os.environ['SITE_DIGEST']
+          assert re.fullmatch('[a-f0-9]{64}',digest)
+          Path('_state').mkdir(exist_ok=True)
+          Path('_state/whoga-pages.sha256').write_text(digest+'\n')
+          PYHASH
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f _state/whoga-pages.sha256
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: record published NAS app content [skip ci]'
+            git push origin HEAD:main
+          fi
