@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="네이버 부동산 지도 주소에서 단지 번호와 짧은 주소를 추출합니다.">
+<title>단지 주소 변환 · whoga</title>
+<style>
+:root{color-scheme:light;--ink:#183b32;--muted:#63736b;--line:#d9e2db;--green:#205d48;--paper:#fafbf8}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}main{max-width:820px;margin:auto;padding:38px 24px 60px}header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:46px}header strong{letter-spacing:-.5px}a{color:var(--green);text-underline-offset:4px}.eyebrow{font-size:13px;font-weight:650;color:var(--muted);margin:0 0 8px}h1{font-size:clamp(28px,6vw,38px);line-height:1.25;letter-spacing:-1.4px;margin:0 0 16px}.intro{color:var(--muted);margin:0 0 32px}label{display:block;font-weight:650;margin-bottom:9px}textarea,input{width:100%;font:inherit;color:var(--ink);border:1px solid #becfc2;border-radius:7px;background:#fff;padding:13px}textarea{resize:vertical;min-height:145px;font-size:15px;line-height:1.6;overflow-wrap:anywhere}textarea:focus,input:focus,button:focus-visible,a:focus-visible{outline:3px solid #b7d8c5;outline-offset:3px}button{font:inherit;cursor:pointer;border:1px solid var(--line);border-radius:6px;background:white;color:var(--ink);padding:9px 15px;white-space:nowrap}button:hover{background:#eaf2eb}button.primary{background:var(--green);color:white;border-color:var(--green)}button.primary:hover{background:#174a38}.actions{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0 12px}.hint{font-size:14px;color:var(--muted);margin:0}.message{min-height:27px;margin:17px 0;color:var(--green)}.message.error{color:#9b3e2e}section{margin-top:28px;border-top:2px solid var(--ink);padding-top:22px}h2{font-size:18px;margin:0 0 18px}.result-row{padding:18px 0;border-top:1px solid var(--line)}.result-row:first-of-type{border-top:0;padding-top:0}.result-row label{font-size:14px;color:var(--muted);font-weight:500;margin-bottom:7px}.result-value{display:flex;align-items:center;gap:9px}.result-value input,.result-value textarea{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:14px;min-width:0;background:transparent;border:0;padding:8px 0}.result-value textarea{min-height:0;resize:none;line-height:1.6;overflow-wrap:anywhere}.result-row a{font-size:14px}#complexId{font-size:30px;font-weight:650;letter-spacing:-.7px}footer{border-top:1px solid var(--line);padding-top:20px;margin-top:36px;font-size:13px;color:var(--muted)}[hidden]{display:none!important}@media(max-width:540px){main{padding:22px 18px 40px}header{margin-bottom:32px}.result-value{flex-wrap:wrap}.result-value input,.result-value textarea{flex-basis:100%}.result-value button{padding:7px 13px}.intro br{display:none}}
+</style>
+</head>
+<body><main>
+<header><strong>whoga <span style="font-weight:400;color:var(--muted)">/ 주소 도구</span></strong><span class="hint">설치 없이 · 브라우저에서 변환</span></header>
+<p class="eyebrow">네이버 부동산</p><h1>긴 주소를, 단지 주소로.</h1>
+<p class="intro">지도에서 복사한 주소를 붙여넣으세요.<br> 단지 번호와 NAS에 넣을 짧은 주소를 바로 확인할 수 있습니다.</p>
+<form id="converter" novalidate>
+<label for="sourceUrl">네이버 부동산 주소</label>
+<textarea id="sourceUrl" placeholder="https://fin.land.naver.com/map?…&layer=…" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="inputHint message" maxlength="16000"></textarea>
+<div class="actions"><button class="primary" type="submit">주소 변환</button><button id="example" type="button">예시 넣기</button><button id="clear" type="button">지우기</button></div>
+<p class="hint" id="inputHint">붙여넣으면 자동 변환됩니다. 단지 기본 주소도 사용할 수 있습니다.</p>
+</form>
+<p id="message" class="message" role="status" aria-live="polite"></p>
+<section id="result" hidden aria-labelledby="resultTitle"><h2 id="resultTitle">변환 결과</h2>
+<div class="result-row"><label for="complexId">단지 번호</label><div class="result-value"><input id="complexId" readonly><button type="button" data-copy="complexId">번호 복사</button></div></div>
+<div class="result-row"><label for="complexUrl">단지 기본 주소 · NAS 주소 입력란에 사용</label><div class="result-value"><textarea id="complexUrl" rows="2" readonly></textarea><button type="button" data-copy="complexUrl">주소 복사</button><a id="complexLink" target="_blank" rel="noopener noreferrer">단지 열기 ↗</a></div></div>
+<div class="result-row"><label for="saleUrl">매매 목록 주소</label><div class="result-value"><textarea id="saleUrl" rows="3" readonly></textarea><button type="button" data-copy="saleUrl">주소 복사</button><a id="saleLink" target="_blank" rel="noopener noreferrer">매매 목록 열기 ↗</a></div></div>
+<p class="hint">매매 목록 주소에는 매매 필터를 적용합니다. 원래 주소의 지도 위치·면적·전세 등의 조건은 포함하지 않습니다.</p>
+</section>
+<footer>입력한 주소는 이 브라우저 안에서만 처리하며 저장하거나 전송하지 않습니다. 단지가 선택되지 않은 지도 주소에서는 단지 번호를 찾을 수 없습니다. 단지의 존재 여부와 현재 매물 수는 네이버에서 확인하세요.</footer>
+<noscript>주소를 변환하려면 이 페이지에서 JavaScript를 허용해주세요.</noscript>
+</main>
+<script>
+/* LZ-String 1.5.0 · https://github.com/pieroxy/lz-string
+MIT License
+
+Copyright (c) 2013 pieroxy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var n=i._compress(r,6,function(r){return o.charAt(r)});switch(n.length%4){default:case 0:return n;case 1:return n+"===";case 2:return n+"==";case 3:return n+"="}},decompressFromBase64:function(r){return null==r?"":""==r?null:i._decompress(r.length,32,function(n){return t(o,r.charAt(n))})},compressToUTF16:function(o){return null==o?"":i._compress(o,15,function(o){return r(o+32)})+" "},decompressFromUTF16:function(r){return null==r?"":""==r?null:i._decompress(r.length,16384,function(o){return r.charCodeAt(o)-32})},compressToUint8Array:function(r){for(var o=i.compress(r),n=new Uint8Array(2*o.length),e=0,t=o.length;e<t;e++){var s=o.charCodeAt(e);n[2*e]=s>>>8,n[2*e+1]=s%256}return n},decompressFromUint8Array:function(o){if(null==o)return i.decompress(o);for(var n=new Array(o.length/2),e=0,t=n.length;e<t;e++)n[e]=256*o[2*e]+o[2*e+1];var s=[];return n.forEach(function(o){s.push(r(o))}),i.decompress(s.join(""))},compressToEncodedURIComponent:function(r){return null==r?"":i._compress(r,6,function(r){return n.charAt(r)})},decompressFromEncodedURIComponent:function(r){return null==r?"":""==r?null:(r=r.replace(/ /g,"+"),i._decompress(r.length,32,function(o){return t(n,r.charAt(o))}))},compress:function(o){return i._compress(o,16,function(o){return r(o)})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,s={},u={},a="",p="",c="",l=2,f=3,h=2,d=[],m=0,v=0;for(i=0;i<r.length;i+=1)if(a=r.charAt(i),Object.prototype.hasOwnProperty.call(s,a)||(s[a]=f++,u[a]=!0),p=c+a,Object.prototype.hasOwnProperty.call(s,p))c=p;else{if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++),s[p]=f++,c=String(a)}if(""!==c){if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++)}for(t=2,e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;for(;;){if(m<<=1,v==o-1){d.push(n(m));break}v++}return d.join("")},decompress:function(r){return null==r?"":""==r?null:i._decompress(r.length,32768,function(o){return r.charCodeAt(o)})},_decompress:function(o,n,e){var t,i,s,u,a,p,c,l=[],f=4,h=4,d=3,m="",v=[],g={val:e(0),position:n,index:1};for(t=0;t<3;t+=1)l[t]=t;for(s=0,a=Math.pow(2,2),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 2:return""}for(l[3]=c,i=c,v.push(c);;){if(g.index>o)return"";for(s=0,a=Math.pow(2,d),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(c=s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 2:return v.join("")}if(0==f&&(f=Math.pow(2,d),d++),l[c])m=l[c];else{if(c!==h)return null;m=i+i.charAt(0)}v.push(m),l[h++]=i+m.charAt(0),i=m,0==--f&&(f=Math.pow(2,d),d++)}}};return i}();"function"==typeof define&&define.amd?define(function(){return LZString}):"undefined"!=typeof module&&null!=module?module.exports=LZString:"undefined"!=typeof angular&&null!=angular&&angular.module("LZString",[]).factory("LZString",function(){return LZString});
+</script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const exampleUrl = 'https://fin.land.naver.com/map?center=3AoTVV-2zCENS&zoom=17.551094134639502&tradeTypes=A1-B1&realEstateTypes=A01-A04-B01&layer=NobwRAlgJmBcYGMD2BbADgGwKYA8D6UWALgIYQZgA0YaJATiSgM5zjLrY4CSMsAjAFYADACYA7AA4AvtSZZ6CABYAFeoxaxwpAEZwwRBgDsmJBEQhJDVMPXMJsAFQaEHATzRYNYAIJ8AtABCfNYGJMam5pbKrliWAOZuHgByAK4o2lh0egIhRiZmFoZOJC7uWHq%2BYFJSALpAA';
+function extractComplexId(text) {
+  const raw = text.trim().replace(/\\&/g, '&');
+  if (!raw) throw Error('네이버 부동산에서 복사한 주소를 넣어주세요.');
+  if (raw.length > 16000) throw Error('주소가 너무 깁니다. 주소 하나만 넣어주세요.');
+  let url;
+  try { url = new URL(raw.startsWith('fin.land.naver.com/') ? 'https://' + raw : raw); }
+  catch { throw Error('주소 형식을 확인해주세요. https://로 시작하는 주소를 넣어주세요.'); }
+  if (url.protocol !== 'https:' || url.hostname !== 'fin.land.naver.com' || url.port || url.username || url.password) {
+    throw Error('https://fin.land.naver.com/으로 시작하는 네이버 부동산 주소를 넣어주세요.');
+  }
+  const validId = value => typeof value === 'string' && /^[1-9]\d{0,15}$/.test(value);
+  const direct = url.pathname.match(/^\/complexes\/([1-9]\d{0,15})\/?$/);
+  if (direct) return direct[1];
+  if (!/^\/map\/?$/.test(url.pathname)) throw Error('단지 페이지 또는 단지가 선택된 지도 주소를 넣어주세요.');
+  const layers = url.searchParams.getAll('layer');
+  if (layers.length !== 1 || !layers[0]) throw Error('단지가 선택되지 않은 지도 주소입니다. 지도에서 단지를 선택한 뒤 주소를 다시 복사해주세요.');
+  let decoded;
+  try { decoded = JSON.parse(LZString.decompressFromEncodedURIComponent(layers[0])); }
+  catch { throw Error('지도 주소의 단지 정보를 읽을 수 없습니다. 주소 전체를 다시 복사해주세요.'); }
+  if (!Array.isArray(decoded)) throw Error('지도 주소의 단지 정보 형식을 확인할 수 없습니다.');
+  const ids = [...new Set(decoded.filter(layer => layer?.id === 'complex_detail').map(layer => {
+    const id = layer.params?.complexId;
+    if (typeof id === 'number' && (!Number.isSafeInteger(id) || id <= 0)) return null;
+    const value = typeof id === 'number' || typeof id === 'string' ? String(id) : '';
+    return validId(value) ? value : null;
+  }))];
+  if (ids.includes(null)) throw Error('주소에 올바른 단지 번호가 없습니다. 단지를 다시 선택해 주소를 복사해주세요.');
+  if (!ids.length) throw Error('이 지도 주소에는 선택된 단지가 없습니다. 단지를 선택한 뒤 다시 복사해주세요.');
+  if (ids.length > 1) throw Error('단지가 여러 개 포함되어 있습니다. 단지 하나를 선택한 주소를 넣어주세요.');
+  return ids[0];
+}
+function message(text, error = false) { $('message').textContent = text; $('message').classList.toggle('error', error); }
+function resetResult() {
+  $('result').hidden = true;
+  for (const id of ['complexId', 'complexUrl', 'saleUrl']) $(id).value = '';
+  $('complexLink').removeAttribute('href'); $('saleLink').removeAttribute('href');
+}
+function convert() {
+  resetResult();
+  if (!$('sourceUrl').value.trim()) { message(''); return; }
+  try {
+    const id = extractComplexId($('sourceUrl').value);
+    const base = 'https://fin.land.naver.com/complexes/' + id;
+    $('complexId').value = id; $('complexUrl').value = base;
+    $('saleUrl').value = base + '?tab=article&articleTradeTypes=A1';
+    $('complexLink').href = base; $('saleLink').href = $('saleUrl').value;
+    $('result').hidden = false; message('단지 ' + id + '의 주소를 변환했습니다.');
+  } catch (error) { message(error.message, true); }
+}
+let timer;
+$('sourceUrl').addEventListener('input', () => { clearTimeout(timer); resetResult(); message(''); timer = setTimeout(convert, 200); });
+$('converter').addEventListener('submit', event => { event.preventDefault(); clearTimeout(timer); convert(); if (!$('sourceUrl').value.trim()) message('변환할 주소를 넣어주세요.', true); });
+$('example').addEventListener('click', () => { clearTimeout(timer); $('sourceUrl').value = exampleUrl; convert(); });
+$('clear').addEventListener('click', () => { clearTimeout(timer); $('sourceUrl').value = ''; resetResult(); message(''); $('sourceUrl').focus(); });
+for (const button of document.querySelectorAll('[data-copy]')) button.addEventListener('click', async () => {
+  const field = $(button.dataset.copy), value = field.value;
+  if (!value) return;
+  try {
+    if (!navigator.clipboard?.writeText) throw Error('Clipboard unavailable');
+    await navigator.clipboard.writeText(value);
+  } catch {
+    field.focus(); field.select(); field.setSelectionRange(0, value.length);
+    if (!document.execCommand('copy')) { message('주소를 선택했습니다. 길게 누르거나 Ctrl+C로 복사해주세요.'); return; }
+  }
+  message('복사했습니다.');
+});
+</script>
+</body></html>

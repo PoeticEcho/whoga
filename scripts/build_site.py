@@ -17,7 +17,7 @@ def build(destination=None):
     if destination.exists():
         shutil.rmtree(destination)
     destination.mkdir(parents=True)
-    for file in ("index.html", ".nojekyll"):
+    for file in ("index.html", "url-converter.html", ".nojekyll"):
         shutil.copy2(ROOT / file, destination / file)
     config = read_json(ROOT / "config.json")
     public_keys = ("complexId", "complexName", "sourceUrl", "allowedDongs", "dailyTimeLabel", "siteUrl")
