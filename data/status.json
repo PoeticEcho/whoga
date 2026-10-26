@@ -1,13 +1,13 @@
 {
   "schemaVersion": 2,
   "lastAttemptResult": "success",
-  "lastAttemptAt": "2026-10-23T09:18:26+09:00",
-  "lastSuccessAt": "2026-10-23T09:20:51+09:00",
+  "lastAttemptAt": "2026-10-26T14:26:24+09:00",
+  "lastSuccessAt": "2026-10-26T14:26:24+09:00",
   "sourceKind": "naver-live",
-  "message": "클라우드 브라우저에서 목록을 30→60→90→120건까지 스크롤하고, 하단에서 120/120건을 두 차례 확인한 뒤 필수 항목 전수 검증을 통과했습니다.",
-  "latestCollectedDate": "2026-10-23",
-  "declaredCount": 120,
-  "verifiedCount": 120,
-  "collectionPath": "cua-cloud-browser",
-  "transport": "cloud-browser"
+  "message": "NAS 전체 카드·묶음 매물·가격 검증 후 공개 앱 자료로 변환했습니다.",
+  "latestCollectedDate": "2026-10-26",
+  "declaredCount": 122,
+  "verifiedCount": 122,
+  "collectionPath": "nas-docker",
+  "transport": "nas-github-import"
 }
