@@ -1,9 +1,7 @@
 name: whoga · W 호가 & Pages
 
 on:
-  push:
-    branches: [main]
-    paths-ignore: ['_state/**', '**.md']
+  # Public pushes are handled by nas-publish.yml; keep legacy collection opt-in.
   schedule:
     - cron: '13 23 * * *' # 매일 한국시간 08:13 전후. GitHub 대기열에 따라 지연될 수 있습니다.
   workflow_dispatch:

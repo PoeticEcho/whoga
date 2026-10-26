@@ -2,7 +2,7 @@ name: whoga · NAS JSON to public app
 on:
   push:
     branches: [main, map-collector-v2]
-    paths: ['nas-imports/**/*.json', '.github/workflows/nas-publish.yml', 'scripts/import_nas.py', 'tests/test_nas_import.py', 'collection-plan.json', 'nas/plan.py']
+    paths-ignore: ['_state/**', '**.md']
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
@@ -70,7 +70,8 @@ jobs:
           else
             echo 'changed=false' >> "$GITHUB_OUTPUT"
           fi
-      # GITHUB_TOKEN commits do not trigger another push workflow; deploy here.
+      # Import-branch jobs persist data only. Main polls the content digest and deploys.
+      # The digest is acknowledged only after deployment; failed deployments retry.
       - uses: actions/upload-pages-artifact@v4
         if: steps.persist.outputs.changed == 'true'
         with:
