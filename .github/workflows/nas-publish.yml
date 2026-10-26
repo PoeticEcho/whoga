@@ -2,7 +2,7 @@ name: whoga · NAS JSON to public app
 on:
   push:
     branches: [main, map-collector-v2]
-    paths: ['nas-imports/140635/*.json', '.github/workflows/nas-publish.yml', 'scripts/import_nas.py', 'tests/test_nas_import.py']
+    paths: ['nas-imports/**/*.json', '.github/workflows/nas-publish.yml', 'scripts/import_nas.py', 'tests/test_nas_import.py', 'collection-plan.json', 'nas/plan.py']
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
@@ -47,7 +47,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/
+          git add data/ complexes.json
           if git diff --cached --quiet; then
             echo "changed=$FORCE_DEPLOY" >> "$GITHUB_OUTPUT"
           else
