@@ -1,5 +1,5 @@
-import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing, plainListings } from './core.mjs?v=3.0.0';
-import { saveSnapshot, loadSharedIndex, loadSharedSnapshot, sortEntries } from './repository.mjs?v=3.0.0';
+import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing, plainListings } from './core.mjs?v=3.1.0';
+import { saveSnapshot, loadSharedIndex, loadSharedSnapshot, sortEntries } from './repository.mjs?v=3.1.0';
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -76,7 +76,7 @@ function renderBanner() {
   else pieces.push(`원문 ${snap.declaredCount}건 / 확인 ${snap.items.length}건 · 수량 일치`);
   if (source === 'naver-live' && snap.date.slice(0, 10) < todayKst()) { tone = tone || 'warn'; pieces.push('오늘 자료가 아닙니다. 기준일을 확인하세요.'); }
   if (snap.collectedAt) pieces.push(`자료 입력·수집 시각 ${dateText(snap.collectedAt)}`);
-  if (state.status.lastAttemptAt && !entry?.local) pieces.push(`최근 시도 ${dateText(state.status.lastAttemptAt)}`);
+  if (state.status.lastAttemptAt && !entry?.local && (!snap.collectedAt || Date.parse(state.status.lastAttemptAt)>=Date.parse(snap.collectedAt))) pieces.push(`최근 시도 ${dateText(state.status.lastAttemptAt)}`);
   banner.className = 'status-banner ' + tone;
   banner.innerHTML = `<span class="status-dot"></span><div><strong>${escape(title)}</strong><p>${pieces.map(escape).join(' · ')}</p></div>`;
 }
@@ -209,7 +209,7 @@ function renderListings() {
   $('groupToggle').disabled = textView;
   $('listingGrid').hidden = textView;
   $('listingTextPanel').hidden = !textView;
-  $('listingText').textContent = plainListings(state.current, rows, order);
+  $('listingText').textContent = plainListings(state.current, rows, order, $('showAgency').checked);
   $('listingDetails').innerHTML = rows.map(row => `<details class="listing-detail-row"><summary>${escape(row.dong)} · ${escape(row.type)} · ${escape(row.floor)} · ${escape(priceRange(row))}</summary><p>${escape(row.direction)} · 확인 ${escape(row.confirmDate || '미표기')}</p><p>${escape(row.agencyInfo || '중개사명 미표기')}${row.articleId ? ` · 매물번호 ${escape(row.articleId)}` : ''}</p>${row.desc ? `<p>${escape(row.desc)}</p>` : ''}</details>`).join('') || empty('조건에 맞는 매물이 없습니다.');
   $('groupNotice').hidden = !grouped;
   $('filterCount').textContent = `${rows.length}건 / 전체 ${state.current.items.length}건${grouped ? ` · ${visible.length}개 조건 묶음` : ''}`;
@@ -343,6 +343,8 @@ function bindEvents() {
     toast('현재 필터에 해당하는 원본 행을 CSV로 저장했습니다.');
   });
   $('copyBriefBtn').addEventListener('click', () => copyText('briefingText', '선택한 리포트를 복사했습니다.'));
+  $('showAgency').addEventListener('change',renderAll);
+  $('copyListingsBottom').addEventListener('click',()=>copyText('listingText','현재 표시된 매물 텍스트를 전체 복사했습니다.'));
   $('copyListingsBtn').addEventListener('click', () => copyText('listingText', '현재 필터의 매물 텍스트를 복사했습니다.'));
   $('saveBriefBtn').addEventListener('click', () => { if (state.current) download(`whoga_${state.current.date.slice(0, 10)}_${$('briefingFormat').value}.txt`, 'text/plain;charset=utf-8', $('briefingText').textContent); });
   $('saveListingsBtn').addEventListener('click', () => { if (state.current) download(`whoga_${state.current.date.slice(0, 10)}_listings.txt`, 'text/plain;charset=utf-8', $('listingText').textContent); });

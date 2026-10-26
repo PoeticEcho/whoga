@@ -1,5 +1,6 @@
 **
 !nas
+!nas/telegram_setup.py
 !nas/plan.py
 !nas/run.py
 !nas/web.py

@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0c1425">
-  <meta name="description" content="수성범어W 오피스텔의 날짜별 매도 호가와 관측 변화를 확인합니다.">
-  <title>whoga · W 호가 | 범어W 오피스텔</title>
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/style.css?v=3.0.0">
-  <script type="module" src="assets/app.mjs?v=3.0.0"></script>
-</head>
+  <meta name="description" content="단지별 매도 호가와 관측 변화를 정리합니다.">
+  <title>호가정리 · 단지별 호가 기록</title>
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="stylesheet" href="assets/style.css?v=3.1.0">
+  <script type="module" src="assets/app.mjs?v=3.1.0"></script>
+<meta property="og:title" content="호가정리"><meta property="og:description" content="단지별 매도 호가와 관측 변화를 정리합니다."><meta property="og:image" content="https://poeticecho.github.io/whoga/assets/og.png"><meta name="twitter:card" content="summary_large_image"></head>
 <body>
   <a class="skip" href="#main">본문으로 이동</a>
   <div class="shell">
     <header class="header">
-      <a class="brand" href="./" aria-label="whoga W 호가 홈"><span class="logo" aria-hidden="true">W<span></span></span><span><strong>whoga</strong><small>W 호가 · 범어W 오피스텔</small></span></a>
+      <a class="brand" href="./" aria-label="whoga W 호가 홈"><img class="brand-icon" src="assets/icon.png" alt="" width="46" height="46"><span><strong>호가정리</strong><small>W 호가 · 범어W 오피스텔</small></span></a>
       <div class="header-actions"><a id="sourceLink" class="button quiet" href="https://fin.land.naver.com/complexes/140635?tab=article&articleTradeTypes=A1" target="_blank" rel="noopener noreferrer">네이버 원문 <span aria-hidden="true">↗</span></a><button id="refreshBtn" class="button" type="button">새로고침</button></div>
     </header>
     <main id="main">
@@ -54,7 +54,7 @@
         <section id="panel-listings" role="tabpanel" aria-labelledby="tab-listings" hidden>
           <div class="listing-view-bar"><label>보기 방식<select id="listingView"><option value="text">텍스트 보기</option><option value="cards">카드 보기</option></select></label><span class="muted">동·타입별로 모아 호가를 비교합니다. 현재 필터를 반영합니다.</span></div>
           <div class="panel filter-panel"><div class="filter-grid"><label>동<select id="dongFilter"><option value="">전체 동</option><option>101동</option><option>102동</option><option>103동</option><option>105동</option></select></label><label>타입<select id="typeFilter"><option value="">전체 타입</option><option>78OB</option><option>84OA</option></select></label><label>층 구간<select id="floorFilter"><option value="">전체 층</option><option>저층</option><option>중층</option><option>고층</option></select></label><label>관측 상태<select id="stateFilter"><option value="">전체 상태</option><option value="OBSERVED">추가 관측</option><option value="CHANGED">번호 확인 변동</option><option value="CANDIDATE">변동 후보</option><option value="SAME">같은 조건 유지</option></select></label><label class="search-label">검색<input type="search" id="searchInput" placeholder="층·향·중개사·설명"></label><label>정렬<select id="sortSelect"><option value="priceAsc">최저 호가순</option><option value="priceDesc">최고 호가순</option><option value="confirmDesc">확인일 최신순</option><option value="agencyDesc">공동중개 많은순</option></select></label></div><div class="filter-bottom"><label class="check-label"><input type="checkbox" id="groupToggle"> 같은 조건 묶기</label><span class="muted" id="filterCount"></span><button class="button" id="exportCsvBtn" type="button">CSV 저장</button><button class="button quiet" id="resetFiltersBtn" type="button">초기화</button></div><p id="groupNotice" class="footnote" hidden>같은 동·타입·층·향·가격을 묶어 표시합니다. 실제 동일 호수나 중복 매물 여부는 확정할 수 없습니다.</p></div>
-          <section id="listingTextPanel" class="panel" hidden><div class="section-head"><div><h2>매물 텍스트</h2><p>타입 · 층 · 호가 · 중개 수를 같은 위치에서 비교합니다.</p></div><div class="report-actions"><button class="button primary" id="copyListingsBtn" type="button">목록 복사</button><button class="button" id="saveListingsBtn" type="button">TXT 저장</button></div></div><pre id="listingText" class="briefing-text plain-list aligned-list" tabindex="0" aria-label="동별 매물 목록"></pre><details class="listing-details"><summary>향 · 매물번호 · 중개사 상세 보기</summary><div id="listingDetails"></div></details></section>
+          <section id="listingTextPanel" class="panel" hidden><div class="section-head"><div><h2>매물 텍스트</h2><p>타입 · 층 · 호가 · 중개 수를 같은 위치에서 비교합니다.</p></div><div class="report-actions"><button class="button primary" id="copyListingsBtn" type="button">목록 복사</button><button class="button" id="saveListingsBtn" type="button">TXT 저장</button></div></div><label class="check-label"><input id="showAgency" type="checkbox" checked> 중개 개수 표시</label><pre id="listingText" class="briefing-text plain-list aligned-list" tabindex="0" aria-label="동별 매물 목록"></pre><button id="copyListingsBottom" class="button primary" type="button">전체복사</button><details class="listing-details"><summary>향 · 매물번호 · 중개사 상세 보기</summary><div id="listingDetails"></div></details></section>
           <div id="listingGrid" class="listing-grid"></div>
         </section>
         <section id="panel-stats" role="tabpanel" aria-labelledby="tab-stats" hidden>
@@ -67,7 +67,7 @@
         </section>
       </div>
       <noscript><p class="panel">날짜별 자료를 조회하려면 브라우저의 JavaScript를 활성화해 주세요.</p></noscript>
-      <footer><p>호가는 실거래가와 다릅니다. 매물 수는 관측 건수이며 세대 수와 다를 수 있습니다.</p><p>미관측 매물은 철회·중개사 변경·일시 미노출 등으로 사라질 수 있습니다. 거래 완료로 단정하지 않습니다.</p><span>whoga · W 호가 · v3.0.0</span></footer>
+      <footer><p>호가는 실거래가와 다릅니다. 매물 수는 관측 건수이며 세대 수와 다를 수 있습니다.</p><p>미관측 매물은 철회·중개사 변경·일시 미노출 등으로 사라질 수 있습니다. 거래 완료로 단정하지 않습니다.</p><span>whoga · W 호가 · v3.1.0</span></footer>
     </main>
   </div>
   <div id="toast" role="status" aria-live="polite" hidden></div>

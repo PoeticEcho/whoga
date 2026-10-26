@@ -1,4 +1,4 @@
-import { validateSnapshot } from './core.mjs?v=3.0.0';
+import { validateSnapshot } from './core.mjs?v=3.1.0';
 
 // Pages serves files; GitHub is the durable store. Credentials stay in tab memory.
 export const REPOSITORY = 'PoeticEcho/whoga';

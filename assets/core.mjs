@@ -205,12 +205,12 @@ function textCell(value, width) {
   return text + ' '.repeat(Math.max(0, width - cells));
 }
 
-export function listingLine(row) {
+export function listingLine(row, showAgency=true) {
   const count = Number.isInteger(row.agencyCount) && row.agencyCount > 0 ? `${row.agencyCount}곳` : '—';
-  return `${textCell(row.type, 6)}${textCell(compactFloor(row), 6)}${textCell(reportRange(row, 2), 15)}${count}`;
+  return `${textCell(row.type, 6)}${textCell(compactFloor(row), 6)}${textCell(reportRange(row, 2), 15)}${showAgency?count:''}`.trimEnd();
 }
 
-export function plainListings(snapshot, rows = snapshot.items, order = 'priceAsc') {
+export function plainListings(snapshot, rows = snapshot.items, order = 'priceAsc', showAgency=true) {
   const subset = rows.length !== snapshot.items.length;
   const labels = { priceAsc: '최저 호가순', priceDesc: '최저 호가 역순', confirmDesc: '확인일 최신순', agencyDesc: '공동중개 많은순' };
   const sorted = [...rows].sort((a, b) => order === 'priceDesc' ? b.minPrice - a.minPrice : order === 'confirmDesc' ? String(b.confirmDate || '').localeCompare(String(a.confirmDate || '')) : order === 'agencyDesc' ? (b.agencyCount || 0) - (a.agencyCount || 0) : a.minPrice - b.minPrice);
@@ -226,12 +226,13 @@ export function plainListings(snapshot, rows = snapshot.items, order = 'priceAsc
   for (const dong of reportDongs(snapshot)) {
     const group = sorted.filter(row => row.dong === dong);
     if (!group.length) continue;
-    lines.push('', `${dong} · ${subset ? '필터 ' : ''}${group.length}건`, `${textCell('타입', 6)}${textCell('층', 6)}${textCell('호가', 15)}중개`);
+    lines.push('', `${dong} · ${subset ? '필터 ' : ''}${group.length}건`, `${textCell('타입', 6)}${textCell('층', 6)}${textCell('호가', 15)}${showAgency?'중개':''}`);
     for (const type of reportTypes(snapshot)) {
-      for (const row of group.filter(row => row.type === type)) lines.push(listingLine(row));
+      for (const row of group.filter(row => row.type === type)) lines.push(listingLine(row,showAgency));
     }
   }
-  lines.push('', '※ 중개 수는 세대 수가 아닙니다.', '같은 조건도 원본 행별로 표시합니다.');
+  if(showAgency)lines.push('', '※ 중개 수는 세대 수가 아닙니다.');
+  lines.push('같은 조건도 원본 행별로 표시합니다.');
   return lines.join('\n');
 }
 

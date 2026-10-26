@@ -22,6 +22,7 @@ from urllib.error import HTTPError
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 from urllib.request import Request, urlopen
 import uuid
+import telegram_setup
 from zoneinfo import ZoneInfo
 from version import build_info
 from plan import validate_plan
@@ -137,6 +138,7 @@ class App:
         self.cancelled = False
         self.desktop_tickets = {}
         self.build = build_info()
+        self.telegram_session = None
         self.log_path = self.output / 'current.log'
         self.save()
 
@@ -174,7 +176,8 @@ class App:
         # Defensive masking; collector itself never receives credentials.
         if self.config['githubToken']:
             logs = logs.replace(self.config['githubToken'], '[REDACTED]')
-        return dict(config=config, state=state, log=logs, build=self.build)
+        tg=read(self.config_dir/'telegram.json',{})
+        return dict(config=config, state=state, log=logs, build=self.build, collections=self.collections(), telegram=dict(connected=bool(tg.get('chatId')),username=tg.get('username'),enabled=tg.get('enabled',False)))
 
     def settings(self, patch):
         with self.lock:
@@ -193,7 +196,7 @@ class App:
             self.update_schedule(preserve=preserve)
             self.save()
 
-    def start(self, mode, *, scheduled=False, trigger=None):
+    def start(self, mode, *, scheduled=False, trigger=None, target=None):
         if mode not in ('smoke', 'browse', 'probe', 'full', 'compare'):
             raise ValueError('실행 모드를 확인하세요.')
         with self.lock:
@@ -204,6 +207,10 @@ class App:
                 index = self.state.get('targetCursor', 0) % len(config['targets'])
                 config['url'] = 'https://fin.land.naver.com/complexes/' + config['targets'][index]['complexNo']
                 self.state['targetCursor'] = (index + 1) % len(config['targets'])
+            if target is not None:
+                allowed=[config['url'].rsplit('/',1)[-1]]+[t['complexNo'] for t in config.get('targets',[])]
+                if target not in allowed:raise ValueError('저장된 단지를 선택하세요.')
+                config['url']='https://fin.land.naver.com/complexes/'+target
             self.state['activeUrl'] = config['url']
             job = uuid.uuid4().hex
             self.cancelled = False
@@ -316,6 +323,60 @@ class App:
         with self.lock:
             self.state['upload'] = upload
             self.save()
+        tg=read(self.config_dir/'telegram.json',{})
+        if upload['status']=='success' and tg.get('enabled') and tg.get('chatId'):
+            try:
+                telegram_setup.call(tg['token'],'sendMessage',dict(chat_id=tg['chatId'],text=f"호가정리 · {payload['target']['complexName']}\n{payload['collectedAt']}\n{payload['collectedCardCount']}카드 / {payload['articleCount']}개별 매물\nGitHub 전달 완료 · 공개 앱 반영 대기\nhttps://poeticecho.github.io/whoga/?complex={payload['target']['complexNo']}"))
+            except ValueError:
+                with self.lock:self.state['telegramError']='알림 전송 실패 · 수집·업로드 결과는 유지됩니다.';self.save()
+
+    def collections(self):
+        latest={}
+        for file in self.output.glob('jobs/*/status.json'):
+            result=read(file,{})
+            number=result.get('url','').rsplit('/',1)[-1]
+            if not number.isdigit():continue
+            job=file.parent.name;run=result.get('runId','')
+            if not re.fullmatch('[a-f0-9]{32}',job) or not re.fullmatch('[a-f0-9]{32}',run):continue
+            stamp=file.stat().st_mtime
+            if stamp<=latest.get(number,{}).get('at',0):continue
+            full=file.parent/'runs'/run/'full.json'
+            latest[number]=dict(at=stamp,status=result.get('status'),collected=result.get('full'),
+                                json=f'/artifacts/{job}/{run}/full.json' if full.is_file() and result.get('status')=='full-passed' else None)
+        return latest
+
+    def save_plan(self, value):
+        plan=validate_plan(value)
+        with self.lock:
+            if self.state['running'] or self.state.get('upload',{}).get('status')=='running':raise ValueError('현재 작업이 끝난 뒤 저장하세요.')
+            config=copy.deepcopy(self.config)
+            body=dict(message='feat: manage collection targets from NAS',branch='main',content=base64.b64encode(json.dumps(plan,ensure_ascii=False).encode()).decode())
+            try:body['sha']=github(config,'/contents/collection-plan.json?ref=main')['sha']
+            except ValueError as error:
+                if getattr(error,'status',None)!=404:raise
+            github(config,'/contents/collection-plan.json','PUT',body)
+            self.config['remotePlan']=True
+            atomic(self.config_dir/'settings.json',self.config)
+            self.state['nextPlanCheck']=0
+        self.sync_plan()
+
+    def telegram_action(self, data):
+        with self.lock:
+            action=data.get('action');path=self.config_dir/'telegram.json'
+            if action=='begin':
+                self.telegram_session=telegram_setup.begin(data.get('token',''))
+                session=self.telegram_session
+                return dict(url='https://t.me/'+session['username']+'?start='+session['challenge'])
+            if action=='pair':
+                value=telegram_setup.pair(self.telegram_session);atomic(path,value);self.telegram_session=None
+                return dict(message='개인 대화 연결 완료. 테스트 발송 후 자동 알림을 선택하세요.')
+            value=read(path,{})
+            if action=='disconnect':atomic(path,{});self.telegram_session=None;return dict(message='연결을 해제했습니다.')
+            if not value.get('chatId'):raise ValueError('먼저 봇을 연결하세요.')
+            if action=='test':telegram_setup.call(value['token'],'sendMessage',dict(chat_id=value['chatId'],text='호가정리 연결 테스트가 완료됐습니다.'))
+            elif action=='enable':value['enabled']=data.get('enabled') is True;atomic(path,value)
+            else:raise ValueError('요청을 확인하세요.')
+            return dict(message='설정을 처리했습니다.')
 
     def run_due(self):
         with self.lock:
@@ -468,7 +529,7 @@ def handler(app, password):
                 return
             if self.path == '/api/status':
                 return self.reply(200, app.snapshot())
-            artifact = re.fullmatch(r'/artifacts/([a-f0-9]{32})/([a-f0-9]{32})/(diagnostics\.json|status\.json|[a-z0-9-]+\.png)', parsed.path)
+            artifact = re.fullmatch(r'/artifacts/([a-f0-9]{32})/([a-f0-9]{32})/(diagnostics\.json|status\.json|full\.json|[a-z0-9-]+\.png)', parsed.path)
             if artifact:
                 job, run_id, name = artifact.groups()
                 root = app.output.resolve()
@@ -486,7 +547,7 @@ def handler(app, password):
                 if not file.is_relative_to(root) or not file.is_file() or file.suffix != '.js':
                     return self.reply(404, {'error': '찾을 수 없습니다.'})
                 return self.reply(200, file.read_bytes(), 'text/javascript')
-            assets = {'/': ('index.html', 'text/html'), '/app.js': ('app.js', 'text/javascript'), '/style.css': ('style.css', 'text/css')}
+            assets = {'/': ('index.html', 'text/html'), '/app.js': ('app.js', 'text/javascript'), '/manage.js': ('manage.js', 'text/javascript'), '/style.css': ('style.css', 'text/css')}
             assets.update({'/desktop/client.js': ('desktop.js', 'text/javascript'), '/desktop/client.css': ('desktop.css', 'text/css')})
             if self.path in assets:
                 name, mime = assets[self.path]
@@ -551,8 +612,12 @@ def handler(app, password):
                     raise ValueError('설정 형식이 올바르지 않습니다.')
                 if self.path == '/api/settings':
                     app.settings(data)
+                elif self.path == '/api/plan':
+                    app.save_plan(data)
+                elif self.path == '/api/telegram':
+                    return self.reply(200, app.telegram_action(data))
                 elif self.path == '/api/run':
-                    app.start(data.get('mode'))
+                    app.start(data.get('mode'),target=data.get('complexNo'))
                 elif self.path == '/api/desktop-session':
                     return self.reply(200, {'ticket': app.desktop_ticket()})
                 elif self.path == '/api/stop':

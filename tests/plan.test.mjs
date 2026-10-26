@@ -20,3 +20,8 @@ test('generic apartment areas render without mixing complexes',()=>{
   assert.ok(validateSnapshot(s).complete);assert.match(plainListings(s),/201동/);assert.match(plainListings(s),/새 아파트/);
   assert.equal(compareSnapshots(s,{...s,complexNo:'456'}).available,false);
 });
+test('listing agency toggle removes header counts and note',()=>{
+ const s={complexNo:'123',date:'2026-10-26',declaredCount:1,items:[{dong:'201동',type:'84㎡',floor:'10/25층',direction:'남향',minPrice:9,maxPrice:10,agencyCount:7}]};
+ assert.match(plainListings(s),/7곳/);
+ const text=plainListings(s,s.items,'priceAsc',false);assert.ok(!text.includes('중개'));assert.ok(!text.includes('7곳'));assert.match(text,/9.00~10.00억/);
+});

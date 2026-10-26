@@ -13,7 +13,7 @@ async function init(){
     for(const row of catalog.complexes){
       const link=document.createElement('a');link.className='button '+(selected===row.complexNo?'primary':'quiet');
       link.href='?complex='+encodeURIComponent(row.complexNo);link.textContent=row.label+(row.archived?' · 보관':row.ready?'':' · 수집 대기');
-      if(selected===row.complexNo){link.setAttribute('aria-current','page');document.querySelector('.brand small').textContent=row.label;document.title='whoga · '+row.label;}
+      if(selected===row.complexNo){link.setAttribute('aria-current','page');document.querySelector('.brand small').textContent=row.label;document.title='호가정리 · '+row.label;}
       $('complexTabs').append(link);
     }
   } catch { $('complexTabs').textContent='수성범어W · 단지 관리에서 수집 대상을 등록할 수 있습니다.'; }
