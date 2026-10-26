@@ -8,7 +8,7 @@ export function validateSnapshot(s) {
   const ids = new Set();
   for (const row of s.items) {
     if (!row || ['dong', 'type', 'floor', 'direction'].some(k => typeof row[k] !== 'string' || !row[k].trim())) throw new Error('동·타입·층·향을 확인해 주세요.');
-    if (!['78OB', '84OA'].includes(row.type) || !['101동', '102동', '103동', '105동'].includes(row.dong)) throw new Error('범어W 오피스텔 대상 동·타입을 확인해 주세요.');
+    if ((s.complexNo||'140635')==='140635' && (!['78OB', '84OA'].includes(row.type) || !['101동', '102동', '103동', '105동'].includes(row.dong))) throw new Error('범어W 오피스텔 대상 동·타입을 확인해 주세요.');
     if (![row.minPrice, row.maxPrice].every(v => typeof v === 'number' && Number.isFinite(v) && v > 0) || row.maxPrice < row.minPrice) throw new Error('호가 숫자를 확인해 주세요.');
     if (row.articleId) {
       if (!/^[\w-]{1,80}$/.test(String(row.articleId)) || ids.has(String(row.articleId))) throw new Error('매물번호가 중복되거나 형식이 올바르지 않습니다.');
@@ -25,6 +25,7 @@ export const exactKey = row => locationKey(row) + priceKey(row);
 export function compareSnapshots(current, previous) {
   const out = { available: false, reason: '비교 스냅샷이 없습니다.', unchanged: [], changed: [], candidates: [], added: [], unobserved: [] };
   if (!previous) return out;
+  if ((current.complexNo||'140635')!==(previous.complexNo||'140635')) { out.reason='서로 다른 단지는 비교하지 않습니다.'; return out; }
   if (!validateSnapshot(current).complete || !validateSnapshot(previous).complete) {
     out.reason = '일부 수집 스냅샷은 신규·미관측 비교에서 제외합니다.';
     return out;
@@ -124,6 +125,8 @@ export function csvCell(value) {
 
 const REPORT_DONGS = ['101동', '102동', '103동', '105동'];
 const REPORT_TYPES = ['78OB', '84OA'];
+const reportTypes = s => (s.complexNo||'140635')==='140635' ? REPORT_TYPES : [...new Set(s.items.map(r=>r.type))].sort();
+const reportDongs = s => (s.complexNo||'140635')==='140635' ? REPORT_DONGS : [...new Set(s.items.map(r=>r.dong))].sort();
 const oneLine = value => String(value ?? '').replace(/\s+/g, ' ').trim();
 export const reportEok = (value, minimumFractionDigits = 1) => new Intl.NumberFormat('en-US', { useGrouping: false, minimumFractionDigits, maximumFractionDigits: 4 }).format(value);
 const reportRange = (row, digits = 1) => row.minPrice === row.maxPrice ? `${reportEok(row.minPrice, digits)}억` : `${reportEok(row.minPrice, digits)}~${reportEok(row.maxPrice, digits)}억`;
@@ -145,7 +148,7 @@ function marketLines(snapshot) {
   const quality = validateSnapshot(snapshot);
   const lines = ['🚨 [시장 핵심 요약]', `${quality.complete ? '전체' : '일부'} 관측: ${snapshot.items.length}건 (원문 ${snapshot.declaredCount}건${quality.complete ? ' · 수량 일치' : ' · 부분 자료'})`];
   if (snapshot.source?.kind !== 'naver-live') lines.push('제공·수동 입력 자료 (실시간 수집 아님)');
-  for (const type of REPORT_TYPES) {
+  for (const type of reportTypes(snapshot)) {
     const s = stats(snapshot.items.filter(row => row.type === type));
     lines.push(s.count ? `${type} (${s.count}건): ${quality.complete ? '최저' : '관측 최저'} ${reportEok(s.min)}억 ｜ 중앙값 ${reportEok(s.median)}억` : `${type}: 관측 없음`);
   }
@@ -153,13 +156,13 @@ function marketLines(snapshot) {
 }
 
 export function morningBriefing(snapshot) {
-  const lines = ['[범어W 오피스텔 모닝 브리핑]', observationLabel(snapshot), '', ...marketLines(snapshot), '', '📊 [동별 호가 범위]'];
-  const most = Math.max(0, ...REPORT_DONGS.map(dong => snapshot.items.filter(row => row.dong === dong).length));
-  for (const dong of REPORT_DONGS) {
+  const lines = [`[${snapshot.complexName||'범어W 오피스텔'} 모닝 브리핑]`, observationLabel(snapshot), '', ...marketLines(snapshot), '', '📊 [동별 호가 범위]'];
+  const most = Math.max(0, ...reportDongs(snapshot).map(dong => snapshot.items.filter(row => row.dong === dong).length));
+  for (const dong of reportDongs(snapshot)) {
     const rows = snapshot.items.filter(row => row.dong === dong);
     if (!rows.length) continue;
     lines.push('', `${dong} (총 ${rows.length}건${rows.length === most ? ' · 관측 최다' : ''})`);
-    for (const type of REPORT_TYPES) {
+    for (const type of reportTypes(snapshot)) {
       const group = rows.filter(row => row.type === type), s = stats(group);
       lines.push(s.count ? `${type}: ${reportEok(s.min)}억 ~ ${reportEok(Math.max(...group.map(row => row.maxPrice)))}억 (중앙값 ${reportEok(s.median)}억)` : `${type}: 관측 없음`);
     }
@@ -212,19 +215,19 @@ export function plainListings(snapshot, rows = snapshot.items, order = 'priceAsc
   const labels = { priceAsc: '최저 호가순', priceDesc: '최저 호가 역순', confirmDesc: '확인일 최신순', agencyDesc: '공동중개 많은순' };
   const sorted = [...rows].sort((a, b) => order === 'priceDesc' ? b.minPrice - a.minPrice : order === 'confirmDesc' ? String(b.confirmDate || '').localeCompare(String(a.confirmDate || '')) : order === 'agencyDesc' ? (b.agencyCount || 0) - (a.agencyCount || 0) : a.minPrice - b.minPrice);
   const quality = validateSnapshot(snapshot);
-  const lines = ['[범어W 매물 목록]', observationLabel(snapshot), `${quality.complete ? '전체 관측' : '일부 관측'} ${snapshot.items.length}건 / 원문 ${snapshot.declaredCount}건`, ''];
-  for (const type of REPORT_TYPES) {
+  const lines = [`[${snapshot.complexName||'범어W'} 매물 목록]`, observationLabel(snapshot), `${quality.complete ? '전체 관측' : '일부 관측'} ${snapshot.items.length}건 / 원문 ${snapshot.declaredCount}건`, ''];
+  for (const type of reportTypes(snapshot)) {
     const summary = stats(snapshot.items.filter(row => row.type === type));
     if (summary.count) lines.push(`${type}  ${summary.count}건  ${quality.complete ? '최저' : '관측 최저'} ${reportEok(summary.min)}억  중앙 ${reportEok(summary.median)}억`);
   }
   lines.push('', `동·타입별 ${labels[order] || labels.priceAsc}`);
   if (subset) lines.push(`필터 결과: ${rows.length}건 / 전체 관측 ${snapshot.items.length}건 (위 요약은 기준 자료 전체)`);
   if (!rows.length) lines.push('', '조건에 맞는 매물이 없습니다.');
-  for (const dong of REPORT_DONGS) {
+  for (const dong of reportDongs(snapshot)) {
     const group = sorted.filter(row => row.dong === dong);
     if (!group.length) continue;
     lines.push('', `${dong} · ${subset ? '필터 ' : ''}${group.length}건`, `${textCell('타입', 6)}${textCell('층', 6)}${textCell('호가', 15)}중개`);
-    for (const type of REPORT_TYPES) {
+    for (const type of reportTypes(snapshot)) {
       for (const row of group.filter(row => row.type === type)) lines.push(listingLine(row));
     }
   }
@@ -234,7 +237,7 @@ export function plainListings(snapshot, rows = snapshot.items, order = 'priceAsc
 
 export function briefing(current, previous, mode = 'all') {
   if (mode === 'summary') return morningBriefing(current);
-  if (mode === 'changes') return `[범어W 오피스텔 변동 리포트]\n${observationLabel(current)}\n\n${changeReport(current, previous)}`;
+  if (mode === 'changes') return `[${current.complexName||'범어W 오피스텔'} 변동 리포트]\n${observationLabel(current)}\n\n${changeReport(current, previous)}`;
   if (mode === 'listings') return plainListings(current);
   return `${morningBriefing(current)}\n\n${changeReport(current, previous)}`;
 }

@@ -122,7 +122,8 @@ test('dashboard loads from a project path and filters actual supplied data', asy
     assert.ok(!elements.get('listingGrid').innerHTML.includes('<img'));
     denied = 'data/2026-10-17.json';
     await elements.get('refreshBtn').emit('click'); await flush();
-    assert.equal(elements.get('content').hidden, true);
+    assert.equal(elements.get('content').hidden, false); // Management remains reachable without data.
+    assert.equal(elements.get('panel-manage').hidden, false);
     assert.equal(elements.get('exportJsonBtn').disabled, true);
     assert.ok(elements.get('statusBanner').innerHTML.includes('선택한 자료를 불러오지 못했습니다'));
 

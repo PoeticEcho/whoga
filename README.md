@@ -295,3 +295,7 @@ Firecrawl interact 전체 수집과 예약 작업의 반복 성공은 아직 확
 
 공식 참고: [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages), [Pages 배포 워크플로](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), [예약 실행](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule), [Actions Secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets), [Telegram Bot API](https://core.telegram.org/bots/api#sendmessage).
 
+
+## 최대 3개 단지 순환 수집
+
+공개 앱의 단지 관리에서 1·3·6시간 간격을 저장하고 NAS 3.0 이상에서 한 단지씩 순환 수집합니다. [설치·주기·검증 범위](docs/NAS-3.0-MULTI-COMPLEX.md)를 참고하세요. 기존 NAS 볼륨과 토큰은 유지합니다.

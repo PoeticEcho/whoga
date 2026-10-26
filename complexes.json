@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "complexes": [
+    {
+      "complexNo": "140635",
+      "label": "수성범어W 오피스텔",
+      "dataPath": "data",
+      "ready": true
+    }
+  ]
+}

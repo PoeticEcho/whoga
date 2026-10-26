@@ -1,13 +1,16 @@
-import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing, plainListings } from './core.mjs?v=20261022-text';
-import { saveSnapshot, loadSharedIndex, loadSharedSnapshot, sortEntries } from './repository.mjs?v=20261022-text';
+import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing, plainListings } from './core.mjs?v=3.0.0';
+import { saveSnapshot, loadSharedIndex, loadSharedSnapshot, sortEntries } from './repository.mjs?v=3.0.0';
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
-const DONGS = ['101동', '102동', '103동', '105동'];
-const TYPES = ['78OB', '84OA'];
-const LOCAL_KEY = 'beomeoW_pages_v1_manual';
+let DONGS = ['101동', '102동', '103동', '105동'];
+let TYPES = ['78OB', '84OA'];
+let LOCAL_KEY = 'beomeoW_pages_v1_manual';
 const state = { entries: [], data: new Map(), local: {}, status: {}, current: null, previous: null, diff: null, pending: 0, filtered: [], config: {}, serverRef: null, saving: false };
 let githubToken = '';
+const complexNo = new URL(document.baseURI).searchParams.get('complex') || '140635';
+const dataPath = complexNo==='140635' ? 'data' : /^\d{1,12}$/.test(complexNo) ? 'data/complexes/'+complexNo : 'invalid';
+if(complexNo!=='140635')LOCAL_KEY += '_'+complexNo;
 const todayKst = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const dateText = value => value ? String(value).replace('T', ' ').replace(/\+09:00$/, ' KST') : '기록 없음';
 const empty = text => `<div class="empty">${escape(text)}</div>`;
@@ -34,8 +37,9 @@ async function snapshotFor(id) {
   if (!entry || !/^[\w가-힣.-]+\.json$/.test(entry.file)) throw new Error('스냅샷 경로를 확인해 주세요.');
   let snap;
   if (state.serverRef) snap = await loadSharedSnapshot(entry.file, state.serverRef);
-  else snap = await getJson('data/' + entry.file);
+  else snap = await getJson(dataPath+'/' + entry.file);
   validateSnapshot(snap);
+  if ((snap.complexNo||'140635')!==complexNo) throw Error('단지 자료가 일치하지 않습니다.');
   state.data.set(id, snap);
   return snap;
 }
@@ -84,6 +88,9 @@ async function loadSelection() {
   try {
     const [current, previous] = await Promise.all([snapshotFor($('snapshotSelect').value), snapshotFor($('compareSelect').value)]);
     if (op !== state.pending) return;
+    DONGS=[...new Set(current.items.map(r=>r.dong))].sort((a,b)=>a.localeCompare(b,'ko',{numeric:true}));
+    TYPES=[...new Set(current.items.map(r=>r.type))].sort();
+    for(const [id,values,label] of [['dongFilter',DONGS,'전체 동'],['typeFilter',TYPES,'전체 타입']]) { const old=$(id).value;$(id).innerHTML='<option value="">'+label+'</option>'+values.map(v=>`<option>${escape(v)}</option>`).join('');if(values.includes(old))$(id).value=old; }
     state.current = current; state.previous = previous; state.diff = compareSnapshots(current, previous);
     renderAll();
     $('exportJsonBtn').disabled = false;
@@ -91,7 +98,9 @@ async function loadSelection() {
     if (op !== state.pending) return;
     // 선택한 날짜와 예전 자료가 어긋나지 않도록 실패한 선택은 표시하지 않습니다.
     state.current = null; state.previous = null;
-    $('content').hidden = true; $('exportJsonBtn').disabled = true;
+    $('content').hidden = false;
+    for(const panel of document.querySelectorAll('[role=tabpanel]')) panel.hidden=panel.id!=='panel-manage';
+    document.querySelectorAll('[role=tab]').forEach(t=>{t.setAttribute('aria-selected',String(t.id==='tab-manage'));t.tabIndex=t.id==='tab-manage'?0:-1;}); $('exportJsonBtn').disabled = true;
     $('statusBanner').className = 'status-banner error';
     $('statusBanner').innerHTML = `<span class="status-dot"></span><div><strong>선택한 자료를 불러오지 못했습니다.</strong><p>${escape(error.message)} · 새로고침하거나 다른 날짜를 선택해 주세요.</p></div>`;
   } finally { if (op === state.pending) { $('content').setAttribute('aria-busy', 'false'); renderSaveState(); } }
@@ -164,13 +173,13 @@ function renderOverview() {
   $('kpiGrid').innerHTML = cards.map(([label, value, unit, note, cls]) => `<article class="kpi ${cls}"><p>${escape(label)}</p><strong>${escape(value)}<span class="unit">${unit}</span></strong><small>${escape(note)}</small></article>`).join('');
   $('typeCards').innerHTML = TYPES.map(area => {
     const s = stats(current.items.filter(r => r.type === area));
-    return `<article class="type-card"><h3>${area} <small>전용 ${area === '78OB' ? '78.36' : '84.02'}㎡</small></h3><div class="type-min">${formatEok(s.min)}<span>억 원부터</span></div><div class="type-meta"><div><span>관측 건수</span>${s.count}건</div><div><span>중앙값</span>${formatEok(s.median)}억</div><div><span>평균</span>${formatEok(s.mean)}억</div><div><span>최고</span>${formatEok(s.max)}억</div></div></article>`;
+    return `<article class="type-card"><h3>${escape(area)}</h3><div class="type-min">${formatEok(s.min)}<span>억 원부터</span></div><div class="type-meta"><div><span>관측 건수</span>${s.count}건</div><div><span>중앙값</span>${formatEok(s.median)}억</div><div><span>평균</span>${formatEok(s.mean)}억</div><div><span>최고</span>${formatEok(s.max)}억</div></div></article>`;
   }).join('');
   const max = Math.max(1, ...current.items.map(r => r.minPrice));
-  $('dongChart').innerHTML = DONGS.map(dong => `<div class="dong-row"><span>${dong}</span><div class="dong-bars">${TYPES.map((area, n) => {
+  $('dongChart').innerHTML = DONGS.map(dong => `<div class="dong-row"><span>${escape(dong)}</span><div class="dong-bars">${TYPES.map((area, n) => {
     const s = stats(current.items.filter(r => r.dong === dong && r.type === area));
-    return `<div class="price-bar ${n ? 'mint' : ''}"><i style="width:${s.min === null ? 0 : s.min / max * 100}%"></i><span>${area} · ${s.count ? formatEok(s.min) + '억' : '관측 없음'}</span></div>`;
-  }).join('')}</div></div>`).join('') + '<div class="chart-legend"><span>78OB</span><span>84OA</span></div>';
+    return `<div class="price-bar ${n ? 'mint' : ''}"><i style="width:${s.min === null ? 0 : s.min / max * 100}%"></i><span>${escape(area)} · ${s.count ? formatEok(s.min) + '억' : '관측 없음'}</span></div>`;
+  }).join('')}</div></div>`).join('') + '<div class="chart-legend">'+TYPES.map(t=>'<span>'+escape(t)+'</span>').join('')+'</div>';
   $('compareLabel').textContent = previous ? `${previous.date} → ${current.date}` : '비교 자료 없음';
   $('diffNote').textContent = diff.available ? '추가·미관측은 목록에서 관측한 변화입니다. 매물번호가 없는 자료의 변동 후보는 같은 호수인지 확인해야 합니다.' : diff.reason;
   const columns = [['번호 확인 변동', diff.changed, true], ['변동 후보', diff.candidates, true], ['추가 관측', diff.added, false], ['미관측', diff.unobserved, false]];
@@ -222,12 +231,12 @@ function renderStats() {
   const rows = state.current.items;
   $('statsRows').innerHTML = DONGS.flatMap(dong => TYPES.map(area => {
     const s = stats(rows.filter(r => r.dong === dong && r.type === area));
-    return `<tr><td>${dong}</td><td>${area}</td><td>${s.count}</td><td>${formatEok(s.min)}</td><td>${formatEok(s.median)}</td><td>${formatEok(s.mean)}</td><td>${formatEok(s.max)}</td></tr>`;
+    return `<tr><td>${escape(dong)}</td><td>${escape(area)}</td><td>${s.count}</td><td>${formatEok(s.min)}</td><td>${formatEok(s.median)}</td><td>${formatEok(s.mean)}</td><td>${formatEok(s.max)}</td></tr>`;
   })).join('');
   const ranges = [[0, 5, '5억 미만'], [5, 6, '5 ~ 6억'], [6, 7, '6 ~ 7억'], [7, 8, '7 ~ 8억'], [8, 9, '8 ~ 9억'], [9, 10, '9 ~ 10억'], [10, Infinity, '10억 이상']];
   const bands = ranges.map(([low, high, label]) => ({ label, values: TYPES.map(type => rows.filter(r => r.type === type && r.minPrice >= low && r.minPrice < high).length) }));
-  const max = Math.max(1, ...bands.map(b => b.values[0] + b.values[1]));
-  $('bandChart').innerHTML = bands.map(b => `<div class="band-row"><span>${b.label}</span><div class="band-track" aria-label="78OB ${b.values[0]}건, 84OA ${b.values[1]}건"><i style="width:${b.values[0] / max * 100}%"></i><i style="width:${b.values[1] / max * 100}%"></i></div><strong>${b.values[0] + b.values[1]}건</strong></div>`).join('') + '<div class="chart-legend"><span>78OB</span><span>84OA</span></div>';
+  const max = Math.max(1, ...bands.map(b => b.values.reduce((a,v)=>a+v,0)));
+  $('bandChart').innerHTML = bands.map(b => `<div class="band-row"><span>${b.label}</span><div class="band-track" aria-label="${b.values.reduce((a,v)=>a+v,0)}건">${b.values.map(v=>`<i style="width:${v/max*100}%"></i>`).join('')}</div><strong>${b.values.reduce((a,v)=>a+v,0)}건</strong></div>`).join('');
   $('historyList').innerHTML = state.entries.map(e => `<div class="history-row"><strong>${escape(e.label)}</strong><span>${e.count} / 원문 ${e.declaredCount}건</span><span class="${e.complete ? 'good-text' : 'warn-text'}">${e.complete ? '수량 일치' : '일부 자료'}</span><span class="muted">${e.local ? '서버 미저장 · 이 기기' : e.sourceKind === 'naver-live' ? '네이버 자동 수집' : e.sourceKind === 'manual' ? '서버 저장 · 수동 입력' : '첨부 기준 자료'}</span></div>`).join('');
 }
 
@@ -261,14 +270,16 @@ function addLocal(data) {
 }
 
 async function initialize() {
+  $('openImportBtn').hidden=complexNo!=='140635';
   if (state.saving) return;
   $('refreshBtn').disabled = true; $('refreshBtn').textContent = '확인 중…';
   try {
-    const [shared, status, config] = await Promise.all([
-      loadSharedIndex().catch(async () => ({ index: await getJson('data/index.json'), ref: null })),
-      getJson('data/status.json'), getJson('config.json')]);
+    const [shared, status, config, plan] = await Promise.all([
+      complexNo==='140635' ? loadSharedIndex().catch(async () => ({index:await getJson(dataPath+'/index.json'),ref:null})) : getJson(dataPath+'/index.json').then(index=>({index,ref:null})),
+      getJson(dataPath+'/status.json'), getJson('config.json'),getJson('collection-plan.json').catch(()=>null)]);
     const index = shared.index; state.serverRef = shared.ref;
     if (!Array.isArray(index.snapshots) || !index.snapshots.length) throw new Error('스냅샷 목록이 없습니다.');
+    if(complexNo!=='140635'){ config.complexId=complexNo;config.sourceUrl='https://fin.land.naver.com/complexes/'+complexNo; }
     state.data.clear(); state.entries = index.snapshots; state.status = status; state.config = config;
     state.local = {};
     try { const saved = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}'); for (const [id, snap] of Object.entries(saved)) { validateSnapshot(snap); state.local[id] = snap; } } catch { /* 손상된 기기 자료가 공개 자료 조회를 막지 않습니다. */ }
@@ -276,13 +287,15 @@ async function initialize() {
       state.data.set(id, snap);
       state.entries.push({ id, date: snap.date.slice(0, 10), label: snap.label || snap.date, count: snap.items.length, declaredCount: snap.declaredCount, complete: validateSnapshot(snap).complete, local: true });
     }
-    $('scheduleLabel').textContent = config.dailyTimeLabel || '매일 오전 8:13 전후 · 한국시간';
+    $('scheduleLabel').textContent = plan ? (plan.enabled ? `${plan.intervalHours}시간 간격 · ${plan.targets.length}개 단지 순환 예약` : '순환 수집 예약 꺼짐') : complexNo==='140635' ? config.dailyTimeLabel : 'NAS 순환 수집 · 마지막 수집 시각 확인';
     if (/^https:\/\/fin\.land\.naver\.com\//.test(config.sourceUrl || '')) $('sourceLink').href = config.sourceUrl;
     selectOptions(); $('snapshotSelect').value = index.latest || state.entries[0].id; compareOptions('');
     await loadSelection();
   } catch (error) {
     state.current = null; state.previous = null; $('exportJsonBtn').disabled = true;
-    $('content').hidden = true;
+    $('content').hidden = false;
+    for(const panel of document.querySelectorAll('[role=tabpanel]')) panel.hidden=panel.id!=='panel-manage';
+    document.querySelectorAll('[role=tab]').forEach(t=>{t.setAttribute('aria-selected',String(t.id==='tab-manage'));t.tabIndex=t.id==='tab-manage'?0:-1;});
     $('statusBanner').className = 'status-banner error';
     $('statusBanner').innerHTML = `<span class="status-dot"></span><div><strong>자료를 불러오지 못했습니다.</strong><p>${escape(error.message)} · 새로고침하거나 수동 자료를 가져오세요. HTML 파일을 직접 열었다면 README의 실행 안내를 확인하세요.</p></div>`;
   } finally { $('refreshBtn').disabled = false; $('refreshBtn').textContent = '새로고침'; $('content').setAttribute('aria-busy', 'false'); renderSaveState(); }

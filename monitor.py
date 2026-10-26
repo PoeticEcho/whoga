@@ -143,7 +143,9 @@ def validate_snapshot(snapshot, require_complete=False, allowed_dongs=None):
                 raise ValidationError(f"매물의 {field} 항목이 없습니다.")
         if allowed_dongs and item["dong"] not in allowed_dongs:
             raise ValidationError("대상 동 범위를 벗어난 매물이 있습니다.")
-        if item["type"] not in ("78OB", "84OA"):
+        if not snapshot.get("complexNo", "140635").isdigit():
+            raise ValidationError("단지 번호가 유효하지 않습니다.")
+        if snapshot.get("complexNo", "140635") == "140635" and item["type"] not in ("78OB", "84OA"):
             raise ValidationError("대상 오피스텔 타입을 확인해 주세요.")
         for key in ("minPrice", "maxPrice"):
             value = item.get(key)

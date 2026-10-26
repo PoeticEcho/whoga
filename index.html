@@ -7,8 +7,8 @@
   <meta name="description" content="수성범어W 오피스텔의 날짜별 매도 호가와 관측 변화를 확인합니다.">
   <title>whoga · W 호가 | 범어W 오피스텔</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/style.css?v=20261022-text">
-  <script type="module" src="assets/app.mjs?v=20261022-text"></script>
+  <link rel="stylesheet" href="assets/style.css?v=3.0.0">
+  <script type="module" src="assets/app.mjs?v=3.0.0"></script>
 </head>
 <body>
   <a class="skip" href="#main">본문으로 이동</a>
@@ -18,7 +18,8 @@
       <div class="header-actions"><a id="sourceLink" class="button quiet" href="https://fin.land.naver.com/complexes/140635?tab=article&articleTradeTypes=A1" target="_blank" rel="noopener noreferrer">네이버 원문 <span aria-hidden="true">↗</span></a><button id="refreshBtn" class="button" type="button">새로고침</button></div>
     </header>
     <main id="main">
-      <div class="intro"><div><span class="eyebrow">SUSEONG BEOMEO W</span><h1>호가의 흐름을 한눈에.</h1><p>날짜별 매도 희망가와 관측 변화를 확인하세요.</p></div><span class="schedule" id="scheduleLabel">매일 오전 8:13 전후 · 한국시간</span></div>
+<nav id="complexTabs" class="complex-tabs" aria-label="단지 선택"></nav>
+      <div class="intro"><div><span class="eyebrow">COMPLEX WATCH</span><h1>호가의 흐름을 한눈에.</h1><p>날짜별 매도 희망가와 관측 변화를 확인하세요.</p></div><span class="schedule" id="scheduleLabel">매일 오전 8:13 전후 · 한국시간</span></div>
       <section id="statusBanner" class="status-banner" aria-live="polite"><span class="status-dot"></span><div><strong>자료를 불러오고 있습니다.</strong><p>저장된 날짜별 데이터를 확인합니다.</p></div></section>
       <section class="toolbar" aria-label="비교 날짜 선택">
         <label>기준 자료<select id="snapshotSelect" disabled><option>불러오는 중</option></select></label>
@@ -42,8 +43,9 @@
         <button id="tab-listings" role="tab" aria-controls="panel-listings" aria-selected="false" tabindex="-1" type="button">매물 목록 <span id="listTabCount">—</span></button>
         <button id="tab-stats" role="tab" aria-controls="panel-stats" aria-selected="false" tabindex="-1" type="button">통계</button>
         <button id="tab-briefing" role="tab" aria-controls="panel-briefing" aria-selected="false" tabindex="-1" type="button">브리핑</button>
+        <button id="tab-manage" role="tab" aria-controls="panel-manage" aria-selected="false" tabindex="-1" type="button">단지 관리</button>
       </div>
-      <div id="content" aria-busy="true">
+      <div id="content" aria-busy="true"><section id="panel-manage" role="tabpanel" aria-labelledby="tab-manage" hidden><div class="panel"><h2>단지 관리</h2><p>네이버 단지 주소 끝의 숫자를 입력하세요. 아파트·오피스텔 매매를 최대 3개 단지까지 순환 수집합니다.</p><form id="collectionPlan"><div class="plan-row"><label>단지 번호 1<input id="complexNumber0" inputmode="numeric" pattern="[1-9][0-9]{0,11}" maxlength="12" placeholder="140635" required></label><label>별칭 (선택)<input id="complexLabel0" maxlength="60" placeholder="단지 이름"></label></div><div class="plan-row"><label>단지 번호 2<input id="complexNumber1" inputmode="numeric" pattern="[1-9][0-9]{0,11}" maxlength="12" placeholder="선택" ></label><label>별칭 (선택)<input id="complexLabel1" maxlength="60" placeholder="단지 이름"></label></div><div class="plan-row"><label>단지 번호 3<input id="complexNumber2" inputmode="numeric" pattern="[1-9][0-9]{0,11}" maxlength="12" placeholder="선택" ></label><label>별칭 (선택)<input id="complexLabel2" maxlength="60" placeholder="단지 이름"></label></div><label>수집 간격<select id="rotationHours"><option value="1">1시간마다 한 단지</option><option value="3">3시간마다 한 단지</option><option value="6" selected>6시간마다 한 단지</option></select></label><p id="rotationSummary" class="footnote"></p><label class="check-label"><input id="rotationEnabled" type="checkbox" checked> 순환 수집 및 성공 후 자동 업로드 켜기</label><p class="footnote">저장하면 NAS 3.0 이상이 약 5분 이내 설정을 읽고 첫 단지부터 수집합니다. NAS 전원·인터넷·토큰이 유지되어야 합니다. 실패한 수집은 다음 차례로 넘어가며 기존 자료를 보존합니다.</p><label>설정 저장용 GitHub 토큰<input id="planToken" type="password" autocomplete="off" spellcheck="false" placeholder="whoga 저장소 Contents 읽기·쓰기 권한"></label><p class="footnote">토큰은 이번 저장 요청에만 사용하며 브라우저 저장소에 기록하지 않습니다. 단지 번호·별칭·주기는 공개 저장소에 저장됩니다.</p><button id="savePlan" class="button primary" type="submit">단지·주기 설정 저장</button><p id="planMessage" role="status" aria-live="polite"></p><a id="planCommit" target="_blank" rel="noopener noreferrer" hidden>설정 저장 기록 ↗</a></form></div></section>
         <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
           <div id="kpiGrid" class="kpi-grid"></div>
           <div class="overview-grid"><section class="panel"><div class="section-head"><div><span class="eyebrow">TODAY'S SNAPSHOT</span><h2>타입별 호가</h2></div><span class="pill">단위: 억 원</span></div><div id="typeCards" class="type-grid"></div><p class="footnote">범위로 제시된 매물은 최저 호가로 통계에 반영합니다.</p></section><section class="panel"><div class="section-head"><div><span class="eyebrow">BY BUILDING</span><h2>동별 최저 호가</h2></div></div><div id="dongChart" class="dong-chart"></div></section></div>
@@ -61,14 +63,15 @@
           <section class="panel"><div class="section-head"><div><h2>보관 중인 자료</h2><p>제공 자료와 자동 수집 자료의 출처·수량을 구분합니다.</p></div></div><div id="historyList" class="history-list"></div></section>
         </section>
         <section id="panel-briefing" role="tabpanel" aria-labelledby="tab-briefing" hidden>
-          <section class="panel"><div class="section-head report-head"><div><span class="eyebrow">DAILY BRIEFING</span><h2>범어W 모닝 브리핑</h2><p>선택한 자료의 실제 관측 시각·가격을 표시합니다.</p></div><div class="report-actions"><button class="button primary" id="copyBriefBtn" type="button">내용 복사</button><button class="button" id="saveBriefBtn" type="button">TXT 저장</button></div></div><label class="report-format">리포트<select id="briefingFormat"><option value="all">요약·변동</option><option value="summary">모닝 브리핑</option><option value="changes">변동 리포트</option><option value="listings">전체 매물</option></select></label><pre id="briefingText" class="briefing-text plain-list"></pre><p class="footnote">필요한 리포트를 골라 카카오톡 등에 붙여넣을 수 있습니다. 매물 목록 탭의 텍스트 보기는 필터 결과만 복사합니다.</p></section>
+          <section class="panel"><div class="section-head report-head"><div><span class="eyebrow">DAILY BRIEFING</span><h2>단지 모닝 브리핑</h2><p>선택한 자료의 실제 관측 시각·가격을 표시합니다.</p></div><div class="report-actions"><button class="button primary" id="copyBriefBtn" type="button">내용 복사</button><button class="button" id="saveBriefBtn" type="button">TXT 저장</button></div></div><label class="report-format">리포트<select id="briefingFormat"><option value="all">요약·변동</option><option value="summary">모닝 브리핑</option><option value="changes">변동 리포트</option><option value="listings">전체 매물</option></select></label><pre id="briefingText" class="briefing-text plain-list"></pre><p class="footnote">필요한 리포트를 골라 카카오톡 등에 붙여넣을 수 있습니다. 매물 목록 탭의 텍스트 보기는 필터 결과만 복사합니다.</p></section>
         </section>
       </div>
       <noscript><p class="panel">날짜별 자료를 조회하려면 브라우저의 JavaScript를 활성화해 주세요.</p></noscript>
-      <footer><p>호가는 실거래가와 다릅니다. 매물 수는 관측 건수이며 세대 수와 다를 수 있습니다.</p><p>미관측 매물은 철회·중개사 변경·일시 미노출 등으로 사라질 수 있습니다. 거래 완료로 단정하지 않습니다.</p><span>whoga · W 호가 · v1.0.0</span></footer>
+      <footer><p>호가는 실거래가와 다릅니다. 매물 수는 관측 건수이며 세대 수와 다를 수 있습니다.</p><p>미관측 매물은 철회·중개사 변경·일시 미노출 등으로 사라질 수 있습니다. 거래 완료로 단정하지 않습니다.</p><span>whoga · W 호가 · v3.0.0</span></footer>
     </main>
   </div>
   <div id="toast" role="status" aria-live="polite" hidden></div>
+<script type="module" src="assets/complexes.mjs?v=3"></script>
 </body>
 </html>
 

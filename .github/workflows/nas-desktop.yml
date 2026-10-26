@@ -1,0 +1,132 @@
+name: whoga · NAS visible desktop verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      live_comparison:
+        description: '실제 네이버에 여섯 조건으로 접속 비교 (수집·업로드 없음)'
+        type: boolean
+        default: false
+      live_collect:
+        description: '실제 기본 브라우저 수집·JSON 검증 (GitHub 업로드 없음)'
+        type: choice
+        options: [none, probe, full]
+        default: none
+  push:
+    paths:
+      - 'nas/**'
+      - 'experiments/supplied-v2/**'
+      - '.github/workflows/nas-desktop.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Existing dashboard and desktop gateway tests
+        run: python -m unittest discover -s nas -p 'test_*.py' -v
+      - name: Build the actual NAS image
+        run: docker build --build-arg VCS_REF="$GITHUB_SHA" --tag whoga-nas:desktop-test --file nas/Dockerfile .
+      - name: Public multi-complex browser flow with mocked GitHub writes
+        run: |
+          python scripts/build_site.py
+          docker run --rm --network none --read-only --tmpfs /tmp:rw,size=512m,mode=1777 --shm-size=512m --memory=3g \
+            -v "$PWD:/verification:ro" -w /verification whoga-nas:desktop-test tests/browser/check_multi.py
+      - name: Start with the DS420+ compatible restrictions
+        shell: bash
+        run: |
+          set -euo pipefail
+          task_password=$(python -c 'import secrets; print(secrets.token_urlsafe(24))')
+          echo "::add-mask::$task_password"
+          echo "DASHBOARD_PASSWORD=$task_password" >> "$GITHUB_ENV"
+          docker volume create whoga-test-output
+          docker volume create whoga-test-config
+          docker run -d --name whoga-nas-test --init --read-only \
+            --tmpfs /tmp:rw,nosuid,nodev,size=512m,mode=1777 --shm-size=512m --memory=3g \
+            --cap-drop=ALL --security-opt no-new-privileges:true \
+            -e WHOGA_STARTUP_COLLECT=0 -p 127.0.0.1:18899:8899 -e DASHBOARD_PASSWORD="$task_password" \
+            -v whoga-test-output:/output -v whoga-test-config:/config whoga-nas:desktop-test
+          python - <<'PY'
+          import time, urllib.request
+          for _ in range(90):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:18899/health',timeout=2) as r:
+                      assert r.status==200
+                  break
+              except Exception:
+                  time.sleep(1)
+          else:
+              raise SystemExit('Desktop startup failed')
+          PY
+      - name: Real framebuffer, mouse input, shared browser and dashboard
+        run: |
+          docker exec -i -e WHOGA_EXPECT_SOURCE_COMMIT="$GITHUB_SHA" whoga-nas-test python - < nas/check_dashboard.py
+      - name: Local collection fixture and complete failure diagnostics
+        run: |
+          docker exec -i -e WHOGA_EXPECT_SOURCE_COMMIT="$GITHUB_SHA" whoga-nas-test python - < nas/check_diagnostics.py
+      - name: Native full collection and JSON validation on local paginated grouped listings
+        run: docker exec -i whoga-nas-test python - < nas/check_full_collection.py
+      - name: Hidden tabs and probe-to-full regression with 122 local fixture cards
+        run: |
+          docker run --rm --network none --read-only \
+            --tmpfs /tmp:rw,nosuid,nodev,size=512m,mode=1777 --shm-size=512m --memory=3g \
+            --cap-drop=ALL --security-opt no-new-privileges:true \
+            -v "$PWD/nas/check_collection_regression.py:/app/nas/check_collection_regression.py:ro" \
+            -v "$PWD/nas/fixtures:/app/nas/fixtures:ro" \
+            whoga-nas:desktop-test /app/nas/check_collection_regression.py
+      - name: Upload configuration and disabled-button guidance
+        run: |
+          docker run --rm --network none --read-only \
+            --tmpfs /tmp:rw,nosuid,nodev,size=512m,mode=1777 --shm-size=512m --memory=3g \
+            --cap-drop=ALL --security-opt no-new-privileges:true \
+            -v "$PWD/nas/check_upload_guidance.py:/app/nas/check_upload_guidance.py:ro" \
+            whoga-nas:desktop-test /app/nas/check_upload_guidance.py
+      - name: Sequential native and Playwright desktop and mobile comparison fixture
+        run: docker exec -i whoga-nas-test python - < nas/check_comparison.py
+      - name: Restart and verify retained settings and desktop recovery
+        run: |
+          docker restart whoga-nas-test
+          python - <<'PY'
+          import time, urllib.request
+          for _ in range(90):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:18899/health',timeout=2) as r:
+                      assert r.status==200
+                  break
+              except Exception:
+                  time.sleep(1)
+          else:
+              raise SystemExit('Desktop restart failed')
+          PY
+          docker exec -i -e WHOGA_EXPECT_RESTART=1 -e WHOGA_EXPECT_SOURCE_COMMIT="$GITHUB_SHA" whoga-nas-test python - < nas/check_dashboard.py
+      - name: Optional live Naver comparison with the same NAS image
+        if: inputs.live_comparison == true
+        run: |
+          docker exec whoga-nas-test python /app/nas/run.py compare --output /output/live-comparison
+          docker exec whoga-nas-test python -c 'import json; r=json.load(open("/output/live-comparison/status.json")); print(json.dumps(r.get("comparison"),ensure_ascii=False,indent=2))' >> "$GITHUB_STEP_SUMMARY"
+      - name: Optional real source collection without publishing
+        if: inputs.live_collect == 'probe' || inputs.live_collect == 'full'
+        env:
+          COLLECT_MODE: ${{ inputs.live_collect }}
+        run: docker exec whoga-nas-test python /app/nas/run.py "$COLLECT_MODE" --output /output/live-collection
+      - name: Preserve screenshots and logs
+        if: always()
+        run: |
+          mkdir -p test-results/nas
+          docker logs whoga-nas-test > test-results/nas/container.log 2>&1 || true
+          tail -70 test-results/nas/container.log
+          docker cp whoga-nas-test:/output/. test-results/nas/ || true
+          docker rm -f whoga-nas-test || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nas-visible-desktop-${{ github.run_id }}
+          path: test-results/nas/
+          retention-days: 14

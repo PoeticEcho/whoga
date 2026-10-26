@@ -1,4 +1,4 @@
-import { validateSnapshot } from './core.mjs?v=20261021-save';
+import { validateSnapshot } from './core.mjs?v=3.0.0';
 
 // Pages serves files; GitHub is the durable store. Credentials stay in tab memory.
 export const REPOSITORY = 'PoeticEcho/whoga';
@@ -128,4 +128,38 @@ export async function saveSnapshot(snapshot, { token, fetchImpl = globalThis.fet
     if (current.object.sha === head) throw updateError || new Error('서버 저장을 확인하지 못했습니다. 다시 저장해 주세요.');
   }
   throw new Error('동시에 진행 중인 저장이 많습니다. 기기 자료는 보존되며 잠시 후 다시 저장할 수 있습니다.');
+}
+
+export function validatePlan(plan) {
+  if (plan?.schemaVersion !== 1 || typeof plan.enabled !== 'boolean' || ![1,3,6].includes(plan.intervalHours)
+      || !Array.isArray(plan.targets) || plan.targets.length < 1 || plan.targets.length > 3) throw Error('단지 1~3개와 1·3·6시간 간격을 선택하세요.');
+  const seen = new Set();
+  const targets = plan.targets.map(row => {
+    if (!row || typeof row.complexNo !== 'string' || !/^[1-9][0-9]{0,11}$/.test(row.complexNo) || seen.has(row.complexNo)) throw Error('중복 없는 숫자 단지 번호를 입력하세요.');
+    const label = row.label || '';
+    if (typeof label !== 'string' || label.length>60 || /[\x00-\x1f]/.test(label)) throw Error('별칭은 60자 이내로 입력하세요.');
+    seen.add(row.complexNo);return {complexNo:row.complexNo,label:label.trim()};
+  });
+  return {schemaVersion:1,enabled:plan.enabled,intervalHours:plan.intervalHours,targets};
+}
+export async function loadCollectionPlan(fetchImpl=globalThis.fetch) {
+  const api=client('',fetchImpl);
+  try {
+    const file=await api('/contents/collection-plan.json?ref=main');
+    const plan=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(file.content.replace(/\s/g,'')),c=>c.charCodeAt(0))));
+    return {plan:validatePlan(plan),sha:file.sha};
+  } catch(error) {if(error.status===404)return {plan:null,sha:null};throw error;}
+}
+export async function loadPlanAcknowledgement(fetchImpl=globalThis.fetch) {
+  try {return await client('',fetchImpl)('/contents/_state/nas-plan.json?ref=main','GET',undefined,true);}
+  catch(error){if(error.status===404)return null;throw error;}
+}
+export async function saveCollectionPlan(plan,{token,sha=null,fetchImpl=globalThis.fetch}={}) {
+  const value=validatePlan(plan);
+  if(!token?.trim())throw Error('설정을 저장할 GitHub 토큰을 입력하세요.');
+  const content=btoa(Array.from(new TextEncoder().encode(json(value)),b=>String.fromCharCode(b)).join(''));
+  const result=await client(token.trim(),fetchImpl)('/contents/collection-plan.json','PUT',{
+    message:'feat: update NAS complex rotation plan',branch:'main',content,...(sha?{sha}:{}),
+  });
+  return {sha:result.content.sha,url:result.commit.html_url};
 }
