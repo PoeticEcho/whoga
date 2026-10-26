@@ -200,7 +200,7 @@ class App:
                 self.state['lastDailyDate'] = datetime.fromtimestamp(time.time(), SEOUL).date().isoformat()
             if scheduled or config['scheduleMode'] == 'interval':
                 self.update_schedule()
-            self.state.update(running=True, jobId=job, mode=mode, startedAt=time.time(), result='running',
+            self.state.update(running=True, jobId=job, mode=mode, trigger='scheduled' if scheduled else 'manual', startedAt=time.time(), result='running',
                               message='실행 중', lastResult=None)
             self.log_path.write_text('')
             self.save()

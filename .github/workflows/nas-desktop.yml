@@ -76,6 +76,13 @@ jobs:
             -v "$PWD/nas/check_collection_regression.py:/app/nas/check_collection_regression.py:ro" \
             -v "$PWD/nas/fixtures:/app/nas/fixtures:ro" \
             whoga-nas:desktop-test /app/nas/check_collection_regression.py
+      - name: Upload configuration and disabled-button guidance
+        run: |
+          docker run --rm --network none --read-only \
+            --tmpfs /tmp:rw,nosuid,nodev,size=512m,mode=1777 --shm-size=512m --memory=3g \
+            --cap-drop=ALL --security-opt no-new-privileges:true \
+            -v "$PWD/nas/check_upload_guidance.py:/app/nas/check_upload_guidance.py:ro" \
+            whoga-nas:desktop-test /app/nas/check_upload_guidance.py
       - name: Sequential native and Playwright desktop and mobile comparison fixture
         run: docker exec -i whoga-nas-test python - < nas/check_comparison.py
       - name: Restart and verify retained settings and desktop recovery

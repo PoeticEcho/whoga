@@ -1,4 +1,6 @@
-# WhoGa NAS 2.5.1 · 직접 실행한 Chromium으로 수집
+# WhoGa NAS 2.5.2 · 직접 실행한 Chromium으로 수집
+
+[2.5.2 업로드 안내 개선 및 업데이트 절차](../docs/NAS-2.5.2-UPLOAD.md)를 확인하세요.
 
 2026-10-26 사용자 NAS에서 122카드·578개별매물 `full-passed`를 확인했습니다. [성공 환경과 교훈](../docs/NAS-COLLECTION-LESSONS.md)에 실행 조건·수정 원인·재현 순서·검증 범위를 기록했습니다. 아래 2.5·2.4 설명은 이전 버전의 이력입니다.
 

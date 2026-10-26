@@ -1,5 +1,5 @@
 {
   "sourceCommit": null,
-  "baseSourceCommit": "868e2b612efdbea60ebcca5eafa90397d7dd9696",
-  "patch": "2.5.1-local-archive"
+  "baseSourceCommit": "f89e753856418f485106fb4ff06ddef3eadf8de3",
+  "patch": "2.5.2-upload-guidance"
 }

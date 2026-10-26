@@ -213,6 +213,8 @@ def classify(snapshot, events, totals=None):
 def capture_run(page, run_dir, status, phases, events, history_path):
     run_dir = Path(run_dir)
     report = dict(runId=status['runId'], build=status['build'], mode=status['mode'],
+                  status=status.get('status'), startedAt=status.get('startedAt'),
+                  probe=status.get('probe'), full=status.get('full'),
                   phase=status.get('phase'), phases=phases, error=status.get('error'),
                   browserVersion=status.get('browserVersion'), capturedAt=datetime.now(timezone.utc).isoformat(),
                   duringRun=events.snapshot() if events else {'events': [], 'totals': {}}, artifacts={})

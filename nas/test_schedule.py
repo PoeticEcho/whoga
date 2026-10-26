@@ -64,6 +64,7 @@ class ScheduleTests(unittest.TestCase):
             self.app.start('smoke')
         self.assertEqual(self.app.state['nextRun'], at(22, 8, 45))
         self.assertNotIn('lastDailyDate', self.app.state)
+        self.assertEqual(self.app.state['trigger'], 'manual')
 
     def test_daily_runs_once_and_restart_retains_tomorrow(self):
         self.enable()
@@ -72,6 +73,7 @@ class ScheduleTests(unittest.TestCase):
         with patch.object(web.time, 'time', return_value=at(22, 8, 45)), patch.object(web.threading, 'Thread'):
             self.assertTrue(self.app.run_due())
         self.assertEqual(self.app.state['lastDailyDate'], '2026-10-22')
+        self.assertEqual(self.app.state['trigger'], 'scheduled')
         self.assertEqual(self.app.state['nextRun'], at(23, 8, 45))
         with patch.object(web.time, 'time', return_value=at(22, 9)):
             restarted = self.load()
