@@ -547,7 +547,7 @@ def handler(app, password):
                 if not file.is_relative_to(root) or not file.is_file() or file.suffix != '.js':
                     return self.reply(404, {'error': '찾을 수 없습니다.'})
                 return self.reply(200, file.read_bytes(), 'text/javascript')
-            assets = {'/': ('index.html', 'text/html'), '/app.js': ('app.js', 'text/javascript'), '/manage.js': ('manage.js', 'text/javascript'), '/style.css': ('style.css', 'text/css')}
+            assets = {'/complex-url.js': ('complex-url.js','text/javascript'), '/': ('index.html', 'text/html'), '/app.js': ('app.js', 'text/javascript'), '/manage.js': ('manage.js', 'text/javascript'), '/style.css': ('style.css', 'text/css')}
             assets.update({'/desktop/client.js': ('desktop.js', 'text/javascript'), '/desktop/client.css': ('desktop.css', 'text/css')})
             if self.path in assets:
                 name, mime = assets[self.path]

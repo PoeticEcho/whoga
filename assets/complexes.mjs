@@ -32,7 +32,7 @@ $('collectionPlan').addEventListener('submit',async event=>{
   event.preventDefault();$('savePlan').disabled=true;
   const token=$('planToken').value;$('planToken').value='';
   try {
-    const targets=[0,1,2].map(i=>({complexNo:$('complexNumber'+i).value.trim(),label:$('complexLabel'+i).value.trim()})).filter(t=>t.complexNo);
+    const targets=[0,1,2].map(i=>({complexNo:$('complexNumber'+i).value.trim()?WhogaComplexUrl.extractComplexId($('complexNumber'+i).value):'',label:$('complexLabel'+i).value.trim()})).filter(t=>t.complexNo);
     const result=await saveCollectionPlan({schemaVersion:1,enabled:$('rotationEnabled').checked,intervalHours:Number($('rotationHours').value),targets},{token,sha:revision});revision=result.sha;
     $('planMessage').textContent='GitHub에 설정을 저장했습니다. NAS 적용 확인은 새로고침으로 확인하세요. NAS 3.0 이상과 저장된 NAS 토큰이 필요합니다.';
     $('planCommit').href=result.url;$('planCommit').hidden=false;
@@ -41,3 +41,5 @@ $('collectionPlan').addEventListener('submit',async event=>{
 });
 $('refreshBtn').addEventListener('click',init);
 init();
+
+for(let i=0;i<3;i++)bindComplexInput($('complexNumber'+i),text=>{$('planMessage').textContent=text;});
