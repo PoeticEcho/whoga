@@ -112,5 +112,18 @@ jobs:
           git add -f _state/whoga-pages.sha256
           if ! git diff --cached --quiet; then
             git commit -m 'chore: record published NAS app content [skip ci]'
-            git push origin HEAD:main
+            for attempt in 1 2 3; do
+              if git push origin HEAD:main; then
+                exit 0
+              fi
+              # A server error can arrive after accepting the commit.
+              if git fetch origin main && git merge-base --is-ancestor HEAD FETCH_HEAD; then
+                echo 'Published-content record confirmed on main.'
+                exit 0
+              fi
+              if [ "$attempt" -lt 3 ]; then sleep 5; fi
+            done
+            # The site is already deployed. Leave the old digest so the next
+            # scheduled run can verify and record it again without losing data.
+            echo '::warning::Pages deployment succeeded, but its completion record could not be saved after 3 attempts. The next scheduled run will retry.'
           fi
