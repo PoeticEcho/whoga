@@ -1,5 +1,5 @@
-import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing, plainListings } from './core.mjs?v=3.1.0';
-import { saveSnapshot, loadSharedIndex, loadSharedSnapshot, sortEntries } from './repository.mjs?v=3.1.0';
+import { validateSnapshot, compareSnapshots, stats, formatPrice, formatEok, priceRange, groupedRows, pickPrevious, parseRaw, csvCell, briefing, plainListings } from './core.mjs?v=3.2.0';
+import { saveSnapshot, loadSharedIndex, loadSharedSnapshot, sortEntries } from './repository.mjs?v=3.2.0';
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -82,6 +82,7 @@ function renderBanner() {
 }
 
 async function loadSelection() {
+  $('selectionInfo').textContent='선택한 시점의 자료를 확인하고 있습니다.';
   const op = ++state.pending;
   $('saveServerBtn').disabled = true;
   $('content').setAttribute('aria-busy', 'true');
@@ -97,7 +98,7 @@ async function loadSelection() {
   } catch (error) {
     if (op !== state.pending) return;
     // 선택한 날짜와 예전 자료가 어긋나지 않도록 실패한 선택은 표시하지 않습니다.
-    state.current = null; state.previous = null;
+    state.current = null; state.previous = null; $('selectionInfo').textContent='자료를 확인할 수 없습니다. 다른 시점을 선택하거나 새로고침하세요.';
     $('content').hidden = false;
     for(const panel of document.querySelectorAll('[role=tabpanel]')) panel.hidden=panel.id!=='panel-manage';
     document.querySelectorAll('[role=tab]').forEach(t=>{t.setAttribute('aria-selected',String(t.id==='tab-manage'));t.tabIndex=t.id==='tab-manage'?0:-1;}); $('exportJsonBtn').disabled = true;
@@ -155,6 +156,8 @@ async function saveCurrentToServer() {
 
 function renderAll() {
   if (!state.current) return;
+  const snap=state.current;
+  $('selectionInfo').textContent=[snap.complexName||state.config.complexName||('단지 '+complexNo),`${snap.items.length}개 매물 카드`,snap.source?.articleCount?`중개 등록 ${snap.source.articleCount}건`:null,snap.collectedAt?'수집 '+dateText(snap.collectedAt):'수집 시각 미기록'].filter(Boolean).join(' · ');
   $('content').hidden = false;
   renderBanner(); renderOverview(); renderListings(); renderStats();
   renderBriefing();
@@ -292,7 +295,7 @@ async function initialize() {
     selectOptions(); $('snapshotSelect').value = index.latest || state.entries[0].id; compareOptions('');
     await loadSelection();
   } catch (error) {
-    state.current = null; state.previous = null; $('exportJsonBtn').disabled = true;
+    state.current = null; state.previous = null; $('selectionInfo').textContent='자료를 확인할 수 없습니다. 다른 시점을 선택하거나 새로고침하세요.'; $('exportJsonBtn').disabled = true;
     $('content').hidden = false;
     for(const panel of document.querySelectorAll('[role=tabpanel]')) panel.hidden=panel.id!=='panel-manage';
     document.querySelectorAll('[role=tab]').forEach(t=>{t.setAttribute('aria-selected',String(t.id==='tab-manage'));t.tabIndex=t.id==='tab-manage'?0:-1;});
