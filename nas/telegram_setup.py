@@ -1,5 +1,6 @@
 """Dedicated bot pairing: getMe, webhook check, expiring /start challenge."""
-import json,re,secrets,time
+import json,re,secrets,time,socket,ssl
+from urllib.error import HTTPError,URLError
 from urllib.request import Request,urlopen
 
 def call(token,method,data=None):
@@ -9,7 +10,14 @@ def call(token,method,data=None):
         with urlopen(req,timeout=15) as response:result=json.load(response)
         if not result.get('ok'):raise ValueError()
         return result['result']
-    except Exception:raise ValueError('Telegram 연결 실패: 토큰·인터넷·다른 봇 수신기 사용 여부를 확인하세요.') from None
+    except HTTPError as error:
+        messages={401:'봇 토큰이 유효하지 않습니다. BotFather에서 토큰을 다시 확인하세요.',403:'이 봇의 메시지 전송이 차단됐습니다. 봇 차단을 해제하세요.',409:'다른 프로그램이 이 봇의 메시지를 받고 있습니다. 호가정리 전용 봇을 사용하세요.',429:'Telegram 요청이 많습니다. 잠시 후 다시 시도하세요.'}
+        raise ValueError(messages.get(error.code,f'Telegram 서버 오류 (HTTP {error.code}). 잠시 후 다시 시도하세요.')) from None
+    except (TimeoutError,socket.timeout):raise ValueError('Telegram 응답 시간이 초과됐습니다. NAS 인터넷 연결을 확인하세요.') from None
+    except URLError as error:
+        message='NAS의 HTTPS 인증서 또는 시스템 시간을 확인하세요.' if isinstance(error.reason,ssl.SSLError) else 'NAS에서 api.telegram.org에 연결하지 못했습니다. DNS·인터넷 연결을 확인하세요.'
+        raise ValueError(message) from None
+    except Exception:raise ValueError('Telegram 응답을 확인하지 못했습니다. 잠시 후 다시 시도하세요.') from None
 
 def begin(token):
     me=call(token,'getMe')

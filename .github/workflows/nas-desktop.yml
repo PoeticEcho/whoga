@@ -88,6 +88,11 @@ jobs:
             --cap-drop=ALL --security-opt no-new-privileges:true \
             -v "$PWD/nas/check_upload_guidance.py:/app/nas/check_upload_guidance.py:ro" \
             whoga-nas:desktop-test /app/nas/check_upload_guidance.py
+      - name: Telegram setup browser regression without external messaging
+        run: |
+          docker run --rm --network none --read-only --tmpfs /tmp:rw,size=512m,mode=1777 --shm-size=512m --memory=3g \
+            -v "$PWD/nas/check_telegram_setup.py:/app/nas/check_telegram_setup.py:ro" \
+            whoga-nas:desktop-test /app/nas/check_telegram_setup.py
       - name: Sequential native and Playwright desktop and mobile comparison fixture
         run: docker exec -i whoga-nas-test python - < nas/check_comparison.py
       - name: Restart and verify retained settings and desktop recovery

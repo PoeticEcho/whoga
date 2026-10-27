@@ -360,23 +360,39 @@ class App:
             self.state['nextPlanCheck']=0
         self.sync_plan()
 
-    def telegram_action(self, data):
+    def telegram_status(self):
         with self.lock:
-            action=data.get('action');path=self.config_dir/'telegram.json'
-            if action=='begin':
-                self.telegram_session=telegram_setup.begin(data.get('token',''))
-                session=self.telegram_session
-                return dict(url='https://t.me/'+session['username']+'?start='+session['challenge'])
-            if action=='pair':
-                value=telegram_setup.pair(self.telegram_session);atomic(path,value);self.telegram_session=None
-                return dict(message='개인 대화 연결 완료. 테스트 발송 후 자동 알림을 선택하세요.')
+            value=read(self.config_dir/'telegram.json',{})
+            session=self.telegram_session
+            url=None
+            if session and time.time()<session['expires']:
+                url='https://t.me/'+session['username']+'?start='+session['challenge']
+            return dict(connected=bool(value.get('chatId')),username=value.get('username'),enabled=value.get('enabled',False),pairingUrl=url,pairingCommand=('/start '+session['challenge']) if url else None)
+
+    def telegram_action(self, data):
+        action=data.get('action');path=self.config_dir/'telegram.json'
+        if action=='begin':
+            session=telegram_setup.begin(data.get('token','').strip())
+            with self.lock:self.telegram_session=session
+            return dict(url='https://t.me/'+session['username']+'?start='+session['challenge'])
+        if action=='pair':
+            with self.lock:session=self.telegram_session
+            value=telegram_setup.pair(session)
+            with self.lock:
+                if self.telegram_session is not session:raise ValueError('연결 요청이 바뀌었습니다. 새 봇 링크로 다시 연결하세요.')
+                atomic(path,value);self.telegram_session=None
+            return dict(message='개인 대화 연결 완료. 테스트 발송 후 자동 알림을 선택하세요.')
+        with self.lock:
             value=read(path,{})
             if action=='disconnect':atomic(path,{});self.telegram_session=None;return dict(message='연결을 해제했습니다.')
             if not value.get('chatId'):raise ValueError('먼저 봇을 연결하세요.')
-            if action=='test':telegram_setup.call(value['token'],'sendMessage',dict(chat_id=value['chatId'],text='호가정리 연결 테스트가 완료됐습니다.'))
-            elif action=='enable':value['enabled']=data.get('enabled') is True;atomic(path,value)
-            else:raise ValueError('요청을 확인하세요.')
-            return dict(message='설정을 처리했습니다.')
+            if action in ('enable','disable'):
+                value['enabled']=action=='enable' and data.get('enabled') is True;atomic(path,value)
+                return dict(message='자동 알림을 '+('켰습니다.' if value['enabled'] else '껐습니다.'))
+        if action=='test':
+            telegram_setup.call(value['token'],'sendMessage',dict(chat_id=value['chatId'],text='호가정리 연결 테스트가 완료됐습니다.'))
+            return dict(message='테스트 메시지를 보냈습니다. Telegram에서 수신을 확인하세요.')
+        raise ValueError('요청을 확인하세요.')
 
     def run_due(self):
         with self.lock:
@@ -527,6 +543,8 @@ def handler(app, password):
                 return self.reply(200, {'status': 'ok'})
             if not self.authorized():
                 return
+            if self.path == '/api/telegram':
+                return self.reply(200, app.telegram_status())
             if self.path == '/api/status':
                 return self.reply(200, app.snapshot())
             artifact = re.fullmatch(r'/artifacts/([a-f0-9]{32})/([a-f0-9]{32})/(diagnostics\.json|status\.json|full\.json|[a-z0-9-]+\.png)', parsed.path)
@@ -547,7 +565,7 @@ def handler(app, password):
                 if not file.is_relative_to(root) or not file.is_file() or file.suffix != '.js':
                     return self.reply(404, {'error': '찾을 수 없습니다.'})
                 return self.reply(200, file.read_bytes(), 'text/javascript')
-            assets = {'/complex-url.js': ('complex-url.js','text/javascript'), '/': ('index.html', 'text/html'), '/app.js': ('app.js', 'text/javascript'), '/manage.js': ('manage.js', 'text/javascript'), '/style.css': ('style.css', 'text/css')}
+            assets = {'/telegram.js': ('telegram.js','text/javascript'), '/complex-url.js': ('complex-url.js','text/javascript'), '/': ('index.html', 'text/html'), '/app.js': ('app.js', 'text/javascript'), '/manage.js': ('manage.js', 'text/javascript'), '/style.css': ('style.css', 'text/css')}
             assets.update({'/desktop/client.js': ('desktop.js', 'text/javascript'), '/desktop/client.css': ('desktop.css', 'text/css')})
             if self.path in assets:
                 name, mime = assets[self.path]
