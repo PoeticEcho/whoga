@@ -375,9 +375,12 @@ class App:
             session=telegram_setup.begin(data.get('token','').strip())
             with self.lock:self.telegram_session=session
             return dict(url='https://t.me/'+session['username']+'?start='+session['challenge'])
-        if action=='pair':
+        if action in ('pair','auto-pair'):
             with self.lock:session=self.telegram_session
-            value=telegram_setup.pair(session)
+            try:value=telegram_setup.pair(session)
+            except telegram_setup.PairPendingError as error:
+                if action=='auto-pair':return dict(pending=True,message=str(error))
+                raise
             with self.lock:
                 if self.telegram_session is not session:raise ValueError('연결 요청이 바뀌었습니다. 새 봇 링크로 다시 연결하세요.')
                 atomic(path,value);self.telegram_session=None

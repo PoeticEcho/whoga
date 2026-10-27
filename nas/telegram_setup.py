@@ -25,9 +25,12 @@ def begin(token):
     if call(token,'getWebhookInfo').get('url'):raise ValueError('기존 webhook은 변경하지 않습니다. 호가정리 전용 봇을 만드세요.')
     return dict(token=token,username=me['username'],challenge='hg_'+secrets.token_urlsafe(18),expires=time.time()+600,offset=0,nextCheck=0)
 
+class PairPendingError(ValueError):
+    """No matching user action yet; automatic setup should keep waiting."""
+
 def pair(session):
     if not session or time.time()>session['expires']:raise ValueError('연결 시간이 만료됐습니다. 봇 확인부터 다시 진행하세요.')
-    if time.time()<session['nextCheck']:raise ValueError('3초 뒤 다시 확인하세요.')
+    if time.time()<session['nextCheck']:raise PairPendingError('3초 뒤 다시 확인하세요.')
     session['nextCheck']=time.time()+3
     updates=call(session['token'],'getUpdates',dict(offset=session['offset'],timeout=0,limit=100,allowed_updates=['message']))
     matches=set()
@@ -35,5 +38,5 @@ def pair(session):
         session['offset']=max(session['offset'],event.get('update_id',0)+1)
         msg=event.get('message',{});chat=msg.get('chat',{});uid=msg.get('from',{}).get('id')
         if type(uid) is int and uid>0 and chat.get('type')=='private' and chat.get('id')==uid and msg.get('text')=='/start '+session['challenge']:matches.add(uid)
-    if len(matches)!=1:raise ValueError('전용 봇에서 시작을 누른 뒤 연결 확인을 다시 누르세요.')
+    if len(matches)!=1:raise PairPendingError('봇에서 시작을 눌러 주세요. 자동으로 연결을 확인하고 있습니다.')
     return dict(token=session['token'],chatId=matches.pop(),username=session['username'],enabled=False)
