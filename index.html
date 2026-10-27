@@ -7,8 +7,8 @@
   <meta name="description" content="단지별 매도 호가와 관측 변화를 정리합니다.">
   <title>호가정리 · 단지별 호가 기록</title>
   <link rel="icon" href="assets/favicon.png" type="image/png">
-  <link rel="stylesheet" href="assets/style.css?v=3.2.1">
-  <script type="module" src="assets/app.mjs?v=3.2.0"></script>
+  <link rel="stylesheet" href="assets/style.css?v=3.2.2">
+  <script type="module" src="assets/app.mjs?v=3.2.2"></script>
 <meta property="og:title" content="호가정리"><meta property="og:description" content="단지별 매도 호가와 관측 변화를 정리합니다."><meta property="og:image" content="https://poeticecho.github.io/whoga/assets/og.png"><meta name="twitter:card" content="summary_large_image"></head>
 <body>
   <a class="skip" href="#main">본문으로 이동</a>
@@ -19,13 +19,13 @@
     </header>
     <main id="main">
 <nav id="complexTabs" class="complex-tabs" aria-label="단지 선택"></nav>
-      <div class="intro"><div><span class="eyebrow">COMPLEX WATCH</span><h1>단지별 호가를 한눈에.</h1><p>단지를 고르고, 수집 시점별 가격과 매물 변화를 비교하세요.</p></div><span class="schedule" id="scheduleLabel">매일 오전 8:13 전후 · 한국시간</span></div>
+      <h1 class="sr-only">단지별 호가와 관측 변화</h1>
       <section id="statusBanner" class="status-banner" aria-live="polite"><span class="status-dot"></span><div><strong>자료를 불러오고 있습니다.</strong><p>저장된 날짜별 데이터를 확인합니다.</p></div></section>
-      <p id="selectionInfo" class="selection-info" role="status"></p><section class="toolbar" aria-label="비교 날짜 선택">
+      <p id="selectionInfo" class="sr-only" role="status"></p><section class="toolbar" aria-label="비교 날짜 선택">
         <label>기준 시점<select id="snapshotSelect" disabled><option>불러오는 중</option></select></label>
         <span class="compare-arrow" aria-hidden="true">↔</span>
         <label>비교 시점<select id="compareSelect" disabled><option>비교 없음</option></select></label>
-        <div class="toolbar-actions"><button class="button quiet" id="openImportBtn" type="button" aria-expanded="false" aria-controls="importPanel">자료 가져오기</button><button class="button quiet" id="exportJsonBtn" type="button" disabled>현재 자료 저장</button></div>
+        <details class="data-tools"><summary>자료 관리</summary><div class="toolbar-actions"><button class="button quiet" id="openImportBtn" type="button" aria-expanded="false" aria-controls="importPanel">자료 가져오기</button><button class="button quiet" id="exportJsonBtn" type="button" disabled>현재 자료 저장</button></div></details>
       </section>
       <section id="importPanel" class="panel import-panel" hidden aria-labelledby="importHeading">
         <div class="section-head"><div><h2 id="importHeading">수동 자료 가져오기</h2><p>자료 분석 → 결과 확인 → 서버에 저장. 저장한 자료는 날짜별로 누적됩니다.</p></div><button type="button" class="button quiet" id="closeImportBtn">닫기</button></div>
@@ -47,8 +47,8 @@
       </div>
       <div id="content" aria-busy="true"><section id="panel-manage" role="tabpanel" aria-labelledby="tab-manage" hidden><div class="panel"><h2>단지 관리</h2><p>단지 번호 또는 네이버 단지·지도 주소를 붙여넣으세요. 번호로 자동 변환됩니다. 아파트·오피스텔 매매를 최대 3개 단지까지 순환 수집합니다.</p><form id="collectionPlan"><div class="plan-row"><label>단지 번호 1<input id="complexNumber0" inputmode="text" maxlength="16000" placeholder="140635" required></label><label>별칭 (선택)<input id="complexLabel0" maxlength="60" placeholder="단지 이름"></label></div><div class="plan-row"><label>단지 번호 2<input id="complexNumber1" inputmode="text" maxlength="16000" placeholder="선택" ></label><label>별칭 (선택)<input id="complexLabel1" maxlength="60" placeholder="단지 이름"></label></div><div class="plan-row"><label>단지 번호 3<input id="complexNumber2" inputmode="text" maxlength="16000" placeholder="선택" ></label><label>별칭 (선택)<input id="complexLabel2" maxlength="60" placeholder="단지 이름"></label></div><label>수집 간격<select id="rotationHours"><option value="1">1시간마다 한 단지</option><option value="3">3시간마다 한 단지</option><option value="6" selected>6시간마다 한 단지</option></select></label><p id="rotationSummary" class="footnote"></p><label class="check-label"><input id="rotationEnabled" type="checkbox" checked> 순환 수집 및 성공 후 자동 업로드 켜기</label><p class="footnote">저장하면 NAS 3.0 이상이 약 5분 이내 설정을 읽고 첫 단지부터 수집합니다. NAS 전원·인터넷·토큰이 유지되어야 합니다. 실패한 수집은 다음 차례로 넘어가며 기존 자료를 보존합니다.</p><label>설정 저장용 GitHub 토큰<input id="planToken" type="password" autocomplete="off" spellcheck="false" placeholder="whoga 저장소 Contents 읽기·쓰기 권한"></label><p class="footnote">토큰은 이번 저장 요청에만 사용하며 브라우저 저장소에 기록하지 않습니다. 단지 번호·별칭·주기는 공개 저장소에 저장됩니다.</p><button id="savePlan" class="button primary" type="submit">단지·주기 설정 저장</button><p id="planMessage" role="status" aria-live="polite"></p><a id="planCommit" target="_blank" rel="noopener noreferrer" hidden>설정 저장 기록 ↗</a></form></div></section>
         <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
-          <div id="kpiGrid" class="kpi-grid"></div>
           <div class="overview-grid"><section class="panel"><div class="section-head"><div><span class="eyebrow">TODAY'S SNAPSHOT</span><h2>타입별 호가</h2></div><span class="pill">단위: 억 원</span></div><div id="typeCards" class="type-grid"></div><p class="footnote">범위로 제시된 매물은 최저 호가로 통계에 반영합니다.</p></section><section class="panel"><div class="section-head"><div><span class="eyebrow">BY BUILDING</span><h2>동별 최저 호가</h2></div></div><div id="dongChart" class="dong-chart"></div></section></div>
+          <div id="kpiGrid" class="kpi-grid"></div>
           <section class="panel diff-panel"><div class="section-head"><div><span class="eyebrow">OBSERVATION CHANGES</span><h2>비교 자료에서 달라진 점</h2></div><span id="compareLabel" class="muted"></span></div><p class="footnote" id="diffNote"></p><div id="diffCards" class="diff-grid"></div></section>
         </section>
         <section id="panel-listings" role="tabpanel" aria-labelledby="tab-listings" hidden>

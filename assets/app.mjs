@@ -77,8 +77,12 @@ function renderBanner() {
   if (source === 'naver-live' && snap.date.slice(0, 10) < todayKst()) { tone = tone || 'warn'; pieces.push('오늘 자료가 아닙니다. 기준일을 확인하세요.'); }
   if (snap.collectedAt) pieces.push(`자료 입력·수집 시각 ${dateText(snap.collectedAt)}`);
   if (state.status.lastAttemptAt && !entry?.local && (!snap.collectedAt || Date.parse(state.status.lastAttemptAt)>=Date.parse(snap.collectedAt))) pieces.push(`최근 시도 ${dateText(state.status.lastAttemptAt)}`);
-  banner.className = 'status-banner ' + tone;
-  banner.innerHTML = `<span class="status-dot"></span><div><strong>${escape(title)}</strong><p>${pieces.map(escape).join(' · ')}</p></div>`;
+  if (!complete) title='일부 수집 · '+title;
+  if (source==='naver-live' && snap.date.slice(0,10)<todayKst()) title='이전 자료 · '+title;
+  banner.className = 'status-banner compact-status ' + tone;
+  const stamp=snap.collectedAt?new Date(snap.collectedAt):null;
+  const clock=stamp&&!Number.isNaN(stamp.getTime())?new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',hour12:false}).format(stamp):'';
+  banner.innerHTML = `<details class="collection-details"><summary><span class="status-dot"></span><strong>${escape(title)}</strong><span class="status-clock">${escape(clock)}</span><span class="status-more">수집 정보</span></summary><div class="collection-body"><p>${escape($('selectionInfo').textContent)}</p><p>${pieces.map(escape).join(' · ')}</p><p id="scheduleLabel">${escape(state.scheduleText||state.config.dailyTimeLabel||'NAS 예약에 따라 수집합니다.')}</p></div></details>`;
 }
 
 async function loadSelection() {
@@ -290,7 +294,7 @@ async function initialize() {
       state.data.set(id, snap);
       state.entries.push({ id, date: snap.date.slice(0, 10), label: snap.label || snap.date, count: snap.items.length, declaredCount: snap.declaredCount, complete: validateSnapshot(snap).complete, local: true });
     }
-    $('scheduleLabel').textContent = plan ? (plan.enabled ? `${plan.intervalHours}시간 간격 · ${plan.targets.length}개 단지 순환 예약` : '순환 수집 예약 꺼짐') : complexNo==='140635' ? config.dailyTimeLabel : 'NAS 순환 수집 · 마지막 수집 시각 확인';
+    state.scheduleText = plan ? (plan.enabled ? `${plan.intervalHours}시간 간격 · ${plan.targets.length}개 단지 순환 예약` : '순환 수집 예약 꺼짐') : complexNo==='140635' ? config.dailyTimeLabel : 'NAS 순환 수집 · 마지막 수집 시각 확인';
     if (/^https:\/\/fin\.land\.naver\.com\//.test(config.sourceUrl || '')) $('sourceLink').href = config.sourceUrl;
     selectOptions(); $('snapshotSelect').value = index.latest || state.entries[0].id; compareOptions('');
     await loadSelection();
