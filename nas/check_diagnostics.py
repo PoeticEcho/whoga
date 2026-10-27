@@ -3,10 +3,14 @@ import base64
 import json
 import os
 from pathlib import Path
+import sys
 import time
 from urllib.request import Request, urlopen
 
 from playwright.sync_api import sync_playwright
+
+sys.path.insert(0, '/app/nas')
+from version import VERSION
 
 BASE = 'http://127.0.0.1:8899'
 AUTH = 'Basic ' + base64.b64encode(('admin:' + os.environ['DASHBOARD_PASSWORD']).encode()).decode()
@@ -71,7 +75,7 @@ with sync_playwright() as pw:
         return wait_for(finished)
 
     build = api('/api/status')['build']
-    assert build['version'] == '2.5' and len(build['sourceFingerprint']) == 64
+    assert build['version'] == VERSION and len(build['sourceFingerprint']) == 64
     assert build['sourceCommit'] == os.environ['WHOGA_EXPECT_SOURCE_COMMIT']
 
     # Regression: "매물 1" has no "개" suffix. Exercise the real collector and normalizer.
