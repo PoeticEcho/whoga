@@ -54,9 +54,9 @@ class UploadGuidanceTests(unittest.TestCase):
                 self.data['state']['upload']=dict(status='success',key=f"{config['repository']}:{config['branch']}:{run}",
                                                   url='https://github.com/PoeticEcho/whoga/blob/map-collector-v2/nas-imports/140635/'+run+'.json')
                 route.fulfill(json={'message':'fixture upload'})
-            elif path in ('/','/app.js','/style.css'):
+            elif path in ('/','/app.js','/complex-url.js','/style.css'):
                 name='index.html' if path=='/' else path[1:]
-                route.fulfill(body=(ROOT/'static'/name).read_text(),content_type={'index.html':'text/html','app.js':'text/javascript','style.css':'text/css'}[name])
+                route.fulfill(body=(ROOT/'static'/name).read_text(),content_type={'index.html':'text/html','app.js':'text/javascript','complex-url.js':'text/javascript','style.css':'text/css'}[name])
             else:route.fulfill(status=404,body='')
         self.context.route('**/*',route)
         self.page.goto('http://dashboard.test/')
@@ -68,6 +68,27 @@ class UploadGuidanceTests(unittest.TestCase):
 
     def refresh(self):
         self.page.evaluate('refresh()')
+
+    def test_legacy_and_compressed_map_addresses_save_canonical_target(self):
+        urls = [('https://new.land.naver.com/complexes/140634?articleNo=2657827868', '140634'),
+                ('https://new.land.naver.com/complexes/150278?ms=2zCC5s,3AoEvz,16&a=APT:PRE', '150278')]
+        layer=self.page.evaluate("LZString.compressToEncodedURIComponent(JSON.stringify([{id:'complex_detail',params:{complexId:150278}}]))")
+        urls.append(('https://fin.land.naver.com/map?layer='+layer, '150278'))
+        for source, expected in urls:
+            self.page.locator('#url').fill(source)
+            self.page.locator('#url').press('Tab')
+            canonical='https://fin.land.naver.com/complexes/'+expected
+            self.assertEqual(self.page.locator('#url').input_value(), canonical)
+            self.page.locator('#settings button[type=submit]').click()
+            self.page.wait_for_function("document.querySelector('#dirty').textContent==='저장됨'")
+            self.assertEqual(self.data['config']['url'], canonical)
+
+    def test_invalid_target_is_not_sent_to_settings_api(self):
+        self.page.locator('#url').fill('https://new.land.naver.com/articles?articleNo=2657827868')
+        self.page.locator('#url').press('Tab')
+        self.page.locator('#settings button[type=submit]').click()
+        self.assertFalse(self.page.locator('#url').evaluate('el=>el.checkValidity()'))
+        self.assertNotIn('/api/settings', self.requests)
 
     def test_success_with_missing_token_explains_disabled_button(self):
         self.assertTrue(self.page.locator('#upload').is_disabled())

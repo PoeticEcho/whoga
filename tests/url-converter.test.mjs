@@ -7,8 +7,8 @@ const html=readFileSync(new URL('../url-converter.html',import.meta.url),'utf8')
 const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
 const context=vm.createContext({URL});
 vm.runInContext(scripts[0],context);
-vm.runInContext(scripts[1].slice(scripts[1].indexOf('function extractComplexId'),scripts[1].indexOf('function message')),context);
-const extract=context.extractComplexId;
+const extract=context.WhogaComplexUrl.extractComplexId;
+assert.equal(scripts[0].trim(),readFileSync(new URL('../nas/static/complex-url.js',import.meta.url),'utf8').trim());
 const map=layers=>'https://fin.land.naver.com/map?layer='+encodeURIComponent(context.LZString.compressToEncodedURIComponent(JSON.stringify(layers)));
 const complex=id=>({id:'complex_detail',params:{complexId:id}});
 
@@ -32,4 +32,13 @@ test('malformed layer, invalid identifiers, and lookalike hosts fail clearly',()
  for(const url of ['javascript:alert(1)','https://fin.land.naver.com.evil.test/complexes/1','https://user:pass@fin.land.naver.com/complexes/1']) assert.throws(()=>extract(url),/네이버 부동산 주소/);
  assert.throws(()=>extract('https://fin.land.naver.com/map?layer=broken'),/정보/);
  assert.throws(()=>extract(map({id:'complex_detail'})),/형식/);
+});
+
+test('legacy Naver URLs map the complex ID, not articleNo or map coordinates',()=>{
+ for(const [id,query] of [['140634','?ms=2zClPZ,3AoFvS,16&a=APT:PRE:ABYG:JGC&e=RETAIL&articleNo=2657827868'],['150278','?ms=2zCC5s,3AoEvz,16&a=APT:PRE:ABYG:JGC&e=RETAIL']]) {
+  const url='https://new.land.naver.com/complexes/'+id+query;
+  assert.equal(extract(url),id);
+  assert.equal(context.WhogaComplexUrl.normalize(url),'https://fin.land.naver.com/complexes/'+id);
+ }
+ assert.throws(()=>extract('https://new.land.naver.com/articles?articleNo=2657827868'),/단지 페이지/);
 });

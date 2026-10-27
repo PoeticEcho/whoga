@@ -32,6 +32,8 @@ jobs:
           python-version: '3.12'
       - name: Existing dashboard and desktop gateway tests
         run: python -m unittest discover -s nas -p 'test_*.py' -v
+      - name: Shared Naver URL decoder and standalone page consistency
+        run: node --test tests/url-converter.test.mjs
       - name: Build the actual NAS image
         run: docker build --build-arg VCS_REF="$GITHUB_SHA" --tag whoga-nas:desktop-test --file nas/Dockerfile .
       - name: Start with the DS420+ compatible restrictions

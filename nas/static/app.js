@@ -63,8 +63,19 @@ async function refresh(){
   }catch(error){$('connection').textContent='● 연결 끊김';notice(error.message,true);}
 }
 $('settings').addEventListener('input',()=>{dirty=true;$('dirty').textContent='저장하지 않은 변경사항';document.querySelectorAll('[data-mode]').forEach(b=>b.disabled=true);renderUpload();});
+function normalizeTargetUrl() {
+  const field=$('url');
+  try {
+    const normalized=WhogaComplexUrl.normalize(field.value), changed=normalized!==field.value;
+    field.value=normalized;field.setCustomValidity('');
+    $('urlHint').textContent=changed?'단지 '+normalized.split('/').at(-1)+'의 수집용 주소로 변환했습니다. 매매 필터로 수집합니다.':'수집 시 단지와 매매 필터를 확인합니다.';
+    return true;
+  } catch(error) {field.setCustomValidity(error.message);$('urlHint').textContent=error.message;return false;}
+}
+$('url').addEventListener('input',()=>{$('url').setCustomValidity('');});
+$('url').addEventListener('blur',()=>{if($('url').value.trim())normalizeTargetUrl();});
 $('scheduleMode').addEventListener('change',scheduleControls);
-$('settings').addEventListener('submit',async event=>{event.preventDefault();const data={};for(const key of ['url','repository','branch','githubToken','scheduleMode','dailyTime'])data[key]=$(key).value.trim();data.intervalMinutes=Number($('intervalMinutes').value);for(const key of ['scheduleEnabled','autoUpload','clearToken'])data[key]=$(key).checked;try{await api('/api/settings',data);dirty=false;$('dirty').textContent='저장됨';$('githubToken').value='';$('clearToken').checked=false;initialized=false;notice('설정을 저장했습니다.');await refresh();}catch(error){notice(error.message,true);}});
+$('settings').addEventListener('submit',async event=>{event.preventDefault();if(!normalizeTargetUrl()){$('url').reportValidity();return;}const data={};for(const key of ['url','repository','branch','githubToken','scheduleMode','dailyTime'])data[key]=$(key).value.trim();data.intervalMinutes=Number($('intervalMinutes').value);for(const key of ['scheduleEnabled','autoUpload','clearToken'])data[key]=$(key).checked;try{await api('/api/settings',data);dirty=false;$('dirty').textContent='저장됨';$('githubToken').value='';$('clearToken').checked=false;initialized=false;notice('설정을 저장했습니다.');await refresh();}catch(error){notice(error.message,true);}});
 for(const button of document.querySelectorAll('[data-mode]'))button.addEventListener('click',async()=>{button.disabled=true;try{await api('/api/run',{mode:button.dataset.mode});notice('실행을 시작했습니다. 아래 로그에서 진행 상황을 확인하세요.');await refresh();}catch(error){notice(error.message,true);await refresh();}});
 for(const [id,path] of [['stop','stop'],['upload','upload'],['githubTest','github-test']])$(id).addEventListener('click',async()=>{try{const r=await api('/api/'+path,{});notice(r.message);await refresh();}catch(error){notice(error.message,true);}});
 $('copyLog').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('log').textContent);notice('로그를 복사했습니다.');}catch{const range=document.createRange();range.selectNodeContents($('log'));const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);notice('로그를 선택했습니다. 복사 메뉴를 사용하세요.');}});

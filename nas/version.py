@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 import sys
 
-VERSION = '2.5.3'
+VERSION = '2.5.4'
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_FILES = [
     'experiments/supplied-v2/collector.py',
