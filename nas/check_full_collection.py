@@ -90,9 +90,10 @@ with sync_playwright() as pw:
         assert time.monotonic() < deadline, 'Full collection timed out'
         page.wait_for_timeout(100)
     assert state['result'] == 'full-passed', state
-    assert len(documents) == 1, ('Unnecessary map navigation lost the loaded list', documents)
+    assert len(documents) == 2, ('Open one fresh document per run, then retain probe/full session', documents)
     run = state['lastResult']['runId']
     payload = json.loads((Path('/output/jobs') / state['jobId'] / 'runs' / run / 'full.json').read_text())
+    assert payload['target']['documentNavigatedAt']
     assert payload['displayedCardCount'] == payload['collectedCardCount'] == 8, payload
     assert payload['articleCount'] == 9 and len({a['articleNo'] for a in payload['articles']}) == 9
     assert payload['cards'][0]['articleNos'] == ['2001','2002']
@@ -103,4 +104,4 @@ with sync_playwright() as pw:
     assert report['resources']['browser']['debuggingPipe'] is False
     assert not any(e['kind'] == 'javascript-error' for e in report['duringRun']['events'])
     context.unroute('**/*', route)
-print('PASS: native full collection, lazy pagination, expanded group members, preserved map session and validated JSON', flush=True)
+print('PASS: native full collection, lazy pagination, expanded group members, fresh document, preserved probe/full session and validated JSON', flush=True)

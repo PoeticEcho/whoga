@@ -130,11 +130,17 @@ def main():
                         # Opening a document is not a successful collection.
                         status['status'] = 'page-opened'
                     else:
+                        document_opened_at = None
                         def stage(mode):
+                            nonlocal document_opened_at
                             progress = lambda name, details: step(mode + ':' + name, details)
                             raw, expected, counts, final_url, target = collector.collect(
                                 page, args.url, probe=(mode == 'probe'), progress=progress,
-                                navigation_url=args.url + '?tab=article&articleTradeTypes=A1')
+                                navigation_url=args.url + '?tab=article&articleTradeTypes=A1',
+                                fresh_navigation=(mode == 'probe'))
+                            if target.get('documentNavigatedAt'):
+                                document_opened_at = target['documentNavigatedAt']
+                            target['documentNavigatedAt'] = document_opened_at
                             step(mode + ':normalize')
                             groups, articles = collector.normalize(raw, len(raw) if mode == 'probe' else expected,
                                                                   target['complexName'], target['estateTypeText'])

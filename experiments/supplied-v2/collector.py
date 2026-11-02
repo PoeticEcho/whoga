@@ -189,12 +189,13 @@ def listing_complex_id(page):
     return identities.pop()
 
 
-def collect(page, url, probe=False, sample_cards=3, progress=None, navigation_url=None):
+def collect(page, url, probe=False, sample_cards=3, progress=None, navigation_url=None, fresh_navigation=False):
     def step(name, **details):
         if progress:
             progress(name, details)
 
-    step('navigation')
+    step('navigation', freshNavigationRequested=fresh_navigation)
+    document_navigated_at = None
     requested_id = validate_url(url)
     # A user may already have opened this complex in the visible NAS browser.
     # Preserve its loading progress instead of discarding the tab and session.
@@ -206,10 +207,12 @@ def collect(page, url, probe=False, sample_cards=3, progress=None, navigation_ur
             same_complex = listing_complex_id(page) == requested_id
         except ValueError:
             same_complex = False
-    if not same_complex:
+    if fresh_navigation or not same_complex:
         response = page.goto(navigation_url or url, wait_until='commit', timeout=180000)
         if not response or response.status >= 400:
             raise RuntimeError('원문 문서 HTTP 응답 실패. 기존 결과를 유지합니다.')
+        document_navigated_at = now()
+        step('document-opened', documentNavigatedAt=document_navigated_at, documentStatus=response.status)
     step('complex-panel')
     panel = page.locator('#complex_detail')
     panel.wait_for(state='visible', timeout=300000)
@@ -248,7 +251,7 @@ def collect(page, url, probe=False, sample_cards=3, progress=None, navigation_ur
     }''', arg=CARDS, timeout=30000)
     expected = header_count(page)
     observed_counts = [cards.count()]
-    metadata = {'complexNo': complex_id, 'complexName': complex_name, 'tradeType': 'A1',
+    metadata = {'documentNavigatedAt': document_navigated_at, 'complexNo': complex_id, 'complexName': complex_name, 'tradeType': 'A1',
                 'sourceUrl': url, 'scope': 'selected-complex-sale-with-current-panel-filters',
                 'panelFilters': panel.locator('button[id]').evaluate_all('(els) => els.map(el => ({id:el.id,text:el.textContent.trim()}))')}
     # 실제 스크롤 대상은 window가 아니라 #complex_detail입니다.

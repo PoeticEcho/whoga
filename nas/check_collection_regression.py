@@ -77,6 +77,23 @@ class CollectionRegression(unittest.TestCase):
         self.assertTrue(snapshot['panelTabs'][0]['ariaHidden'])
         self.assertGreater(snapshot['panelScroll']['top'], 0)
 
+    def test_new_run_reopens_stale_122_cards_and_reads_current_118(self):
+        self.page.evaluate('() => {while(added<122)append();}')
+        self.assertEqual(self.page.locator(collector.CARDS).count(),122)
+        def current_response(route):
+            self.documents.append(route.request.url)
+            route.fulfill(status=200,content_type='text/html; charset=utf-8',body=HTML.replace('122','118'))
+        self.context.route('**/*',current_response)
+        for run_index in range(2):
+            raw,count,_,_,probe_target=collector.collect(self.page,TARGET,probe=True,
+                navigation_url=TARGET+'?tab=article&articleTradeTypes=A1',fresh_navigation=True)
+            self.assertEqual(count,118)
+            self.assertIsNotNone(probe_target['documentNavigatedAt'])
+            raw,count,observations,_,target=collector.collect(self.page,TARGET,probe=False)
+            groups,articles=collector.normalize(raw,count,target['complexName'],target['estateTypeText'])
+            self.assertEqual((count,len(groups),len(articles)),(118,118,148))
+            self.assertEqual(len(self.documents),run_index+2,'Refresh once per run; retain probe/full document')
+
     def test_name_variation_and_duplicate_sticky_tab_keep_identity(self):
         self.page.evaluate("""() => {
           const tab=document.querySelector('nav a');
