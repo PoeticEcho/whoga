@@ -56,7 +56,7 @@ async function refresh(){
     $('nextRun').textContent=c.scheduleEnabled?'다음 실행: '+time(s.nextRun)+' (한국 시각)':'예약 실행 꺼짐';
     $('lastRun').textContent=time(s.startedAt);
     $('planState').textContent=(s.planMessage||'원격 설정이 없으면 기존 예약을 유지합니다.') + (c.targets?.length ? ` · ${c.targets.length}개 단지 순환 / ${c.intervalMinutes/60}시간 간격 · 현재 ${s.activeUrl||c.url}` : '');
-    $('runTrigger').textContent=s.trigger==='startup'?'업데이트 후 최초 실행':s.trigger==='scheduled'?'예약 실행':s.trigger==='manual'?'수동 실행':'실행 방식 미기록';
+    $('runTrigger').textContent=s.trigger==='telegram'?'Telegram 명령 실행':s.trigger==='startup'?'업데이트 후 최초 실행':s.trigger==='scheduled'?'예약 실행':s.trigger==='manual'?'수동 실행':'실행 방식 미기록';
     $('modeLabel').textContent=s.mode||'최근 실행';
     const log=$('log'),bottom=log.scrollHeight-log.scrollTop-log.clientHeight<30;
     log.textContent=latest.log||'아직 실행 기록이 없습니다.';

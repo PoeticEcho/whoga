@@ -23,6 +23,7 @@ from urllib.parse import parse_qs, quote, unquote, urlsplit
 from urllib.request import Request, urlopen
 import uuid
 import telegram_setup
+import telegram_control
 from zoneinfo import ZoneInfo
 from version import build_info
 from plan import validate_plan
@@ -138,6 +139,8 @@ class App:
         self.cancelled = False
         self.desktop_tickets = {}
         self.build = build_info()
+        self.telegram_receive_lock = threading.Lock()
+        self.telegram_control_boot = time.time()
         self.telegram_session = None
         self.log_path = self.output / 'current.log'
         self.save()
@@ -220,6 +223,9 @@ class App:
                 self.update_schedule()
             self.state.update(running=True, jobId=job, mode=mode, trigger=trigger or ('scheduled' if scheduled else 'manual'), startedAt=time.time(), result='running',
                               message='실행 중', lastResult=None)
+            if trigger=='telegram':
+                tg=read(self.config_dir/'telegram.json',{})
+                self.state['telegramJob']=dict(jobId=job,chatId=tg.get('chatId'),binding=telegram_control.binding(tg))
             self.log_path.write_text('')
             self.save()
             threading.Thread(target=self.worker, args=(mode, job, config), daemon=True).start()
@@ -274,6 +280,9 @@ class App:
                 with self.lock:
                     self.state['upload'] = dict(status='failed', message=str(exc), at=time.time())
                     self.save()
+                self.telegram_job_result(job, '전체 수집 성공 · GitHub 업로드 시작 실패: '+str(exc))
+        elif mode=='full':
+            self.telegram_job_result(job, '전체 수집 성공 · JSON은 NAS에 저장됐습니다. 자동 업로드는 꺼져 있습니다.' if self.state['result']=='full-passed' else '수집 실패: '+self.state.get('message','진단 기록을 확인하세요.'))
 
     def stop(self):
         with self.lock:
@@ -323,12 +332,39 @@ class App:
         with self.lock:
             self.state['upload'] = upload
             self.save()
+        self.telegram_job_result(self.state.get('successfulJob'), 'GitHub 업로드 완료 · 공개 앱 반영 대기' if upload['status']=='success' else 'GitHub 업로드 실패: '+upload.get('message','확인 필요'))
         tg=read(self.config_dir/'telegram.json',{})
-        if upload['status']=='success' and tg.get('enabled') and tg.get('chatId'):
+        command_job=self.state.get('telegramJob',{}).get('jobId')==self.state.get('successfulJob')
+        if not command_job and upload['status']=='success' and tg.get('enabled') and tg.get('chatId'):
             try:
                 telegram_setup.call(tg['token'],'sendMessage',dict(chat_id=tg['chatId'],text=f"호가정리 · {payload['target']['complexName']}\n{payload['collectedAt']}\n{payload['collectedCardCount']}카드 / {payload['articleCount']}개별 매물\nGitHub 전달 완료 · 공개 앱 반영 대기\nhttps://poeticecho.github.io/whoga/?complex={payload['target']['complexNo']}"))
             except ValueError:
                 with self.lock:self.state['telegramError']='알림 전송 실패 · 수집·업로드 결과는 유지됩니다.';self.save()
+
+    def telegram_job_result(self, job, message):
+        with self.lock:
+            request=self.state.get('telegramJob',{})
+            tg=read(self.config_dir/'telegram.json',{})
+            if not job or request.get('jobId')!=job or not tg.get('chatId') or request.get('binding')!=telegram_control.binding(tg):return
+            if request.get('notified'):return
+            request['notified']=True;self.save()
+            result=self.state.get('lastResult') or {};counts=result.get('full') or {}
+            text='호가정리 · '+message
+            if counts:text+=f"\n{counts.get('cards','—')}카드 / {counts.get('articles','—')}개별 매물"
+            text+='\nhttps://poeticecho.github.io/whoga/?complex='+self.state.get('activeUrl',self.config['url']).rsplit('/',1)[-1]
+        try:telegram_setup.call(tg['token'],'sendMessage',dict(chat_id=tg['chatId'],text=text))
+        except ValueError:
+            with self.lock:self.state['telegramControlError']='완료 알림 전송 실패 · NAS에서 결과를 확인하세요.';self.save()
+
+    def telegram_commands(self):
+        while True:
+            try:
+                telegram_control.poll(self)
+                with self.lock:
+                    if self.state.pop('telegramControlError',None):self.save()
+            except Exception:
+                with self.lock:self.state['telegramControlError']='Telegram 명령 수신 실패 · 봇 중복 사용과 NAS 인터넷을 확인하세요.';self.save()
+            time.sleep(3)
 
     def collections(self):
         latest={}
@@ -367,7 +403,7 @@ class App:
             url=None
             if session and time.time()<session['expires']:
                 url='https://t.me/'+session['username']+'?start='+session['challenge']
-            return dict(connected=bool(value.get('chatId')),username=value.get('username'),enabled=value.get('enabled',False),pairingUrl=url,pairingCommand=('/start '+session['challenge']) if url else None)
+            return dict(connected=bool(value.get('chatId')),username=value.get('username'),enabled=value.get('enabled',False),controlEnabled=value.get('controlEnabled',True),controlError=self.state.get('telegramControlError'),pairingUrl=url,pairingCommand=('/start '+session['challenge']) if url else None)
 
     def telegram_action(self, data):
         action=data.get('action');path=self.config_dir/'telegram.json'
@@ -377,7 +413,8 @@ class App:
             return dict(url='https://t.me/'+session['username']+'?start='+session['challenge'])
         if action in ('pair','auto-pair'):
             with self.lock:session=self.telegram_session
-            try:value=telegram_setup.pair(session)
+            try:
+                with self.telegram_receive_lock:value=telegram_setup.pair(session)
             except telegram_setup.PairPendingError as error:
                 if action=='auto-pair':return dict(pending=True,message=str(error))
                 raise
@@ -389,6 +426,9 @@ class App:
             value=read(path,{})
             if action=='disconnect':atomic(path,{});self.telegram_session=None;return dict(message='연결을 해제했습니다.')
             if not value.get('chatId'):raise ValueError('먼저 봇을 연결하세요.')
+            if action in ('control-on','control-off'):
+                value['controlEnabled']=action=='control-on';value['controlSince']=time.time();atomic(path,value)
+                return dict(message='텔레그램 명령 제어를 '+('켰습니다.' if value['controlEnabled'] else '껐습니다.'))
             if action in ('enable','disable'):
                 value['enabled']=action=='enable' and data.get('enabled') is True;atomic(path,value)
                 return dict(message='자동 알림을 '+('켰습니다.' if value['enabled'] else '껐습니다.'))
@@ -702,6 +742,7 @@ def main():
     password = dashboard_password(config_dir)
     app = App(config_dir, os.environ.get('WHOGA_OUTPUT_DIR', '/output'))
     threading.Thread(target=app.scheduler, daemon=True).start()
+    threading.Thread(target=app.telegram_commands, daemon=True).start()
     server = ThreadingHTTPServer(('0.0.0.0', 8899), handler(app, password))
     print('WhoGa NAS dashboard ready on port 8899', flush=True)
     try:

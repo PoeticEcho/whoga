@@ -19,6 +19,8 @@
     if(pairUrl&&!busy&&!pairing&&!pairTimer)pairTimer=setTimeout(autoPair,4000);
     if(!pairUrl&&pairTimer){clearTimeout(pairTimer);pairTimer=null;}
     el('tgOpen').hidden=!data.pairingUrl;if(data.pairingUrl)el('tgOpen').href=data.pairingUrl;else el('tgOpen').removeAttribute('href');
+    el('tgControlState').textContent=(data.connected ? (data.controlEnabled?'명령 제어 켜짐 · 본인 개인 대화만 허용':'명령 제어 꺼짐') : '봇 연결 후 명령을 사용할 수 있습니다.')+(data.controlError?' · '+data.controlError:'');
+    el('tgControlOn').disabled=busy||!data.connected||data.controlEnabled;el('tgControlOff').disabled=busy||!data.connected||!data.controlEnabled;
     el('tgBegin').disabled=busy;el('tgPair').disabled=busy||!data.pairingUrl;
     for(const id of ['tgTest','tgOff'])el(id).disabled=busy||!data.connected;
     el('tgEnable').disabled=busy||!data.connected||data.enabled;
@@ -44,7 +46,7 @@
     catch(error){el('tgMessage').textContent=error.message;}
     finally{busy=false;await refresh();}
   }
-  for(const [id,name]of [['tgBegin','begin'],['tgPair','pair'],['tgTest','test'],['tgEnable','enable'],['tgDisable','disable'],['tgOff','disconnect']])
+  for(const [id,name]of [['tgBegin','begin'],['tgPair','pair'],['tgTest','test'],['tgEnable','enable'],['tgDisable','disable'],['tgOff','disconnect'],['tgControlOn','control-on'],['tgControlOff','control-off']])
     el(id).addEventListener('click',()=>action(name==='disable'?'disable':name));
   el('tgCommand').addEventListener('click',()=>el('tgCommand').select());
   window.addEventListener('focus',()=>{if(!busy&&!pairing)refresh();});
