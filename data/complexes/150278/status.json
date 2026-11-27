@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "lastAttemptResult": "success",
+  "lastAttemptAt": "2026-11-28T03:23:10+09:00",
+  "lastSuccessAt": "2026-11-28T03:23:10+09:00",
+  "latestCollectedDate": "2026-11-28",
+  "sourceKind": "naver-live",
+  "declaredCount": 5,
+  "verifiedCount": 5,
+  "collectionPath": "nas-docker",
+  "transport": "nas-github-import",
+  "message": "NAS 전체 카드·묶음 매물·가격 검증 후 공개 앱 자료로 변환했습니다."
+}
