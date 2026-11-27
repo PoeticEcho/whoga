@@ -1,84 +1,12 @@
 {
   "schemaVersion": 2,
   "date": "2026-11-27",
-  "collectedAt": "2026-11-27T20:53:23+09:00",
+  "collectedAt": "2026-11-27T21:27:15+09:00",
   "count": 123,
   "declaredCount": 123,
   "items": [
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_0",
-      "articleId": null,
-      "articleNos": [
-        "2664523367",
-        "2663570687",
-        "2663443004",
-        "2663419316",
-        "2663299672",
-        "2664089334",
-        "2662731952",
-        "2662494064",
-        "2662424223",
-        "2662092664",
-        "2661951311",
-        "2661697748",
-        "2662580676",
-        "2662634600",
-        "2662208715",
-        "2662143171",
-        "2660538680",
-        "2660406824",
-        "2658822079",
-        "2660139367",
-        "2658588512",
-        "2659219687",
-        "2658920939",
-        "2658690536"
-      ],
-      "dong": "105동",
-      "type": "78OB",
-      "floor": "54/58층",
-      "direction": "남서향",
-      "floorCat": "고층",
-      "priceRaw": "7억",
-      "minPrice": 7.0,
-      "maxPrice": 7.0,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 24,
-      "agencyInfo": "중개사 24곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_1",
-      "articleId": null,
-      "articleNos": [
-        "2664463529",
-        "2664382154",
-        "2664369309",
-        "2664228045",
-        "2663361810",
-        "2663111608",
-        "2662910820",
-        "2662104822",
-        "2660335942",
-        "2658569702"
-      ],
-      "dong": "103동",
-      "type": "78OB",
-      "floor": "20/58층",
-      "direction": "남서향",
-      "floorCat": "중층",
-      "priceRaw": "5억 4,000",
-      "minPrice": 5.4,
-      "maxPrice": 5.4,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 10,
-      "agencyInfo": "중개사 10곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_2",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_0",
       "articleId": null,
       "articleNos": [
         "2664523323",
@@ -89,8 +17,8 @@
         "2663112546",
         "2662650664",
         "2662594337",
-        "2662424168",
         "2662458988",
+        "2662424168",
         "2662069995",
         "2662106951",
         "2662143166",
@@ -120,41 +48,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_3",
-      "articleId": null,
-      "articleNos": [
-        "2664523397",
-        "2664223902",
-        "2663942516",
-        "2663567357",
-        "2663442205",
-        "2662731984",
-        "2662581522",
-        "2662424213",
-        "2661980165",
-        "2661790376",
-        "2661832156",
-        "2661550879",
-        "2660907583",
-        "2659312185",
-        "2660604464"
-      ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "47/58층",
-      "direction": "남동향",
-      "floorCat": "고층",
-      "priceRaw": "6억 2,000",
-      "minPrice": 6.2,
-      "maxPrice": 6.2,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 15,
-      "agencyInfo": "중개사 15곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_4",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_1",
       "articleId": null,
       "articleNos": [
         "2664523369",
@@ -162,14 +56,14 @@
         "2663443013",
         "2662783790",
         "2662495237",
-        "2662458973",
-        "2662479608",
-        "2662345134",
         "2662424166",
+        "2662458973",
+        "2662345134",
+        "2662479608",
         "2663567703",
         "2662143152",
-        "2661340515",
         "2661342611",
+        "2661340515",
         "2660915828",
         "2662070007",
         "2660407043",
@@ -190,107 +84,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_5",
-      "articleId": null,
-      "articleNos": [
-        "2664523404",
-        "2663864113",
-        "2663609037",
-        "2663567968",
-        "2663225656",
-        "2663059660",
-        "2662575457",
-        "2662424210",
-        "2662208683",
-        "2662075003",
-        "2662143117",
-        "2661695926",
-        "2661345156",
-        "2660916039",
-        "2660642818",
-        "2660407104",
-        "2660031477",
-        "2661096950",
-        "2660417181",
-        "2659020262",
-        "2658965882",
-        "2660018894",
-        "2658333637",
-        "2658020915"
-      ],
-      "dong": "103동",
-      "type": "78OB",
-      "floor": "33/58층",
-      "direction": "남서향",
-      "floorCat": "중층",
-      "priceRaw": "7억",
-      "minPrice": 7.0,
-      "maxPrice": 7.0,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 24,
-      "agencyInfo": "중개사 24곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_6",
-      "articleId": null,
-      "articleNos": [
-        "2664465822",
-        "2663751270",
-        "2663943439",
-        "2663392127",
-        "2662683917",
-        "2661044862",
-        "2660593318",
-        "2659152216"
-      ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "45/58층",
-      "direction": "남서향",
-      "floorCat": "고층",
-      "priceRaw": "5억 7,000 ~ 6억",
-      "minPrice": 5.7,
-      "maxPrice": 6.0,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 8,
-      "agencyInfo": "중개사 8곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_7",
-      "articleId": null,
-      "articleNos": [
-        "2664452301",
-        "2664465819",
-        "2663749713",
-        "2661079070",
-        "2662789233",
-        "2662103566",
-        "2662678581",
-        "2662178744",
-        "2660629114",
-        "2660593853",
-        "2658570421"
-      ],
-      "dong": "103동",
-      "type": "78OB",
-      "floor": "19/58층",
-      "direction": "남서향",
-      "floorCat": "저층",
-      "priceRaw": "5억 8,000",
-      "minPrice": 5.8,
-      "maxPrice": 5.8,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 11,
-      "agencyInfo": "중개사 11곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_8",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_2",
       "articleId": null,
       "articleNos": [
         "2664423977",
@@ -323,40 +117,68 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_9",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_3",
       "articleId": null,
       "articleNos": [
-        "2664369298",
-        "2664228646",
-        "2663753898",
-        "2663943691",
-        "2663667552",
-        "2663115434",
-        "2662911105",
-        "2662650639",
-        "2660604465",
-        "2658664675"
+        "2664465822",
+        "2663751270",
+        "2663943439",
+        "2663392127",
+        "2662683917",
+        "2661044862",
+        "2660593318",
+        "2659152216"
       ],
-      "dong": "103동",
+      "dong": "102동",
       "type": "78OB",
-      "floor": "22/58층",
+      "floor": "45/58층",
       "direction": "남서향",
-      "floorCat": "중층",
-      "priceRaw": "5억 4,000 ~ 5억 5,000",
-      "minPrice": 5.4,
-      "maxPrice": 5.5,
+      "floorCat": "고층",
+      "priceRaw": "5억 7,000 ~ 6억",
+      "minPrice": 5.7,
+      "maxPrice": 6.0,
       "confirmDate": "2026.11.27",
-      "agencyCount": 10,
-      "agencyInfo": "중개사 10곳 공동등록",
+      "agencyCount": 8,
+      "agencyInfo": "중개사 8곳 공동등록",
       "desc": "",
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_10",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_4",
       "articleId": null,
       "articleNos": [
-        "2664361463",
+        "2664465819",
+        "2664452301",
+        "2663749713",
+        "2661079070",
+        "2662789233",
+        "2662103566",
+        "2662678581",
+        "2662178744",
+        "2660593853",
+        "2660629114",
+        "2658570421"
+      ],
+      "dong": "103동",
+      "type": "78OB",
+      "floor": "19/58층",
+      "direction": "남서향",
+      "floorCat": "저층",
+      "priceRaw": "5억 8,000",
+      "minPrice": 5.8,
+      "maxPrice": 5.8,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 11,
+      "agencyInfo": "중개사 11곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_5",
+      "articleId": null,
+      "articleNos": [
         "2664523353",
+        "2664361463",
         "2664369291",
         "2664229745",
         "2663296134",
@@ -366,9 +188,9 @@
         "2663801458",
         "2662673077",
         "2662424171",
+        "2662208729",
         "2662104483",
         "2662143149",
-        "2662208729",
         "2662168500",
         "2661810078",
         "2661550438",
@@ -393,7 +215,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_11",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_6",
       "articleId": null,
       "articleNos": [
         "2664523338",
@@ -426,7 +248,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_12",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_7",
       "articleId": null,
       "articleNos": [
         "2664523363",
@@ -456,16 +278,122 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_13",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_8",
       "articleId": null,
       "articleNos": [
-        "2664453428",
+        "2664369298",
+        "2664228646",
+        "2663943691",
+        "2663753898",
+        "2663667552",
+        "2663115434",
+        "2662911105",
+        "2662650639",
+        "2660604465",
+        "2658664675"
+      ],
+      "dong": "103동",
+      "type": "78OB",
+      "floor": "22/58층",
+      "direction": "남서향",
+      "floorCat": "중층",
+      "priceRaw": "5억 4,000 ~ 5억 5,000",
+      "minPrice": 5.4,
+      "maxPrice": 5.5,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 10,
+      "agencyInfo": "중개사 10곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_9",
+      "articleId": null,
+      "articleNos": [
+        "2664523397",
+        "2664223902",
+        "2663942516",
+        "2663567357",
+        "2663442205",
+        "2662731984",
+        "2662581522",
+        "2662424213",
+        "2661980165",
+        "2661832156",
+        "2661790376",
+        "2661550879",
+        "2660907583",
+        "2659312185",
+        "2660604464"
+      ],
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "47/58층",
+      "direction": "남동향",
+      "floorCat": "고층",
+      "priceRaw": "6억 2,000",
+      "minPrice": 6.2,
+      "maxPrice": 6.2,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 15,
+      "agencyInfo": "중개사 15곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_10",
+      "articleId": null,
+      "articleNos": [
+        "2664523404",
+        "2663864113",
+        "2663567968",
+        "2663609037",
+        "2663225656",
+        "2663059660",
+        "2662575457",
+        "2662424210",
+        "2662143117",
+        "2662208683",
+        "2662075003",
+        "2661695926",
+        "2661345156",
+        "2660916039",
+        "2660642818",
+        "2660407104",
+        "2660031477",
+        "2661096950",
+        "2660417181",
+        "2659020262",
+        "2658965882",
+        "2660018894",
+        "2658333637",
+        "2658020915"
+      ],
+      "dong": "103동",
+      "type": "78OB",
+      "floor": "33/58층",
+      "direction": "남서향",
+      "floorCat": "중층",
+      "priceRaw": "7억",
+      "minPrice": 7.0,
+      "maxPrice": 7.0,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 24,
+      "agencyInfo": "중개사 24곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_11",
+      "articleId": null,
+      "articleNos": [
         "2664463533",
+        "2664453428",
         "2664228985",
         "2663115433",
         "2662911416",
-        "2662459000",
         "2662310446",
+        "2662459000",
         "2661801492",
         "2661627227",
         "2660034785",
@@ -486,14 +414,86 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_14",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_12",
+      "articleId": null,
+      "articleNos": [
+        "2664369309",
+        "2664463529",
+        "2664382154",
+        "2664228045",
+        "2663361810",
+        "2663111608",
+        "2662910820",
+        "2662104822",
+        "2660335942",
+        "2658569702"
+      ],
+      "dong": "103동",
+      "type": "78OB",
+      "floor": "20/58층",
+      "direction": "남서향",
+      "floorCat": "중층",
+      "priceRaw": "5억 4,000",
+      "minPrice": 5.4,
+      "maxPrice": 5.4,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 10,
+      "agencyInfo": "중개사 10곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_13",
+      "articleId": null,
+      "articleNos": [
+        "2664523367",
+        "2663443004",
+        "2663419316",
+        "2663570687",
+        "2663299672",
+        "2664089334",
+        "2662731952",
+        "2662494064",
+        "2662424223",
+        "2662092664",
+        "2661951311",
+        "2661697748",
+        "2662634600",
+        "2662580676",
+        "2662143171",
+        "2662208715",
+        "2660538680",
+        "2660406824",
+        "2658822079",
+        "2660139367",
+        "2658588512",
+        "2658920939",
+        "2659219687",
+        "2658690536"
+      ],
+      "dong": "105동",
+      "type": "78OB",
+      "floor": "54/58층",
+      "direction": "남서향",
+      "floorCat": "고층",
+      "priceRaw": "7억",
+      "minPrice": 7.0,
+      "maxPrice": 7.0,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 24,
+      "agencyInfo": "중개사 24곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_14",
       "articleId": null,
       "articleNos": [
         "2664523394",
         "2664475321",
+        "2663568545",
         "2663627021",
         "2663520636",
-        "2663568545",
         "2663299366",
         "2662677773",
         "2662583486",
@@ -519,7 +519,40 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_15",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_15",
+      "articleId": null,
+      "articleNos": [
+        "2664249388",
+        "2664244526",
+        "2663969827",
+        "2663676768",
+        "2662226028",
+        "2661630150",
+        "2661244368",
+        "2659509908",
+        "2659312178",
+        "2660033269",
+        "2658567643",
+        "2659790810",
+        "2658451686",
+        "2658284282"
+      ],
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "36/58층",
+      "direction": "남서향",
+      "floorCat": "중층",
+      "priceRaw": "6억",
+      "minPrice": 6.0,
+      "maxPrice": 6.0,
+      "confirmDate": "2026.11.26",
+      "agencyCount": 14,
+      "agencyInfo": "중개사 14곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_16",
       "articleId": null,
       "articleNos": [
         "2664224576",
@@ -545,40 +578,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_16",
-      "articleId": null,
-      "articleNos": [
-        "2664249388",
-        "2664244526",
-        "2663969827",
-        "2663676768",
-        "2662226028",
-        "2661630150",
-        "2661244368",
-        "2659509908",
-        "2659312178",
-        "2660033269",
-        "2658567643",
-        "2659790810",
-        "2658284282",
-        "2658451686"
-      ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "36/58층",
-      "direction": "남서향",
-      "floorCat": "중층",
-      "priceRaw": "6억",
-      "minPrice": 6.0,
-      "maxPrice": 6.0,
-      "confirmDate": "2026.11.26",
-      "agencyCount": 14,
-      "agencyInfo": "중개사 14곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_17",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_17",
       "articleId": null,
       "articleNos": [
         "2664131486",
@@ -604,7 +604,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_18",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_18",
       "articleId": null,
       "articleNos": [
         "2664316053",
@@ -627,7 +627,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_19",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_19",
       "articleId": null,
       "articleNos": [
         "2664128738",
@@ -652,7 +652,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_20",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_20",
       "articleId": null,
       "articleNos": [
         "2663781805",
@@ -678,12 +678,12 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_21",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_21",
       "articleId": null,
       "articleNos": [
+        "2664361476",
         "2664523381",
         "2664465816",
-        "2664361476",
         "2664076790",
         "2662677864",
         "2662143130",
@@ -707,7 +707,111 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_22",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_22",
+      "articleId": null,
+      "articleNos": [
+        "2664523321",
+        "2662887644",
+        "2662424218",
+        "2661809440",
+        "2660588645"
+      ],
+      "dong": "102동",
+      "type": "84OA",
+      "floor": "고/58층",
+      "direction": "북동향",
+      "floorCat": "고층",
+      "priceRaw": "7억 4,000",
+      "minPrice": 7.4,
+      "maxPrice": 7.4,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 5,
+      "agencyInfo": "중개사 5곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_23",
+      "articleId": null,
+      "articleNos": [
+        "2664523378",
+        "2664465826",
+        "2663743985",
+        "2663465869",
+        "2662911502",
+        "2662585402",
+        "2662143161",
+        "2659291713"
+      ],
+      "dong": "101동",
+      "type": "78OB",
+      "floor": "저/58층",
+      "direction": "남서향",
+      "floorCat": "저층",
+      "priceRaw": "5억 7,000",
+      "minPrice": 5.7,
+      "maxPrice": 5.7,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 8,
+      "agencyInfo": "중개사 8곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_24",
+      "articleId": null,
+      "articleNos": [
+        "2664471104",
+        "2664465830",
+        "2662208674",
+        "2661806418",
+        "2661629470",
+        "2660407702",
+        "2658567626"
+      ],
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "중/58층",
+      "direction": "남동향",
+      "floorCat": "중층",
+      "priceRaw": "5억 8,000 ~ 5억 9,000",
+      "minPrice": 5.8,
+      "maxPrice": 5.9,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 7,
+      "agencyInfo": "중개사 7곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_25",
+      "articleId": null,
+      "articleNos": [
+        "2664518163",
+        "2663570256",
+        "2663294044",
+        "2661830860",
+        "2659607140",
+        "2658994511",
+        "2659179543",
+        "2659219504"
+      ],
+      "dong": "101동",
+      "type": "84OA",
+      "floor": "고/58층",
+      "direction": "북서향",
+      "floorCat": "고층",
+      "priceRaw": "8억",
+      "minPrice": 8.0,
+      "maxPrice": 8.0,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 8,
+      "agencyInfo": "중개사 8곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_26",
       "articleId": null,
       "articleNos": [
         "2664523357",
@@ -715,11 +819,11 @@
         "2663969828",
         "2663649034",
         "2663318256",
-        "2662590373",
         "2662678761",
+        "2662590373",
         "2662424203",
-        "2662208725",
         "2662103758",
+        "2662208725",
         "2661956795",
         "2661808195",
         "2661348961",
@@ -741,7 +845,60 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_23",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_27",
+      "articleId": null,
+      "articleNos": [
+        "2664402452",
+        "2662712308",
+        "2662575068",
+        "2662170547",
+        "2660906922",
+        "2660490714",
+        "2660408477",
+        "2658994510",
+        "2658920882"
+      ],
+      "dong": "105동",
+      "type": "78OB",
+      "floor": "중/58층",
+      "direction": "남서향",
+      "floorCat": "중층",
+      "priceRaw": "6억 ~ 6억 2,000",
+      "minPrice": 6.0,
+      "maxPrice": 6.2,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 9,
+      "agencyInfo": "중개사 9곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_28",
+      "articleId": null,
+      "articleNos": [
+        "2664523400",
+        "2662424205",
+        "2662143174",
+        "2661346729",
+        "2660902360",
+        "2660408362"
+      ],
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "고/58층",
+      "direction": "남서향",
+      "floorCat": "고층",
+      "priceRaw": "6억",
+      "minPrice": 6.0,
+      "maxPrice": 6.0,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 6,
+      "agencyInfo": "중개사 6곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_29",
       "articleId": null,
       "articleNos": [
         "2664523333",
@@ -772,7 +929,32 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_24",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_30",
+      "articleId": null,
+      "articleNos": [
+        "2664465847",
+        "2664523408",
+        "2661812989",
+        "2661633143",
+        "2658729833",
+        "2658229019"
+      ],
+      "dong": "102동",
+      "type": "84OA",
+      "floor": "중/58층",
+      "direction": "북동향",
+      "floorCat": "중층",
+      "priceRaw": "7억",
+      "minPrice": 7.0,
+      "maxPrice": 7.0,
+      "confirmDate": "2026.11.27",
+      "agencyCount": 6,
+      "agencyInfo": "중개사 6곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_31",
       "articleId": null,
       "articleNos": [
         "2664475610",
@@ -801,58 +983,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_25",
-      "articleId": null,
-      "articleNos": [
-        "2664518163",
-        "2663570256",
-        "2663294044",
-        "2661830860",
-        "2659607140",
-        "2658994511",
-        "2659179543",
-        "2659219504"
-      ],
-      "dong": "101동",
-      "type": "84OA",
-      "floor": "고/58층",
-      "direction": "북서향",
-      "floorCat": "고층",
-      "priceRaw": "8억",
-      "minPrice": 8.0,
-      "maxPrice": 8.0,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 8,
-      "agencyInfo": "중개사 8곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_26",
-      "articleId": null,
-      "articleNos": [
-        "2664523321",
-        "2662887644",
-        "2662424218",
-        "2661809440",
-        "2660588645"
-      ],
-      "dong": "102동",
-      "type": "84OA",
-      "floor": "고/58층",
-      "direction": "북동향",
-      "floorCat": "고층",
-      "priceRaw": "7억 4,000",
-      "minPrice": 7.4,
-      "maxPrice": 7.4,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 5,
-      "agencyInfo": "중개사 5곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_27",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_32",
       "articleId": null,
       "articleNos": [
         "2664475121",
@@ -880,138 +1011,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_28",
-      "articleId": null,
-      "articleNos": [
-        "2664471104",
-        "2664465830",
-        "2662208674",
-        "2661806418",
-        "2661629470",
-        "2660407702",
-        "2658567626"
-      ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "중/58층",
-      "direction": "남동향",
-      "floorCat": "중층",
-      "priceRaw": "5억 8,000 ~ 5억 9,000",
-      "minPrice": 5.8,
-      "maxPrice": 5.9,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 7,
-      "agencyInfo": "중개사 7곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_29",
-      "articleId": null,
-      "articleNos": [
-        "2664523378",
-        "2664465826",
-        "2663743985",
-        "2663465869",
-        "2662911502",
-        "2662585402",
-        "2662143161",
-        "2659291713"
-      ],
-      "dong": "101동",
-      "type": "78OB",
-      "floor": "저/58층",
-      "direction": "남서향",
-      "floorCat": "저층",
-      "priceRaw": "5억 7,000",
-      "minPrice": 5.7,
-      "maxPrice": 5.7,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 8,
-      "agencyInfo": "중개사 8곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_30",
-      "articleId": null,
-      "articleNos": [
-        "2664523400",
-        "2662424205",
-        "2662143174",
-        "2661346729",
-        "2660902360",
-        "2660408362"
-      ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "고/58층",
-      "direction": "남서향",
-      "floorCat": "고층",
-      "priceRaw": "6억",
-      "minPrice": 6.0,
-      "maxPrice": 6.0,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 6,
-      "agencyInfo": "중개사 6곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_31",
-      "articleId": null,
-      "articleNos": [
-        "2664402452",
-        "2662712308",
-        "2662575068",
-        "2662170547",
-        "2660906922",
-        "2660490714",
-        "2660408477",
-        "2658920882",
-        "2658994510"
-      ],
-      "dong": "105동",
-      "type": "78OB",
-      "floor": "중/58층",
-      "direction": "남서향",
-      "floorCat": "중층",
-      "priceRaw": "6억 ~ 6억 2,000",
-      "minPrice": 6.0,
-      "maxPrice": 6.2,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 9,
-      "agencyInfo": "중개사 9곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_32",
-      "articleId": null,
-      "articleNos": [
-        "2664465847",
-        "2664523408",
-        "2661812989",
-        "2661633143",
-        "2658729833",
-        "2658229019"
-      ],
-      "dong": "102동",
-      "type": "84OA",
-      "floor": "중/58층",
-      "direction": "북동향",
-      "floorCat": "중층",
-      "priceRaw": "7억",
-      "minPrice": 7.0,
-      "maxPrice": 7.0,
-      "confirmDate": "2026.11.27",
-      "agencyCount": 6,
-      "agencyInfo": "중개사 6곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_33",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_33",
       "articleId": null,
       "articleNos": [
         "2663089384",
@@ -1036,30 +1036,28 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_34",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_34",
       "articleId": null,
       "articleNos": [
-        "2664325226",
-        "2662295175",
-        "2660588437",
-        "2660036827"
+        "2664167291",
+        "2660336301"
       ],
-      "dong": "105동",
-      "type": "78OB",
+      "dong": "102동",
+      "type": "84OA",
       "floor": "고/58층",
-      "direction": "남서향",
+      "direction": "북서향",
       "floorCat": "고층",
-      "priceRaw": "7억 5,000",
-      "minPrice": 7.5,
-      "maxPrice": 7.5,
+      "priceRaw": "8억",
+      "minPrice": 8.0,
+      "maxPrice": 8.0,
       "confirmDate": "2026.11.26",
-      "agencyCount": 4,
-      "agencyInfo": "중개사 4곳 공동등록",
+      "agencyCount": 2,
+      "agencyInfo": "중개사 2곳 공동등록",
       "desc": "",
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_35",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_35",
       "articleId": "2664278956",
       "articleNos": [
         "2664278956"
@@ -1079,7 +1077,122 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_36",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_36",
+      "articleId": null,
+      "articleNos": [
+        "2664278699",
+        "2660410071"
+      ],
+      "dong": "103동",
+      "type": "78OB",
+      "floor": "고/58층",
+      "direction": "남서향",
+      "floorCat": "고층",
+      "priceRaw": "6억 5,000",
+      "minPrice": 6.5,
+      "maxPrice": 6.5,
+      "confirmDate": "2026.11.26",
+      "agencyCount": 2,
+      "agencyInfo": "중개사 2곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_37",
+      "articleId": null,
+      "articleNos": [
+        "2664320811",
+        "2661867963",
+        "2661096967"
+      ],
+      "dong": "105동",
+      "type": "84OA",
+      "floor": "고/58층",
+      "direction": "북서향",
+      "floorCat": "고층",
+      "priceRaw": "7억 1,000",
+      "minPrice": 7.1,
+      "maxPrice": 7.1,
+      "confirmDate": "2026.11.26",
+      "agencyCount": 3,
+      "agencyInfo": "중개사 3곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_38",
+      "articleId": null,
+      "articleNos": [
+        "2664232468",
+        "2663943443",
+        "2663487562",
+        "2663283975",
+        "2663355159",
+        "2662363500",
+        "2659791207",
+        "2658691129",
+        "2658573203"
+      ],
+      "dong": "105동",
+      "type": "84OA",
+      "floor": "저/58층",
+      "direction": "북서향",
+      "floorCat": "저층",
+      "priceRaw": "6억",
+      "minPrice": 6.0,
+      "maxPrice": 6.0,
+      "confirmDate": "2026.11.26",
+      "agencyCount": 9,
+      "agencyInfo": "중개사 9곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_39",
+      "articleId": null,
+      "articleNos": [
+        "2664244532",
+        "2661951053",
+        "2660974084"
+      ],
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "저/58층",
+      "direction": "남서향",
+      "floorCat": "저층",
+      "priceRaw": "6억",
+      "minPrice": 6.0,
+      "maxPrice": 6.0,
+      "confirmDate": "2026.11.26",
+      "agencyCount": 3,
+      "agencyInfo": "중개사 3곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_40",
+      "articleId": null,
+      "articleNos": [
+        "2664174251",
+        "2660773530",
+        "2659691002"
+      ],
+      "dong": "105동",
+      "type": "78OB",
+      "floor": "고/58층",
+      "direction": "남서향",
+      "floorCat": "고층",
+      "priceRaw": "6억 2,000",
+      "minPrice": 6.2,
+      "maxPrice": 6.2,
+      "confirmDate": "2026.11.26",
+      "agencyCount": 3,
+      "agencyInfo": "중개사 3곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_41",
       "articleId": null,
       "articleNos": [
         "2664230093",
@@ -1106,151 +1219,38 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_37",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_42",
       "articleId": null,
       "articleNos": [
-        "2664174251",
-        "2660773530",
-        "2659691002"
+        "2664325226",
+        "2662295175",
+        "2660588437",
+        "2660036827"
       ],
       "dong": "105동",
       "type": "78OB",
       "floor": "고/58층",
       "direction": "남서향",
       "floorCat": "고층",
-      "priceRaw": "6억 2,000",
-      "minPrice": 6.2,
-      "maxPrice": 6.2,
+      "priceRaw": "7억 5,000",
+      "minPrice": 7.5,
+      "maxPrice": 7.5,
       "confirmDate": "2026.11.26",
-      "agencyCount": 3,
-      "agencyInfo": "중개사 3곳 공동등록",
+      "agencyCount": 4,
+      "agencyInfo": "중개사 4곳 공동등록",
       "desc": "",
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_38",
-      "articleId": null,
-      "articleNos": [
-        "2664244532",
-        "2661951053",
-        "2660974084"
-      ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "저/58층",
-      "direction": "남서향",
-      "floorCat": "저층",
-      "priceRaw": "6억",
-      "minPrice": 6.0,
-      "maxPrice": 6.0,
-      "confirmDate": "2026.11.26",
-      "agencyCount": 3,
-      "agencyInfo": "중개사 3곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_39",
-      "articleId": null,
-      "articleNos": [
-        "2664278699",
-        "2660410071"
-      ],
-      "dong": "103동",
-      "type": "78OB",
-      "floor": "고/58층",
-      "direction": "남서향",
-      "floorCat": "고층",
-      "priceRaw": "6억 5,000",
-      "minPrice": 6.5,
-      "maxPrice": 6.5,
-      "confirmDate": "2026.11.26",
-      "agencyCount": 2,
-      "agencyInfo": "중개사 2곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_40",
-      "articleId": null,
-      "articleNos": [
-        "2664167291",
-        "2660336301"
-      ],
-      "dong": "102동",
-      "type": "84OA",
-      "floor": "고/58층",
-      "direction": "북서향",
-      "floorCat": "고층",
-      "priceRaw": "8억",
-      "minPrice": 8.0,
-      "maxPrice": 8.0,
-      "confirmDate": "2026.11.26",
-      "agencyCount": 2,
-      "agencyInfo": "중개사 2곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_41",
-      "articleId": null,
-      "articleNos": [
-        "2664320811",
-        "2661867963",
-        "2661096967"
-      ],
-      "dong": "105동",
-      "type": "84OA",
-      "floor": "고/58층",
-      "direction": "북서향",
-      "floorCat": "고층",
-      "priceRaw": "7억 1,000",
-      "minPrice": 7.1,
-      "maxPrice": 7.1,
-      "confirmDate": "2026.11.26",
-      "agencyCount": 3,
-      "agencyInfo": "중개사 3곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_42",
-      "articleId": null,
-      "articleNos": [
-        "2664232468",
-        "2663943443",
-        "2663487562",
-        "2663355159",
-        "2663283975",
-        "2662363500",
-        "2659791207",
-        "2658573203",
-        "2658691129"
-      ],
-      "dong": "105동",
-      "type": "84OA",
-      "floor": "저/58층",
-      "direction": "북서향",
-      "floorCat": "저층",
-      "priceRaw": "6억",
-      "minPrice": 6.0,
-      "maxPrice": 6.0,
-      "confirmDate": "2026.11.26",
-      "agencyCount": 9,
-      "agencyInfo": "중개사 9곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_43",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_43",
       "articleId": null,
       "articleNos": [
         "2662735197",
         "2662700814",
         "2662074374",
         "2661812071",
-        "2661419324",
         "2661341571",
+        "2661419324",
         "2662678887",
         "2660589063"
       ],
@@ -1269,7 +1269,29 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_44",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_44",
+      "articleId": null,
+      "articleNos": [
+        "2664032505",
+        "2664095691",
+        "2662957779"
+      ],
+      "dong": "103동",
+      "type": "84OA",
+      "floor": "고/58층",
+      "direction": "북서향",
+      "floorCat": "고층",
+      "priceRaw": "7억 2,000변동상승내역 보기",
+      "minPrice": 7.2,
+      "maxPrice": 7.2,
+      "confirmDate": "2026.11.25",
+      "agencyCount": 3,
+      "agencyInfo": "중개사 3곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_45",
       "articleId": null,
       "articleNos": [
         "2664062177",
@@ -1293,29 +1315,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_45",
-      "articleId": null,
-      "articleNos": [
-        "2664032505",
-        "2664095691",
-        "2662957779"
-      ],
-      "dong": "103동",
-      "type": "84OA",
-      "floor": "고/58층",
-      "direction": "북서향",
-      "floorCat": "고층",
-      "priceRaw": "7억 2,000변동상승내역 보기",
-      "minPrice": 7.2,
-      "maxPrice": 7.2,
-      "confirmDate": "2026.11.25",
-      "agencyCount": 3,
-      "agencyInfo": "중개사 3곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_46",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_46",
       "articleId": null,
       "articleNos": [
         "2662577638",
@@ -1336,14 +1336,14 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_47",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_47",
       "articleId": null,
       "articleNos": [
         "2662911722",
         "2662650604",
         "2662481443",
-        "2661790246",
         "2661831779",
+        "2661790246",
         "2662807919",
         "2661179789",
         "2660126418",
@@ -1368,51 +1368,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_48",
-      "articleId": null,
-      "articleNos": [
-        "2663937370",
-        "2662621323",
-        "2660214423"
-      ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "저/58층",
-      "direction": "남동향",
-      "floorCat": "저층",
-      "priceRaw": "6억 5,000 ~ 7억",
-      "minPrice": 6.5,
-      "maxPrice": 7.0,
-      "confirmDate": "2026.11.24",
-      "agencyCount": 3,
-      "agencyInfo": "중개사 3곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_49",
-      "articleId": null,
-      "articleNos": [
-        "2663938102",
-        "2661951055",
-        "2659670552"
-      ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "저/58층",
-      "direction": "남동향",
-      "floorCat": "저층",
-      "priceRaw": "6억",
-      "minPrice": 6.0,
-      "maxPrice": 6.0,
-      "confirmDate": "2026.11.24",
-      "agencyCount": 3,
-      "agencyInfo": "중개사 3곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_50",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_48",
       "articleId": null,
       "articleNos": [
         "2663847930",
@@ -1435,7 +1391,51 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_51",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_49",
+      "articleId": null,
+      "articleNos": [
+        "2663938102",
+        "2661951055",
+        "2659670552"
+      ],
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "저/58층",
+      "direction": "남동향",
+      "floorCat": "저층",
+      "priceRaw": "6억",
+      "minPrice": 6.0,
+      "maxPrice": 6.0,
+      "confirmDate": "2026.11.24",
+      "agencyCount": 3,
+      "agencyInfo": "중개사 3곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_50",
+      "articleId": null,
+      "articleNos": [
+        "2663937370",
+        "2662621323",
+        "2660214423"
+      ],
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "저/58층",
+      "direction": "남동향",
+      "floorCat": "저층",
+      "priceRaw": "6억 5,000 ~ 7억",
+      "minPrice": 6.5,
+      "maxPrice": 7.0,
+      "confirmDate": "2026.11.24",
+      "agencyCount": 3,
+      "agencyInfo": "중개사 3곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_51",
       "articleId": null,
       "articleNos": [
         "2663942332",
@@ -1456,89 +1456,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_52",
-      "articleId": "2663641656",
-      "articleNos": [
-        "2663641656"
-      ],
-      "dong": "102동",
-      "type": "84OA",
-      "floor": "저/58층",
-      "direction": "북서향",
-      "floorCat": "저층",
-      "priceRaw": "6억 4,000",
-      "minPrice": 6.4,
-      "maxPrice": 6.4,
-      "confirmDate": "2026.11.23",
-      "agencyCount": 1,
-      "agencyInfo": "",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_53",
-      "articleId": null,
-      "articleNos": [
-        "2663416474",
-        "2660587984",
-        "2658479160"
-      ],
-      "dong": "105동",
-      "type": "84OA",
-      "floor": "고/58층",
-      "direction": "북서향",
-      "floorCat": "고층",
-      "priceRaw": "8억 3,000 ~ 8억 5,000",
-      "minPrice": 8.3,
-      "maxPrice": 8.5,
-      "confirmDate": "2026.11.23",
-      "agencyCount": 3,
-      "agencyInfo": "중개사 3곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_54",
-      "articleId": "2663423925",
-      "articleNos": [
-        "2663423925"
-      ],
-      "dong": "105동",
-      "type": "78OB",
-      "floor": "저/58층",
-      "direction": "남서향",
-      "floorCat": "저층",
-      "priceRaw": "5억 7,000",
-      "minPrice": 5.7,
-      "maxPrice": 5.7,
-      "confirmDate": "2026.11.23",
-      "agencyCount": 1,
-      "agencyInfo": "",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_55",
-      "articleId": "2663667550",
-      "articleNos": [
-        "2663667550"
-      ],
-      "dong": "103동",
-      "type": "78OB",
-      "floor": "저/58층",
-      "direction": "남서향",
-      "floorCat": "저층",
-      "priceRaw": "6억 5,000",
-      "minPrice": 6.5,
-      "maxPrice": 6.5,
-      "confirmDate": "2026.11.23",
-      "agencyCount": 1,
-      "agencyInfo": "",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_56",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_52",
       "articleId": null,
       "articleNos": [
         "2663423159",
@@ -1559,27 +1477,70 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_57",
-      "articleId": "2663520643",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_53",
+      "articleId": null,
       "articleNos": [
-        "2663520643"
+        "2663416336",
+        "2661082507"
       ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "고/58층",
-      "direction": "남동향",
-      "floorCat": "고층",
+      "dong": "103동",
+      "type": "84OA",
+      "floor": "저/58층",
+      "direction": "북서향",
+      "floorCat": "저층",
       "priceRaw": "6억",
       "minPrice": 6.0,
       "maxPrice": 6.0,
       "confirmDate": "2026.11.23",
-      "agencyCount": 1,
-      "agencyInfo": "",
+      "agencyCount": 2,
+      "agencyInfo": "중개사 2곳 공동등록",
       "desc": "",
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_58",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_54",
+      "articleId": null,
+      "articleNos": [
+        "2663567113",
+        "2658267132"
+      ],
+      "dong": "101동",
+      "type": "78OB",
+      "floor": "고/58층",
+      "direction": "남서향",
+      "floorCat": "고층",
+      "priceRaw": "6억 5,000",
+      "minPrice": 6.5,
+      "maxPrice": 6.5,
+      "confirmDate": "2026.11.23",
+      "agencyCount": 2,
+      "agencyInfo": "중개사 2곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_55",
+      "articleId": null,
+      "articleNos": [
+        "2663644538",
+        "2663150794"
+      ],
+      "dong": "103동",
+      "type": "84OA",
+      "floor": "저/58층",
+      "direction": "북서향",
+      "floorCat": "저층",
+      "priceRaw": "7억 9,000",
+      "minPrice": 7.9,
+      "maxPrice": 7.9,
+      "confirmDate": "2026.11.23",
+      "agencyCount": 2,
+      "agencyInfo": "중개사 2곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_56",
       "articleId": null,
       "articleNos": [
         "2663569139",
@@ -1603,49 +1564,151 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_59",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_57",
       "articleId": null,
       "articleNos": [
-        "2663416336",
-        "2661082507"
+        "2663520635",
+        "2663089388"
+      ],
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "중/58층",
+      "direction": "남서향",
+      "floorCat": "중층",
+      "priceRaw": "7억 5,000",
+      "minPrice": 7.5,
+      "maxPrice": 7.5,
+      "confirmDate": "2026.11.23",
+      "agencyCount": 2,
+      "agencyInfo": "중개사 2곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_58",
+      "articleId": "2663667550",
+      "articleNos": [
+        "2663667550"
       ],
       "dong": "103동",
+      "type": "78OB",
+      "floor": "저/58층",
+      "direction": "남서향",
+      "floorCat": "저층",
+      "priceRaw": "6억 5,000",
+      "minPrice": 6.5,
+      "maxPrice": 6.5,
+      "confirmDate": "2026.11.23",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_59",
+      "articleId": "2663423925",
+      "articleNos": [
+        "2663423925"
+      ],
+      "dong": "105동",
+      "type": "78OB",
+      "floor": "저/58층",
+      "direction": "남서향",
+      "floorCat": "저층",
+      "priceRaw": "5억 7,000",
+      "minPrice": 5.7,
+      "maxPrice": 5.7,
+      "confirmDate": "2026.11.23",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_60",
+      "articleId": null,
+      "articleNos": [
+        "2663422924",
+        "2663568413"
+      ],
+      "dong": "105동",
       "type": "84OA",
       "floor": "저/58층",
       "direction": "북서향",
       "floorCat": "저층",
+      "priceRaw": "7억 5,000",
+      "minPrice": 7.5,
+      "maxPrice": 7.5,
+      "confirmDate": "2026.11.23",
+      "agencyCount": 2,
+      "agencyInfo": "중개사 2곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_61",
+      "articleId": null,
+      "articleNos": [
+        "2663416474",
+        "2660587984",
+        "2658479160"
+      ],
+      "dong": "105동",
+      "type": "84OA",
+      "floor": "고/58층",
+      "direction": "북서향",
+      "floorCat": "고층",
+      "priceRaw": "8억 3,000 ~ 8억 5,000",
+      "minPrice": 8.3,
+      "maxPrice": 8.5,
+      "confirmDate": "2026.11.23",
+      "agencyCount": 3,
+      "agencyInfo": "중개사 3곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_62",
+      "articleId": "2663520643",
+      "articleNos": [
+        "2663520643"
+      ],
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "고/58층",
+      "direction": "남동향",
+      "floorCat": "고층",
       "priceRaw": "6억",
       "minPrice": 6.0,
       "maxPrice": 6.0,
       "confirmDate": "2026.11.23",
-      "agencyCount": 2,
-      "agencyInfo": "중개사 2곳 공동등록",
+      "agencyCount": 1,
+      "agencyInfo": "",
       "desc": "",
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_60",
-      "articleId": null,
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_63",
+      "articleId": "2663521661",
       "articleNos": [
-        "2663644538",
-        "2663150794"
+        "2663521661"
       ],
-      "dong": "103동",
-      "type": "84OA",
-      "floor": "저/58층",
-      "direction": "북서향",
-      "floorCat": "저층",
-      "priceRaw": "7억 9,000",
-      "minPrice": 7.9,
-      "maxPrice": 7.9,
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "중/58층",
+      "direction": "남서향",
+      "floorCat": "중층",
+      "priceRaw": "6억 6,000",
+      "minPrice": 6.6,
+      "maxPrice": 6.6,
       "confirmDate": "2026.11.23",
-      "agencyCount": 2,
-      "agencyInfo": "중개사 2곳 공동등록",
+      "agencyCount": 1,
+      "agencyInfo": "",
       "desc": "",
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_61",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_64",
       "articleId": null,
       "articleNos": [
         "2663460778",
@@ -1667,82 +1730,19 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_62",
-      "articleId": null,
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_65",
+      "articleId": "2663641656",
       "articleNos": [
-        "2663567113",
-        "2658267132"
+        "2663641656"
       ],
-      "dong": "101동",
-      "type": "78OB",
-      "floor": "고/58층",
-      "direction": "남서향",
-      "floorCat": "고층",
-      "priceRaw": "6억 5,000",
-      "minPrice": 6.5,
-      "maxPrice": 6.5,
-      "confirmDate": "2026.11.23",
-      "agencyCount": 2,
-      "agencyInfo": "중개사 2곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_63",
-      "articleId": null,
-      "articleNos": [
-        "2663568413",
-        "2663422924"
-      ],
-      "dong": "105동",
+      "dong": "102동",
       "type": "84OA",
       "floor": "저/58층",
       "direction": "북서향",
       "floorCat": "저층",
-      "priceRaw": "7억 5,000",
-      "minPrice": 7.5,
-      "maxPrice": 7.5,
-      "confirmDate": "2026.11.23",
-      "agencyCount": 2,
-      "agencyInfo": "중개사 2곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_64",
-      "articleId": null,
-      "articleNos": [
-        "2663520635",
-        "2663089388"
-      ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "중/58층",
-      "direction": "남서향",
-      "floorCat": "중층",
-      "priceRaw": "7억 5,000",
-      "minPrice": 7.5,
-      "maxPrice": 7.5,
-      "confirmDate": "2026.11.23",
-      "agencyCount": 2,
-      "agencyInfo": "중개사 2곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_65",
-      "articleId": "2663521661",
-      "articleNos": [
-        "2663521661"
-      ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "중/58층",
-      "direction": "남서향",
-      "floorCat": "중층",
-      "priceRaw": "6억 6,000",
-      "minPrice": 6.6,
-      "maxPrice": 6.6,
+      "priceRaw": "6억 4,000",
+      "minPrice": 6.4,
+      "maxPrice": 6.4,
       "confirmDate": "2026.11.23",
       "agencyCount": 1,
       "agencyInfo": "",
@@ -1750,7 +1750,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_66",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_66",
       "articleId": null,
       "articleNos": [
         "2662018643",
@@ -1775,48 +1775,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_67",
-      "articleId": "2663299281",
-      "articleNos": [
-        "2663299281"
-      ],
-      "dong": "102동",
-      "type": "84OA",
-      "floor": "중/58층",
-      "direction": "북동향",
-      "floorCat": "중층",
-      "priceRaw": "8억 2,000",
-      "minPrice": 8.2,
-      "maxPrice": 8.2,
-      "confirmDate": "2026.11.21",
-      "agencyCount": 1,
-      "agencyInfo": "",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_68",
-      "articleId": null,
-      "articleNos": [
-        "2663297725",
-        "2660695838"
-      ],
-      "dong": "103동",
-      "type": "84OA",
-      "floor": "중/58층",
-      "direction": "북서향",
-      "floorCat": "중층",
-      "priceRaw": "7억 2,000",
-      "minPrice": 7.2,
-      "maxPrice": 7.2,
-      "confirmDate": "2026.11.21",
-      "agencyCount": 2,
-      "agencyInfo": "중개사 2곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_69",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_67",
       "articleId": null,
       "articleNos": [
         "2663220694",
@@ -1839,7 +1798,48 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_70",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_68",
+      "articleId": "2663299281",
+      "articleNos": [
+        "2663299281"
+      ],
+      "dong": "102동",
+      "type": "84OA",
+      "floor": "중/58층",
+      "direction": "북동향",
+      "floorCat": "중층",
+      "priceRaw": "8억 2,000",
+      "minPrice": 8.2,
+      "maxPrice": 8.2,
+      "confirmDate": "2026.11.21",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_69",
+      "articleId": null,
+      "articleNos": [
+        "2663299797",
+        "2662585954"
+      ],
+      "dong": "102동",
+      "type": "84OA",
+      "floor": "중/58층",
+      "direction": "북동향",
+      "floorCat": "중층",
+      "priceRaw": "8억 2,000",
+      "minPrice": 8.2,
+      "maxPrice": 8.2,
+      "confirmDate": "2026.11.21",
+      "agencyCount": 2,
+      "agencyInfo": "중개사 2곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_70",
       "articleId": null,
       "articleNos": [
         "2663234873",
@@ -1862,20 +1862,20 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_71",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_71",
       "articleId": null,
       "articleNos": [
-        "2663299797",
-        "2662585954"
+        "2663297725",
+        "2660695838"
       ],
-      "dong": "102동",
+      "dong": "103동",
       "type": "84OA",
       "floor": "중/58층",
-      "direction": "북동향",
+      "direction": "북서향",
       "floorCat": "중층",
-      "priceRaw": "8억 2,000",
-      "minPrice": 8.2,
-      "maxPrice": 8.2,
+      "priceRaw": "7억 2,000",
+      "minPrice": 7.2,
+      "maxPrice": 7.2,
       "confirmDate": "2026.11.21",
       "agencyCount": 2,
       "agencyInfo": "중개사 2곳 공동등록",
@@ -1883,7 +1883,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_72",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_72",
       "articleId": "2663021817",
       "articleNos": [
         "2663021817"
@@ -1903,7 +1903,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_73",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_73",
       "articleId": "2663193649",
       "articleNos": [
         "2663193649"
@@ -1923,50 +1923,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_74",
-      "articleId": "2662712305",
-      "articleNos": [
-        "2662712305"
-      ],
-      "dong": "101동",
-      "type": "78OB",
-      "floor": "중/58층",
-      "direction": "남서향",
-      "floorCat": "중층",
-      "priceRaw": "6억",
-      "minPrice": 6.0,
-      "maxPrice": 6.0,
-      "confirmDate": "2026.11.19",
-      "agencyCount": 1,
-      "agencyInfo": "",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_75",
-      "articleId": null,
-      "articleNos": [
-        "2662860564",
-        "2662015350",
-        "2660233077",
-        "2660130835"
-      ],
-      "dong": "101동",
-      "type": "78OB",
-      "floor": "고/58층",
-      "direction": "남서향",
-      "floorCat": "고층",
-      "priceRaw": "6억 3,000 ~ 6억 5,000",
-      "minPrice": 6.3,
-      "maxPrice": 6.5,
-      "confirmDate": "2026.11.19",
-      "agencyCount": 4,
-      "agencyInfo": "중개사 4곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_76",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_74",
       "articleId": "2662783778",
       "articleNos": [
         "2662783778"
@@ -1986,28 +1943,70 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_77",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_75",
       "articleId": null,
       "articleNos": [
-        "2662586319",
-        "2661790225"
+        "2662860564",
+        "2662015350",
+        "2660130835",
+        "2660233077"
       ],
-      "dong": "103동",
+      "dong": "101동",
       "type": "78OB",
-      "floor": "중/58층",
+      "floor": "고/58층",
       "direction": "남서향",
-      "floorCat": "중층",
-      "priceRaw": "5억 8,000",
-      "minPrice": 5.8,
-      "maxPrice": 5.8,
-      "confirmDate": "2026.11.18",
-      "agencyCount": 2,
-      "agencyInfo": "중개사 2곳 공동등록",
+      "floorCat": "고층",
+      "priceRaw": "6억 3,000 ~ 6억 5,000",
+      "minPrice": 6.3,
+      "maxPrice": 6.5,
+      "confirmDate": "2026.11.19",
+      "agencyCount": 4,
+      "agencyInfo": "중개사 4곳 공동등록",
       "desc": "",
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_78",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_76",
+      "articleId": "2662712305",
+      "articleNos": [
+        "2662712305"
+      ],
+      "dong": "101동",
+      "type": "78OB",
+      "floor": "중/58층",
+      "direction": "남서향",
+      "floorCat": "중층",
+      "priceRaw": "6억",
+      "minPrice": 6.0,
+      "maxPrice": 6.0,
+      "confirmDate": "2026.11.19",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_77",
+      "articleId": "2662586203",
+      "articleNos": [
+        "2662586203"
+      ],
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "고/58층",
+      "direction": "남서향",
+      "floorCat": "고층",
+      "priceRaw": "8억 3,000",
+      "minPrice": 8.3,
+      "maxPrice": 8.3,
+      "confirmDate": "2026.11.18",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_78",
       "articleId": null,
       "articleNos": [
         "2662650629",
@@ -2028,35 +2027,36 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_79",
-      "articleId": "2662586203",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_79",
+      "articleId": null,
       "articleNos": [
-        "2662586203"
+        "2662586319",
+        "2661790225"
       ],
-      "dong": "102동",
+      "dong": "103동",
       "type": "78OB",
-      "floor": "고/58층",
+      "floor": "중/58층",
       "direction": "남서향",
-      "floorCat": "고층",
-      "priceRaw": "8억 3,000",
-      "minPrice": 8.3,
-      "maxPrice": 8.3,
+      "floorCat": "중층",
+      "priceRaw": "5억 8,000",
+      "minPrice": 5.8,
+      "maxPrice": 5.8,
       "confirmDate": "2026.11.18",
-      "agencyCount": 1,
-      "agencyInfo": "",
+      "agencyCount": 2,
+      "agencyInfo": "중개사 2곳 공동등록",
       "desc": "",
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_80",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_80",
       "articleId": null,
       "articleNos": [
         "2662353743",
         "2660772982",
         "2660910629",
         "2660245024",
-        "2660177416",
         "2660232845",
+        "2660177416",
         "2660187644"
       ],
       "dong": "101동",
@@ -2074,7 +2074,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_81",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_81",
       "articleId": null,
       "articleNos": [
         "2663750404",
@@ -2102,7 +2102,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_82",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_82",
       "articleId": "2662424220",
       "articleNos": [
         "2662424220"
@@ -2122,7 +2122,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_83",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_83",
       "articleId": null,
       "articleNos": [
         "2664514878",
@@ -2150,7 +2150,27 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_84",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_84",
+      "articleId": "2662208750",
+      "articleNos": [
+        "2662208750"
+      ],
+      "dong": "103동",
+      "type": "78OB",
+      "floor": "고/58층",
+      "direction": "남서향",
+      "floorCat": "고층",
+      "priceRaw": "7억",
+      "minPrice": 7.0,
+      "maxPrice": 7.0,
+      "confirmDate": "2026.11.16",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_85",
       "articleId": "2662094097",
       "articleNos": [
         "2662094097"
@@ -2170,7 +2190,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_85",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_86",
       "articleId": null,
       "articleNos": [
         "2662170025",
@@ -2193,49 +2213,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_86",
-      "articleId": "2662208750",
-      "articleNos": [
-        "2662208750"
-      ],
-      "dong": "103동",
-      "type": "78OB",
-      "floor": "고/58층",
-      "direction": "남서향",
-      "floorCat": "고층",
-      "priceRaw": "7억",
-      "minPrice": 7.0,
-      "maxPrice": 7.0,
-      "confirmDate": "2026.11.16",
-      "agencyCount": 1,
-      "agencyInfo": "",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_87",
-      "articleId": null,
-      "articleNos": [
-        "2661790387",
-        "2660236826",
-        "2659552589"
-      ],
-      "dong": "101동",
-      "type": "78OB",
-      "floor": "고/58층",
-      "direction": "남서향",
-      "floorCat": "고층",
-      "priceRaw": "6억 5,000",
-      "minPrice": 6.5,
-      "maxPrice": 6.5,
-      "confirmDate": "2026.11.14",
-      "agencyCount": 3,
-      "agencyInfo": "중개사 3곳 공동등록",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_88",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_87",
       "articleId": null,
       "articleNos": [
         "2661867657",
@@ -2257,27 +2235,29 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_89",
-      "articleId": "2661669547",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_88",
+      "articleId": null,
       "articleNos": [
-        "2661669547"
+        "2661790387",
+        "2660236826",
+        "2659552589"
       ],
       "dong": "101동",
       "type": "78OB",
       "floor": "고/58층",
       "direction": "남서향",
       "floorCat": "고층",
-      "priceRaw": "7억 7,000",
-      "minPrice": 7.7,
-      "maxPrice": 7.7,
-      "confirmDate": "2026.11.13",
-      "agencyCount": 1,
-      "agencyInfo": "",
+      "priceRaw": "6억 5,000",
+      "minPrice": 6.5,
+      "maxPrice": 6.5,
+      "confirmDate": "2026.11.14",
+      "agencyCount": 3,
+      "agencyInfo": "중개사 3곳 공동등록",
       "desc": "",
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_90",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_89",
       "articleId": null,
       "articleNos": [
         "2663089381",
@@ -2298,27 +2278,47 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_91",
-      "articleId": "2661374683",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_90",
+      "articleId": "2661669547",
       "articleNos": [
-        "2661374683"
+        "2661669547"
       ],
-      "dong": "102동",
+      "dong": "101동",
       "type": "78OB",
-      "floor": "저/58층",
+      "floor": "고/58층",
       "direction": "남서향",
-      "floorCat": "저층",
-      "priceRaw": "5억 8,000",
-      "minPrice": 5.8,
-      "maxPrice": 5.8,
-      "confirmDate": "2026.11.12",
+      "floorCat": "고층",
+      "priceRaw": "7억 7,000",
+      "minPrice": 7.7,
+      "maxPrice": 7.7,
+      "confirmDate": "2026.11.13",
       "agencyCount": 1,
       "agencyInfo": "",
       "desc": "",
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_92",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_91",
+      "articleId": "2661691553",
+      "articleNos": [
+        "2661691553"
+      ],
+      "dong": "101동",
+      "type": "84OA",
+      "floor": "고/58층",
+      "direction": "북서향",
+      "floorCat": "고층",
+      "priceRaw": "9억",
+      "minPrice": 9.0,
+      "maxPrice": 9.0,
+      "confirmDate": "2026.11.13",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_92",
       "articleId": "2661341303",
       "articleNos": [
         "2661341303"
@@ -2338,7 +2338,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_93",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_93",
       "articleId": null,
       "articleNos": [
         "2661238293",
@@ -2361,27 +2361,27 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_94",
-      "articleId": "2661691553",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_94",
+      "articleId": "2661374683",
       "articleNos": [
-        "2661691553"
+        "2661374683"
       ],
-      "dong": "101동",
-      "type": "84OA",
-      "floor": "고/58층",
-      "direction": "북서향",
-      "floorCat": "고층",
-      "priceRaw": "9억",
-      "minPrice": 9.0,
-      "maxPrice": 9.0,
-      "confirmDate": "2026.11.13",
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "저/58층",
+      "direction": "남서향",
+      "floorCat": "저층",
+      "priceRaw": "5억 8,000",
+      "minPrice": 5.8,
+      "maxPrice": 5.8,
+      "confirmDate": "2026.11.12",
       "agencyCount": 1,
       "agencyInfo": "",
       "desc": "",
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_95",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_95",
       "articleId": "2661096946",
       "articleNos": [
         "2661096946"
@@ -2401,7 +2401,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_96",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_96",
       "articleId": "2661168599",
       "articleNos": [
         "2661168599"
@@ -2421,7 +2421,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_97",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_97",
       "articleId": "2659735189",
       "articleNos": [
         "2659735189"
@@ -2441,7 +2441,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_98",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_98",
       "articleId": "2660907936",
       "articleNos": [
         "2660907936"
@@ -2461,7 +2461,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_99",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_99",
       "articleId": null,
       "articleNos": [
         "2660901388",
@@ -2482,7 +2482,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_100",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_100",
       "articleId": "2663077797",
       "articleNos": [
         "2663077797"
@@ -2502,7 +2502,27 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_101",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_101",
+      "articleId": "2660604462",
+      "articleNos": [
+        "2660604462"
+      ],
+      "dong": "105동",
+      "type": "78OB",
+      "floor": "고/58층",
+      "direction": "남서향",
+      "floorCat": "고층",
+      "priceRaw": "6억 5,000",
+      "minPrice": 6.5,
+      "maxPrice": 6.5,
+      "confirmDate": "2026.11.09",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_102",
       "articleId": null,
       "articleNos": [
         "2660631148",
@@ -2523,27 +2543,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_102",
-      "articleId": "2660604462",
-      "articleNos": [
-        "2660604462"
-      ],
-      "dong": "105동",
-      "type": "78OB",
-      "floor": "고/58층",
-      "direction": "남서향",
-      "floorCat": "고층",
-      "priceRaw": "6억 5,000",
-      "minPrice": 6.5,
-      "maxPrice": 6.5,
-      "confirmDate": "2026.11.09",
-      "agencyCount": 1,
-      "agencyInfo": "",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_103",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_103",
       "articleId": "2662806340",
       "articleNos": [
         "2662806340"
@@ -2563,7 +2563,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_104",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_104",
       "articleId": "2660387566",
       "articleNos": [
         "2660387566"
@@ -2583,7 +2583,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_105",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_105",
       "articleId": null,
       "articleNos": [
         "2659791726",
@@ -2604,7 +2604,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_106",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_106",
       "articleId": "2660178498",
       "articleNos": [
         "2660178498"
@@ -2624,7 +2624,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_107",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_107",
       "articleId": "2659693385",
       "articleNos": [
         "2659693385"
@@ -2644,7 +2644,27 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_108",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_108",
+      "articleId": "2658904239",
+      "articleNos": [
+        "2658904239"
+      ],
+      "dong": "102동",
+      "type": "78OB",
+      "floor": "고/58층",
+      "direction": "남동향",
+      "floorCat": "고층",
+      "priceRaw": "6억",
+      "minPrice": 6.0,
+      "maxPrice": 6.0,
+      "confirmDate": "2026.11.02",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_109",
       "articleId": "2658995361",
       "articleNos": [
         "2658995361"
@@ -2664,7 +2684,27 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_109",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_110",
+      "articleId": "2660134407",
+      "articleNos": [
+        "2660134407"
+      ],
+      "dong": "105동",
+      "type": "78OB",
+      "floor": "40/58층",
+      "direction": "남서향",
+      "floorCat": "고층",
+      "priceRaw": "6억 6,000",
+      "minPrice": 6.6,
+      "maxPrice": 6.6,
+      "confirmDate": "2026.11.06",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_111",
       "articleId": null,
       "articleNos": [
         "2658944315",
@@ -2685,7 +2725,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_110",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_112",
       "articleId": "2659129704",
       "articleNos": [
         "2659129704"
@@ -2705,47 +2745,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_111",
-      "articleId": "2660134407",
-      "articleNos": [
-        "2660134407"
-      ],
-      "dong": "105동",
-      "type": "78OB",
-      "floor": "40/58층",
-      "direction": "남서향",
-      "floorCat": "고층",
-      "priceRaw": "6억 6,000",
-      "minPrice": 6.6,
-      "maxPrice": 6.6,
-      "confirmDate": "2026.11.06",
-      "agencyCount": 1,
-      "agencyInfo": "",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_112",
-      "articleId": "2658904239",
-      "articleNos": [
-        "2658904239"
-      ],
-      "dong": "102동",
-      "type": "78OB",
-      "floor": "고/58층",
-      "direction": "남동향",
-      "floorCat": "고층",
-      "priceRaw": "6억",
-      "minPrice": 6.0,
-      "maxPrice": 6.0,
-      "confirmDate": "2026.11.02",
-      "agencyCount": 1,
-      "agencyInfo": "",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_113",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_113",
       "articleId": "2661151532",
       "articleNos": [
         "2661151532"
@@ -2765,7 +2765,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_114",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_114",
       "articleId": "2658837385",
       "articleNos": [
         "2658837385"
@@ -2785,27 +2785,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_115",
-      "articleId": "2658569663",
-      "articleNos": [
-        "2658569663"
-      ],
-      "dong": "103동",
-      "type": "78OB",
-      "floor": "중/58층",
-      "direction": "남서향",
-      "floorCat": "중층",
-      "priceRaw": "5억 7,000",
-      "minPrice": 5.7,
-      "maxPrice": 5.7,
-      "confirmDate": "2026.10.30",
-      "agencyCount": 1,
-      "agencyInfo": "",
-      "desc": "",
-      "baseTag": ""
-    },
-    {
-      "id": "nas_d768921ed7294765be789984fedcde47_116",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_115",
       "articleId": "2658647753",
       "articleNos": [
         "2658647753"
@@ -2825,7 +2805,27 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_117",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_116",
+      "articleId": "2658569663",
+      "articleNos": [
+        "2658569663"
+      ],
+      "dong": "103동",
+      "type": "78OB",
+      "floor": "중/58층",
+      "direction": "남서향",
+      "floorCat": "중층",
+      "priceRaw": "5억 7,000",
+      "minPrice": 5.7,
+      "maxPrice": 5.7,
+      "confirmDate": "2026.10.30",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_117",
       "articleId": "2658280451",
       "articleNos": [
         "2658280451"
@@ -2845,7 +2845,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_118",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_118",
       "articleId": "2658339438",
       "articleNos": [
         "2658339438"
@@ -2865,7 +2865,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_119",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_119",
       "articleId": "2658256780",
       "articleNos": [
         "2658256780"
@@ -2885,7 +2885,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_120",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_120",
       "articleId": "2664108484",
       "articleNos": [
         "2664108484"
@@ -2905,7 +2905,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_121",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_121",
       "articleId": "2659380000",
       "articleNos": [
         "2659380000"
@@ -2925,7 +2925,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_d768921ed7294765be789984fedcde47_122",
+      "id": "nas_2563d8032afc4ea695bd811d49b2e664_122",
       "articleId": "2658114255",
       "articleNos": [
         "2658114255"
@@ -2951,9 +2951,9 @@
     "kind": "naver-live",
     "url": "https://fin.land.naver.com/complexes/140635",
     "collectionPath": "nas-docker",
-    "runId": "d768921ed7294765be789984fedcde47",
-    "importPath": "nas-imports/140635/d768921ed7294765be789984fedcde47.json",
-    "importCommit": "bba598fdeb5c2281bd21c6ea0ee1587bc8b38f93",
+    "runId": "2563d8032afc4ea695bd811d49b2e664",
+    "importPath": "nas-imports/140635/2563d8032afc4ea695bd811d49b2e664.json",
+    "importCommit": "d474b62b565dda81dd8304cb53296051bd31814e",
     "articleCount": 602
   },
   "validation": {
@@ -2963,5 +2963,5 @@
     "method": "nas-full-card-member-price-validation",
     "identityCount": 43
   },
-  "label": "2026-11-27 20:53"
+  "label": "2026-11-27 21:27"
 }
