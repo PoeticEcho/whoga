@@ -1,0 +1,10 @@
+{
+  "url": "https://new.land.naver.com/api/complexes/single-markers/2.0?cortarNo=4427010600&zoom=15&priceType=RETAIL&markerId&markerType&selectedComplexNo&selectedComplexBuildingNo&fakeComplexMarker&realEstateType=APT%3APRE%3AABYG%3AJGC&tradeType=&tag=%3A%3A%3A%3A%3A%3A%3A%3A&rentPriceMin=0&rentPriceMax=900000000&priceMin=0&priceMax=900000000&areaMin=0&areaMax=900000000&oldBuildYears&recentlyBuildYears&minHouseHoldCount&maxHouseHoldCount&showArticle=false&sameAddressGroup=false&minMaintenanceCost&maxMaintenanceCost&directions=&leftLon=126.5956546&rightLon=126.7017843&topLat=36.9135872&bottomLat=36.872813&isPresale=true",
+  "reference": "https://github.com/BiohPark/naverland/blob/main/main.py",
+  "scope": "author-example-map-markers",
+  "headers": {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Safari/537.36",
+    "Accept": "application/json, text/javascript, */*; q=0.01",
+    "Referer": "https://new.land.naver.com/"
+  }
+}
