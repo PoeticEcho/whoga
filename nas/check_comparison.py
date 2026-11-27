@@ -26,7 +26,7 @@ def fixture(context, page):
         <script>
           const warm = sessionStorage.getItem('seen'); sessionStorage.setItem('seen','yes');
           document.addEventListener('DOMContentLoaded', () => {
-            document.body.innerHTML = warm ? '<h3>매물<strong>122</strong><span>개</span><button>도움말 보기</button></h3><ul class="ComplexArticleTab_test__article"><li><a href="/articles/123">매매 7억</a></li></ul>' : '<h3>매물 0</h3>';
+            document.body.innerHTML = warm ? '<section id="complex_detail"><h3>매물<strong>122</strong><span>개</span><button>도움말 보기</button></h3><ul class="ComplexArticleTab_test__article"><li><a href="/articles/123"><span class="c_name">단지</span><span class="c_price">매매 7억</span></a><span class="c_item-summary">오피스텔</span></li></ul></section>' : '<h3>매물 0</h3>';
             fetch('/front-api/v1/complex/auth/mount'); fetch('/front-api/v1/complex/article/list');
             fetch('https://nlog.naver.com/n', {method:'POST'}).catch(()=>{});
           });

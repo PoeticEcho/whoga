@@ -77,9 +77,22 @@ class CollectionRegression(unittest.TestCase):
         self.assertTrue(snapshot['panelTabs'][0]['ariaHidden'])
         self.assertGreater(snapshot['panelScroll']['top'], 0)
 
+    def test_renamed_list_and_fields_collect_all_124(self):
+        html = HTML.replace('122', '124').replace('ComplexArticleTab_fixture__article', 'hash_list')
+        html = html.replace('class="__', 'class="hash_').replace('<h4>', '<ul><li><b class="hash_name">광고</b><b class="hash_price">매매 1억</b><b class="hash_item-summary">오피스텔</b></li></ul><h4>')
+        html = html.replace("list=document.querySelector('ul')", "list=document.querySelector('.hash_list')")
+        self.context.route('**/*', lambda route: route.fulfill(content_type='text/html; charset=utf-8', body=html))
+        self.page.reload()
+        for probe, counts in [(True, (3, 33)), (False, (124, 154))]:
+            raw, expected, _, _, target = collector.collect(self.page, TARGET, probe=probe)
+            groups, members = collector.normalize(raw, len(raw) if probe else expected,
+                                                  target['complexName'], target['estateTypeText'])
+            self.assertEqual((len(groups), len(members)), counts)
+        self.assertEqual(page_snapshot(self.page)['cardCount'], 124)
+
     def test_new_run_reopens_stale_122_cards_and_reads_current_118(self):
         self.page.evaluate('() => {while(added<122)append();}')
-        self.assertEqual(self.page.locator(collector.CARDS).count(),122)
+        self.assertEqual(self.page.evaluate(f'() => {collector.CARD_DOM}.rows().length'),122)
         def current_response(route):
             self.documents.append(route.request.url)
             route.fulfill(status=200,content_type='text/html; charset=utf-8',body=HTML.replace('122','118'))

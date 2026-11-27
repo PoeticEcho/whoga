@@ -145,6 +145,8 @@ class BrowserEvents:
             self.dirty = False
 
 
+CARD_DOM = (Path(__file__).resolve().parents[1] / 'experiments/supplied-v2/card-dom.js').read_text(encoding='utf-8')
+
 PAGE_SNAPSHOT = r'''(() => {
   const visible = el => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
   const panel = document.querySelector('#complex_detail');
@@ -159,7 +161,7 @@ PAGE_SNAPSHOT = r'''(() => {
       ariaHidden: Boolean(el.closest('[aria-hidden="true"]')), visible: visible(el)
     })) : [],
     panelScroll: panel ? {top: panel.scrollTop, height: panel.clientHeight, contentHeight: panel.scrollHeight} : null,
-    cardCount: document.querySelectorAll('ul[class*="ComplexArticleTab"][class*="__article"] > li').length,
+    cardCount: (''' + CARD_DOM + r''').rows().length,
     saleFilter: panel?.querySelector('button[id="거래유형"]')?.textContent.trim() || null,
     metaCsp: [...document.querySelectorAll('meta[http-equiv]')]
       .filter(el => el.httpEquiv.toLowerCase() === 'content-security-policy').map(el => el.content),

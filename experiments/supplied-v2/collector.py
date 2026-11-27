@@ -17,25 +17,25 @@ import time
 from urllib.parse import urlparse, parse_qs, urljoin
 
 KST = timezone(timedelta(hours=9))
-CARDS = 'ul[class*="ComplexArticleTab"][class*="__article"] > li'
-EXTRACT = r'''els => els.map((el, index) => {
-  const data = el.firstElementChild;
+CARD_DOM = Path(__file__).with_name('card-dom.js').read_text(encoding='utf-8')
+EXTRACT = r'''(el, dom) => {
   const t = (root, selector) => root.querySelector(selector)?.textContent.trim() || null;
-  const id = root => root.querySelector('a[class*="__link"]')?.getAttribute('href')?.match(/^\/articles\/(\d+)(?:\/|\?|$)/)?.[1] || null;
-  const group = t(data, '[class*="__text-more"]');
+  const id = root => root.querySelector('a[href^="/articles/"]')?.getAttribute('href')?.match(/^\/articles\/(\d+)(?:\/|\?|$)/)?.[1] || null;
+  const group = t(el, dom.group);
   return {
-    index, name: t(data, '[class*="__name"]'),
-    priceText: t(data, 'span[class*="__price"]'),
-    summary: Array.from(data.querySelectorAll('[class*="__item-summary"]')).map(x => x.textContent.trim()),
-    badge: t(data, '[data-sentry-component="PropertyBadgeList"]'),
+    name: t(el, dom.name),
+    priceText: t(el, dom.price),
+    summary: Array.from(el.querySelectorAll(dom.summary))
+      .filter(x => !x.closest('[data-sentry-component="ArticleCardSub"]')).map(x => x.textContent.trim()),
+    badge: t(el, '[data-sentry-component="PropertyBadgeList"]'),
     agentCount: group ? Number(group.match(/\d+/)?.[0]) : null,
-    articleNo: group ? null : id(data),
+    articleNo: group ? null : id(el),
     articles: Array.from(el.querySelectorAll('[data-sentry-component="ArticleCardSub"]')).map(s => ({
-      articleNo: id(s), priceText: t(s, 'span[class*="__price"]'),
+      articleNo: id(s), priceText: t(s, dom.price),
       badge: t(s, '[data-sentry-component="PropertyBadgeList"]')
     }))
   };
-})'''
+}'''
 
 
 def now():
@@ -243,41 +243,52 @@ def collect(page, url, probe=False, sample_cards=3, progress=None, navigation_ur
     if expected <= 0:
         raise ValueError('매매 0건: 로딩/실제 0건 구별이 필요하므로 자동 저장하지 않습니다')
     step('first-cards', displayedCount=expected)
-    cards = page.locator(CARDS)
-    cards.first.wait_for(timeout=30000)
-    page.wait_for_function('''selector => {
-      const els = [...document.querySelectorAll(selector)];
-      return els.length > 0 && els.every(el => el.querySelector('span[class*="__price"]')?.textContent.startsWith('매매 '));
-    }''', arg=CARDS, timeout=30000)
+    def card_count():
+        return page.evaluate(f'() => {CARD_DOM}.rows().length')
+
+    page.wait_for_function(f"""() => {{
+      const dom = {CARD_DOM};
+      const rows = dom.rows();
+      return rows.length && rows.every(el => el.querySelector(dom.price)?.textContent.trim().startsWith('매매 '));
+    }}""", timeout=30000)
     expected = header_count(page)
-    observed_counts = [cards.count()]
+    observed_counts = [card_count()]
     metadata = {'documentNavigatedAt': document_navigated_at, 'complexNo': complex_id, 'complexName': complex_name, 'tradeType': 'A1',
                 'sourceUrl': url, 'scope': 'selected-complex-sale-with-current-panel-filters',
                 'panelFilters': panel.locator('button[id]').evaluate_all('(els) => els.map(el => ({id:el.id,text:el.textContent.trim()}))')}
     # 실제 스크롤 대상은 window가 아니라 #complex_detail입니다.
     for _ in range(100):
-        current = cards.count()
+        current = card_count()
         if probe or current >= expected:
             break
         step('scroll-list', loadedCards=current, displayedCount=expected)
-        cards.last.scroll_into_view_if_needed()
+        page.evaluate(f'() => {CARD_DOM}.rows().at(-1).scrollIntoView({{block: "nearest"}})')
         panel.evaluate('(el) => {el.scrollTop += Math.max(200, el.clientHeight / 2);}')
         try:
-            page.wait_for_function('(p) => document.querySelectorAll(p.selector).length > p.count',
-                                   arg={'selector': CARDS, 'count': current}, timeout=20000)
+            page.wait_for_function(f'count => {CARD_DOM}.rows().length > count', arg=current, timeout=20000)
         except Exception:
             check_block(page)
             raise RuntimeError(f'추가 페이지 로드 중단: {current}/{expected}')
-        observed_counts.append(cards.count())
+        observed_counts.append(card_count())
         time.sleep(1)
-    if not probe and cards.count() != expected:
+    if not probe and card_count() != expected:
         raise RuntimeError('화면 건수와 로드된 카드 수가 다릅니다')
-    limit = min(sample_cards, cards.count()) if probe else expected
+    limit = min(sample_cards, card_count()) if probe else expected
     results = []
     for index in range(limit):
         step('extract-card', cardIndex=index, sampleSize=limit)
         check_block(page)
-        card = cards.nth(index)
+        path = page.evaluate(f"""index => {{
+          let node = {CARD_DOM}.rows()[index];
+          if (!node) throw Error('매물 카드 위치가 변경되었습니다');
+          const parts = [];
+          while (node.id !== 'complex_detail') {{
+            parts.unshift(':nth-child(' + (Array.prototype.indexOf.call(node.parentElement.children, node) + 1) + ')');
+            node = node.parentElement;
+          }}
+          return '#complex_detail > ' + parts.join(' > ');
+        }}""", index)
+        card = page.locator(path)
         expand = card.get_by_role('button', name='매물목록 펼치기')
         grouped = expand.count() > 0
         if grouped:
@@ -285,13 +296,17 @@ def collect(page, url, probe=False, sample_cards=3, progress=None, navigation_ur
             expand.click()
             card.locator('[data-sentry-component="ArticleCardSub"]').first.wait_for(state='attached', timeout=20000)
             # UI가 알리는 묶음 수량까지 기다리고, 부분 응답은 성공으로 저장하지 않습니다.
-            wanted = int(re.search(r'\d+', card.locator('[class*="__text-more"]').inner_text())[0])
+            wanted = int(re.search(r'\d+', card.evaluate(f'el => el.querySelector({CARD_DOM}.group).textContent'))[0])
             deadline = time.monotonic() + 20
             while card.locator('[data-sentry-component="ArticleCardSub"]').count() < wanted:
                 if time.monotonic() >= deadline:
                     raise RuntimeError(f'{index}번 묶음 부분 로딩')
                 time.sleep(.5)
-        row = card.evaluate('(el) => (' + EXTRACT + ')([el])[0]')
+        row = card.evaluate(f"""(el, index) => {{
+          const dom = {CARD_DOM};
+          if (dom.rows()[index] !== el) throw Error('수집 도중 카드 위치가 변경되었습니다');
+          return ({EXTRACT})(el, dom);
+        }}""", index)
         row['index'] = index
         results.append(row)
         if grouped:
@@ -299,7 +314,7 @@ def collect(page, url, probe=False, sample_cards=3, progress=None, navigation_ur
         print(f'카드 {index + 1}/{limit} (화면 총 {expected})', flush=True)
         time.sleep(1)
     step('verify-counts', extractedCards=len(results), displayedCount=expected)
-    if header_count(page) != expected or (not probe and cards.count() != expected):
+    if header_count(page) != expected or (not probe and card_count() != expected):
         raise RuntimeError('수집 도중 목록 건수가 변경되었습니다')
     metadata['estateTypeText'] = results[0]['summary'][0]
     return results, expected, observed_counts, page.url, metadata

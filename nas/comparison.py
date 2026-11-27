@@ -8,7 +8,7 @@ from urllib.parse import urlsplit
 
 from browser_control import reserve_display
 from browser_runtime import bootstrap, configure, launch
-from diagnostics import BrowserEvents, classify, clean, page_snapshot, write_json
+from diagnostics import CARD_DOM, BrowserEvents, classify, clean, page_snapshot, write_json
 from resources import resource_snapshot
 
 PROFILES = [('desktop', 1440, 900), ('responsive', 400, 848), ('android', 400, 848)]
@@ -18,7 +18,7 @@ LISTING = r'''(() => {
     .filter(visible).map(el => el.textContent.trim()).find(t => /^매물\s*[\d,]+/.test(t));
   const links = [...document.querySelectorAll('a[href]')].filter(el => visible(el) &&
     /^\/articles\/\d+/.test(new URL(el.href, location.href).pathname));
-  const cards = [...document.querySelectorAll('ul[class*="ComplexArticleTab"][class*="__article"] > li')].filter(visible);
+  const cards = (''' + CARD_DOM + r''').rows().filter(visible);
   return {heading: heading || null, count: heading ? Number(heading.match(/^매물\s*([\d,]+)/)[1].replace(/,/g,'')) : null,
     visibleCards: cards.length, visibleArticleLinks: new Set(links.map(el => new URL(el.href).pathname)).size,
     sampleText: (cards.length ? cards : links).slice(0,3).map(el => el.innerText.slice(0,1200))};

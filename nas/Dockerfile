@@ -7,7 +7,7 @@ RUN mkdir /opt/whoga-novnc && cp -RL /usr/share/novnc/core /usr/share/novnc/vend
 WORKDIR /app
 COPY experiments/supplied-v2/requirements.txt /app/requirements.txt
 RUN python -m pip install --no-cache-dir -r /app/requirements.txt
-COPY experiments/supplied-v2/collector.py /app/experiments/supplied-v2/collector.py
+COPY experiments/supplied-v2/collector.py experiments/supplied-v2/card-dom.js /app/experiments/supplied-v2/
 COPY nas/telegram_control.py nas/telegram_setup.py nas/plan.py nas/run.py nas/web.py nas/desktop.py nas/entrypoint.py nas/diagnostics.py nas/resources.py nas/comparison.py nas/browser_control.py nas/browser_runtime.py nas/version.py nas/source-version.json /app/nas/
 COPY nas/static /app/nas/static
 ARG VCS_REF=unknown

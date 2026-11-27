@@ -6,10 +6,10 @@ from pathlib import Path
 import re
 import sys
 
-VERSION = '3.3.0'
+VERSION = '3.3.1'
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_FILES = [
-    'experiments/supplied-v2/collector.py',
+    'experiments/supplied-v2/collector.py', 'experiments/supplied-v2/card-dom.js',
     'nas/telegram_control.py', 'nas/telegram_setup.py', 'nas/plan.py', 'nas/run.py', 'nas/web.py', 'nas/desktop.py', 'nas/entrypoint.py',
     'nas/diagnostics.py', 'nas/resources.py', 'nas/version.py', 'nas/comparison.py', 'nas/browser_control.py', 'nas/browser_runtime.py',
 ]
