@@ -3,9 +3,15 @@
   "complexes": [
     {
       "complexNo": "140635",
-      "label": "수성범어W 오피스텔",
+      "label": "W오피스텔",
       "dataPath": "data",
       "ready": true
+    },
+    {
+      "complexNo": "150278",
+      "label": "범어자이",
+      "dataPath": "data/complexes/150278",
+      "ready": false
     }
   ]
 }
