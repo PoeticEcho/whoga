@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
   "date": "2026-11-28",
-  "collectedAt": "2026-11-28T03:23:10+09:00",
+  "collectedAt": "2026-11-28T15:23:18+09:00",
   "count": 5,
   "declaredCount": 5,
   "items": [
     {
-      "id": "nas_8accef8bfd45434ab906c0e96e0511b5_0",
+      "id": "nas_1950f6380b234c49813534a8a000e625_0",
       "articleId": null,
       "articleNos": [
         "2664203961",
@@ -34,7 +34,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_8accef8bfd45434ab906c0e96e0511b5_1",
+      "id": "nas_1950f6380b234c49813534a8a000e625_1",
       "articleId": "2663971145",
       "articleNos": [
         "2663971145"
@@ -54,7 +54,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_8accef8bfd45434ab906c0e96e0511b5_2",
+      "id": "nas_1950f6380b234c49813534a8a000e625_2",
       "articleId": "2663891019",
       "articleNos": [
         "2663891019"
@@ -74,7 +74,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_8accef8bfd45434ab906c0e96e0511b5_3",
+      "id": "nas_1950f6380b234c49813534a8a000e625_3",
       "articleId": null,
       "articleNos": [
         "2662663001",
@@ -96,7 +96,7 @@
       "baseTag": ""
     },
     {
-      "id": "nas_8accef8bfd45434ab906c0e96e0511b5_4",
+      "id": "nas_1950f6380b234c49813534a8a000e625_4",
       "articleId": "2661765111",
       "articleNos": [
         "2661765111"
@@ -122,9 +122,9 @@
     "kind": "naver-live",
     "url": "https://fin.land.naver.com/complexes/150278",
     "collectionPath": "nas-docker",
-    "runId": "8accef8bfd45434ab906c0e96e0511b5",
-    "importPath": "nas-imports/150278/8accef8bfd45434ab906c0e96e0511b5.json",
-    "importCommit": "4c74a24553023a7765cd02c716c11d35b7400266",
+    "runId": "1950f6380b234c49813534a8a000e625",
+    "importPath": "nas-imports/150278/1950f6380b234c49813534a8a000e625.json",
+    "importCommit": "150e52804bc7d16dd321598c9ea6f5ba539c26ac",
     "articleCount": 15
   },
   "validation": {
@@ -134,5 +134,5 @@
     "method": "nas-full-card-member-price-validation",
     "identityCount": 3
   },
-  "label": "2026-11-28 03:23"
+  "label": "2026-11-28 15:23"
 }
