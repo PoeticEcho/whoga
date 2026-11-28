@@ -1,0 +1,360 @@
+{
+  "schemaVersion": "nas-experiment-1",
+  "runId": "8638ca31d5af41ffa10185adc0578827",
+  "target": {
+    "documentNavigatedAt": "2026-11-29T03:22:54+09:00",
+    "complexNo": "150278",
+    "complexName": "범어자이(주상복합)",
+    "tradeType": "A1",
+    "sourceUrl": "https://fin.land.naver.com/complexes/150278",
+    "scope": "selected-complex-sale-with-current-panel-filters",
+    "panelFilters": [
+      {
+        "id": "거래유형",
+        "text": "매매"
+      },
+      {
+        "id": "가격",
+        "text": "가격"
+      },
+      {
+        "id": "면적",
+        "text": "전체면적"
+      },
+      {
+        "id": "동",
+        "text": "전체동"
+      }
+    ],
+    "estateTypeText": "아파트"
+  },
+  "collectedAt": "2026-11-29T03:23:19+09:00",
+  "mode": "full",
+  "displayedCardCount": 5,
+  "collectedCardCount": 5,
+  "articleCount": 15,
+  "observedCardCounts": [
+    5
+  ],
+  "finalUrl": "https://fin.land.naver.com/map?layer=NobwRAlgJmBcYGMD2BbADgGwKYA8D6UWALgIYQZgA0YaJATiSgM5zjLrY4CSMsAjAFYADACYA7AA4AvtSZZ6CABYAFeoxaxwpAEZww9IhATYq%2BuoeNYAKg0JWAnmiwawAQT5gpUgLpA&tradeTypes=A1-B1&realEstateTypes=A01-A04-B01&center=3zhF48-2AM354&zoom=15",
+  "publicationEligible": false,
+  "cards": [
+    {
+      "cardIndex": 0,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 18억",
+      "priceMinWon": 1800000000,
+      "priceMaxWon": 1800000000,
+      "summary": [
+        "아파트",
+        "156㎡ (전용114.96)",
+        "중/32층",
+        "동향"
+      ],
+      "uiAgentCount": 9,
+      "groupedArticleCount": 9,
+      "sameAddressCount": null,
+      "articleNos": [
+        "2664203961",
+        "2663854189",
+        "2663263904",
+        "2663193153",
+        "2663181619",
+        "2662403359",
+        "2661183324",
+        "2660733688",
+        "2660206234"
+      ]
+    },
+    {
+      "cardIndex": 1,
+      "name": "범어자이(주상복합) 102동",
+      "priceText": "매매 14억",
+      "priceMinWon": 1400000000,
+      "priceMaxWon": 1400000000,
+      "summary": [
+        "아파트",
+        "116A㎡ (전용84.96A)",
+        "고/33층",
+        "서향"
+      ],
+      "uiAgentCount": null,
+      "groupedArticleCount": null,
+      "sameAddressCount": null,
+      "articleNos": [
+        "2663971145"
+      ]
+    },
+    {
+      "cardIndex": 2,
+      "name": "범어자이(주상복합) 103동",
+      "priceText": "매매 13억 5,000",
+      "priceMinWon": 1350000000,
+      "priceMaxWon": 1350000000,
+      "summary": [
+        "아파트",
+        "115C㎡ (전용84.98C)",
+        "중/34층",
+        "남향"
+      ],
+      "uiAgentCount": null,
+      "groupedArticleCount": null,
+      "sameAddressCount": null,
+      "articleNos": [
+        "2663891019"
+      ]
+    },
+    {
+      "cardIndex": 3,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 15억",
+      "priceMinWon": 1500000000,
+      "priceMaxWon": 1500000000,
+      "summary": [
+        "아파트",
+        "116A㎡ (전용84.96A)",
+        "3/32층",
+        "동향"
+      ],
+      "uiAgentCount": 3,
+      "groupedArticleCount": 3,
+      "sameAddressCount": null,
+      "articleNos": [
+        "2662663001",
+        "2661466673",
+        "2661147925"
+      ]
+    },
+    {
+      "cardIndex": 4,
+      "name": "범어자이(주상복합) 102동",
+      "priceText": "매매 16억",
+      "priceMinWon": 1600000000,
+      "priceMaxWon": 1600000000,
+      "summary": [
+        "아파트",
+        "116A㎡ (전용84.96A)",
+        "중/33층",
+        "서향"
+      ],
+      "uiAgentCount": null,
+      "groupedArticleCount": null,
+      "sameAddressCount": null,
+      "articleNos": [
+        "2661765111"
+      ]
+    }
+  ],
+  "articles": [
+    {
+      "articleNo": "2664203961",
+      "cardIndex": 0,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 18억",
+      "priceMinWon": 1800000000,
+      "priceMaxWon": 1800000000,
+      "areaText": "156㎡ (전용114.96)",
+      "floorInfo": "중/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.26",
+      "displayDate": "2026.11.26",
+      "sourceUrl": "https://fin.land.naver.com/articles/2664203961"
+    },
+    {
+      "articleNo": "2663854189",
+      "cardIndex": 0,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 18억",
+      "priceMinWon": 1800000000,
+      "priceMaxWon": 1800000000,
+      "areaText": "156㎡ (전용114.96)",
+      "floorInfo": "중/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.24",
+      "displayDate": "2026.11.24",
+      "sourceUrl": "https://fin.land.naver.com/articles/2663854189"
+    },
+    {
+      "articleNo": "2663263904",
+      "cardIndex": 0,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 18억",
+      "priceMinWon": 1800000000,
+      "priceMaxWon": 1800000000,
+      "areaText": "156㎡ (전용114.96)",
+      "floorInfo": "중/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.21",
+      "displayDate": "2026.11.21",
+      "sourceUrl": "https://fin.land.naver.com/articles/2663263904"
+    },
+    {
+      "articleNo": "2663193153",
+      "cardIndex": 0,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 18억",
+      "priceMinWon": 1800000000,
+      "priceMaxWon": 1800000000,
+      "areaText": "156㎡ (전용114.96)",
+      "floorInfo": "중/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.21",
+      "displayDate": "2026.11.21",
+      "sourceUrl": "https://fin.land.naver.com/articles/2663193153"
+    },
+    {
+      "articleNo": "2663181619",
+      "cardIndex": 0,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 18억",
+      "priceMinWon": 1800000000,
+      "priceMaxWon": 1800000000,
+      "areaText": "156㎡ (전용114.96)",
+      "floorInfo": "중/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.20",
+      "displayDate": "2026.11.20",
+      "sourceUrl": "https://fin.land.naver.com/articles/2663181619"
+    },
+    {
+      "articleNo": "2662403359",
+      "cardIndex": 0,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 18억",
+      "priceMinWon": 1800000000,
+      "priceMaxWon": 1800000000,
+      "areaText": "156㎡ (전용114.96)",
+      "floorInfo": "중/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.17",
+      "displayDate": "2026.11.17",
+      "sourceUrl": "https://fin.land.naver.com/articles/2662403359"
+    },
+    {
+      "articleNo": "2661183324",
+      "cardIndex": 0,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 18억",
+      "priceMinWon": 1800000000,
+      "priceMaxWon": 1800000000,
+      "areaText": "156㎡ (전용114.96)",
+      "floorInfo": "중/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.11",
+      "displayDate": "2026.11.11",
+      "sourceUrl": "https://fin.land.naver.com/articles/2661183324"
+    },
+    {
+      "articleNo": "2660733688",
+      "cardIndex": 0,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 18억",
+      "priceMinWon": 1800000000,
+      "priceMaxWon": 1800000000,
+      "areaText": "156㎡ (전용114.96)",
+      "floorInfo": "중/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.09",
+      "displayDate": "2026.11.09",
+      "sourceUrl": "https://fin.land.naver.com/articles/2660733688"
+    },
+    {
+      "articleNo": "2660206234",
+      "cardIndex": 0,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 18억",
+      "priceMinWon": 1800000000,
+      "priceMaxWon": 1800000000,
+      "areaText": "156㎡ (전용114.96)",
+      "floorInfo": "중/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.06",
+      "displayDate": "2026.11.06",
+      "sourceUrl": "https://fin.land.naver.com/articles/2660206234"
+    },
+    {
+      "articleNo": "2663971145",
+      "cardIndex": 1,
+      "name": "범어자이(주상복합) 102동",
+      "priceText": "매매 14억",
+      "priceMinWon": 1400000000,
+      "priceMaxWon": 1400000000,
+      "areaText": "116A㎡ (전용84.96A)",
+      "floorInfo": "고/33층",
+      "direction": "서향",
+      "badgeText": "집주인확인매물 2026.11.25",
+      "displayDate": "2026.11.25",
+      "sourceUrl": "https://fin.land.naver.com/articles/2663971145"
+    },
+    {
+      "articleNo": "2663891019",
+      "cardIndex": 2,
+      "name": "범어자이(주상복합) 103동",
+      "priceText": "매매 13억 5,000",
+      "priceMinWon": 1350000000,
+      "priceMaxWon": 1350000000,
+      "areaText": "115C㎡ (전용84.98C)",
+      "floorInfo": "중/34층",
+      "direction": "남향",
+      "badgeText": "집주인확인매물 2026.11.24",
+      "displayDate": "2026.11.24",
+      "sourceUrl": "https://fin.land.naver.com/articles/2663891019"
+    },
+    {
+      "articleNo": "2662663001",
+      "cardIndex": 3,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 15억",
+      "priceMinWon": 1500000000,
+      "priceMaxWon": 1500000000,
+      "areaText": "116A㎡ (전용84.96A)",
+      "floorInfo": "3/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.18",
+      "displayDate": "2026.11.18",
+      "sourceUrl": "https://fin.land.naver.com/articles/2662663001"
+    },
+    {
+      "articleNo": "2661466673",
+      "cardIndex": 3,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 15억",
+      "priceMinWon": 1500000000,
+      "priceMaxWon": 1500000000,
+      "areaText": "116A㎡ (전용84.96A)",
+      "floorInfo": "3/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.12",
+      "displayDate": "2026.11.12",
+      "sourceUrl": "https://fin.land.naver.com/articles/2661466673"
+    },
+    {
+      "articleNo": "2661147925",
+      "cardIndex": 3,
+      "name": "범어자이(주상복합) 104동",
+      "priceText": "매매 15억",
+      "priceMinWon": 1500000000,
+      "priceMaxWon": 1500000000,
+      "areaText": "116A㎡ (전용84.96A)",
+      "floorInfo": "3/32층",
+      "direction": "동향",
+      "badgeText": "집주인확인매물 2026.11.11",
+      "displayDate": "2026.11.11",
+      "sourceUrl": "https://fin.land.naver.com/articles/2661147925"
+    },
+    {
+      "articleNo": "2661765111",
+      "cardIndex": 4,
+      "name": "범어자이(주상복합) 102동",
+      "priceText": "매매 16억",
+      "priceMinWon": 1600000000,
+      "priceMaxWon": 1600000000,
+      "areaText": "116A㎡ (전용84.96A)",
+      "floorInfo": "중/33층",
+      "direction": "서향",
+      "badgeText": "집주인확인매물 2026.11.13",
+      "displayDate": "2026.11.13",
+      "sourceUrl": "https://fin.land.naver.com/articles/2661765111"
+    }
+  ]
+}
