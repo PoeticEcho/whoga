@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 2,
+  "date": "2026-11-29",
+  "collectedAt": "2026-11-29T03:23:19+09:00",
+  "count": 5,
+  "declaredCount": 5,
+  "items": [
+    {
+      "id": "nas_8638ca31d5af41ffa10185adc0578827_0",
+      "articleId": null,
+      "articleNos": [
+        "2664203961",
+        "2663854189",
+        "2663263904",
+        "2663193153",
+        "2663181619",
+        "2662403359",
+        "2661183324",
+        "2660733688",
+        "2660206234"
+      ],
+      "dong": "104동",
+      "type": "156㎡ (전용114.96)",
+      "floor": "중/32층",
+      "direction": "동향",
+      "floorCat": "중층",
+      "priceRaw": "18억",
+      "minPrice": 18.0,
+      "maxPrice": 18.0,
+      "confirmDate": "2026.11.26",
+      "agencyCount": 9,
+      "agencyInfo": "중개사 9곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_8638ca31d5af41ffa10185adc0578827_1",
+      "articleId": "2663971145",
+      "articleNos": [
+        "2663971145"
+      ],
+      "dong": "102동",
+      "type": "116A㎡ (전용84.96A)",
+      "floor": "고/33층",
+      "direction": "서향",
+      "floorCat": "고층",
+      "priceRaw": "14억",
+      "minPrice": 14.0,
+      "maxPrice": 14.0,
+      "confirmDate": "2026.11.25",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_8638ca31d5af41ffa10185adc0578827_2",
+      "articleId": "2663891019",
+      "articleNos": [
+        "2663891019"
+      ],
+      "dong": "103동",
+      "type": "115C㎡ (전용84.98C)",
+      "floor": "중/34층",
+      "direction": "남향",
+      "floorCat": "중층",
+      "priceRaw": "13억 5,000",
+      "minPrice": 13.5,
+      "maxPrice": 13.5,
+      "confirmDate": "2026.11.24",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_8638ca31d5af41ffa10185adc0578827_3",
+      "articleId": null,
+      "articleNos": [
+        "2662663001",
+        "2661466673",
+        "2661147925"
+      ],
+      "dong": "104동",
+      "type": "116A㎡ (전용84.96A)",
+      "floor": "3/32층",
+      "direction": "동향",
+      "floorCat": "저층",
+      "priceRaw": "15억",
+      "minPrice": 15.0,
+      "maxPrice": 15.0,
+      "confirmDate": "2026.11.18",
+      "agencyCount": 3,
+      "agencyInfo": "중개사 3곳 공동등록",
+      "desc": "",
+      "baseTag": ""
+    },
+    {
+      "id": "nas_8638ca31d5af41ffa10185adc0578827_4",
+      "articleId": "2661765111",
+      "articleNos": [
+        "2661765111"
+      ],
+      "dong": "102동",
+      "type": "116A㎡ (전용84.96A)",
+      "floor": "중/33층",
+      "direction": "서향",
+      "floorCat": "중층",
+      "priceRaw": "16억",
+      "minPrice": 16.0,
+      "maxPrice": 16.0,
+      "confirmDate": "2026.11.13",
+      "agencyCount": 1,
+      "agencyInfo": "",
+      "desc": "",
+      "baseTag": ""
+    }
+  ],
+  "complexNo": "150278",
+  "complexName": "범어자이(주상복합)",
+  "source": {
+    "kind": "naver-live",
+    "url": "https://fin.land.naver.com/complexes/150278",
+    "collectionPath": "nas-docker",
+    "runId": "8638ca31d5af41ffa10185adc0578827",
+    "importPath": "nas-imports/150278/8638ca31d5af41ffa10185adc0578827.json",
+    "importCommit": "8b40ff79f33f636113a6dce5e729b8c5ad3a9677",
+    "articleCount": 15
+  },
+  "validation": {
+    "complete": true,
+    "declaredCount": 5,
+    "parsedCount": 5,
+    "method": "nas-full-card-member-price-validation",
+    "identityCount": 3
+  },
+  "label": "2026-11-29 03:23"
+}
